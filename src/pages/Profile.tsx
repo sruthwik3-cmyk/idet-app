@@ -53,24 +53,24 @@ const Profile: React.FC = () => {
         }
     };
 
-    const handleTestAlert = async () => {
+    const handleTestAlert = async (days: number) => {
         if (!userProfile?.email) return;
         setIsTesting(true);
-        // Simulate a date 30 days from now for the test
-        const testDate = new Date();
-        testDate.setDate(testDate.getDate() + 30);
-        const res = await sendExpiryAlert(userProfile.email, 'Verification Document', 30, testDate.toISOString());
 
-        console.log("Test Alert Response:", res);
+        // Simulate a date 'days' from now
+        const testDate = new Date();
+        testDate.setDate(testDate.getDate() + days);
+
+        const res = await sendExpiryAlert(userProfile.email, `Test ${days}-Day Document`, days, testDate.toISOString(), days <= 7 ? 'Critical' : 'Important');
+
+        console.log(`Test ${days}-Day Alert Response:`, res);
 
         if (res?.success) {
-            showNotification(res.isSimulation ? '[Simulation] Test alert sent to your email log.' : 'Test alert sent successfully to your Gmail!', 'success');
+            showNotification(res.isSimulation ? `[Simulation] ${days}-day alert sent to log.` : `${days}-day alert sent to Gmail!`, 'success');
         } else {
-            // Show the actual error message from the server if available
             const errorRes = res as any;
-            const errorMsg = errorRes?.error?.details || errorRes?.error?.error || 'Failed to send test alert. Check console.';
+            const errorMsg = errorRes?.error?.details || errorRes?.error?.error || 'Failed to send test.';
             showNotification(`Error: ${errorMsg}`, 'error');
-            console.error("Full Test Alert Error:", errorRes?.error);
         }
         setIsTesting(false);
     };
@@ -310,30 +310,51 @@ const Profile: React.FC = () => {
                                 `}</style>
                             </button>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
                             <div>
                                 <strong style={{ color: 'var(--text-primary)' }}>Gmail Alerts Service</strong>
-                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Automatic 30/7 day checks</p>
+                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Test automatic expiry emails</p>
                             </div>
-                            <button
-                                onClick={handleTestAlert}
-                                disabled={isTesting}
-                                className="badge badge-success"
-                                style={{
-                                    background: 'rgba(129, 140, 248, 0.1)',
-                                    color: 'var(--primary)',
-                                    border: '1px solid rgba(129, 140, 248, 0.2)',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.5rem 0.75rem',
-                                    opacity: isTesting ? 0.6 : 1,
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                <Send size={14} /> {isTesting ? 'Sending...' : 'Test Now'}
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    onClick={() => handleTestAlert(30)}
+                                    disabled={isTesting}
+                                    style={{
+                                        background: 'rgba(52, 211, 153, 0.1)',
+                                        color: '#34d399',
+                                        border: '1px solid rgba(52, 211, 153, 0.2)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 0.75rem',
+                                        fontSize: '0.85rem',
+                                        borderRadius: '6px',
+                                        opacity: isTesting ? 0.6 : 1
+                                    }}
+                                >
+                                    <Send size={14} /> Test 30-Day
+                                </button>
+                                <button
+                                    onClick={() => handleTestAlert(7)}
+                                    disabled={isTesting}
+                                    style={{
+                                        background: 'rgba(248, 113, 113, 0.1)',
+                                        color: '#f87171',
+                                        border: '1px solid rgba(248, 113, 113, 0.2)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 0.75rem',
+                                        fontSize: '0.85rem',
+                                        borderRadius: '6px',
+                                        opacity: isTesting ? 0.6 : 1
+                                    }}
+                                >
+                                    <Send size={14} /> Test 7-Day (Urgent)
+                                </button>
+                            </div>
                         </div>
                     </div>
 
