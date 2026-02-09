@@ -1,0 +1,65 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AppProvider, useApp } from './context/AppContext';
+import Layout from './components/Layout';
+
+// Pages
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import SetupProfile from './pages/SetupProfile';
+import AddDocument from './pages/AddDocument';
+import Alerts from './pages/Alerts';
+import Profile from './pages/Profile';
+import CalendarView from './pages/CalendarView';
+import NotFound from './pages/NotFound';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { userProfile, loading } = useApp();
+
+    // While loading auth state, show nothing or a splash screen
+    if (loading) {
+        return <div style={{ height: '100vh', background: '#09090b' }}></div>;
+    }
+
+    if (!userProfile) {
+        return <Navigate to="/" replace />;
+    }
+
+    // If profile exists but is missing essential info, force setup
+    if (!userProfile.fullName || !userProfile.userGroup) {
+        return <Navigate to="/setup-profile" replace />;
+    }
+
+    return <Layout>{children}</Layout>;
+};
+
+function AppRoutes() {
+    return (
+        <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
+
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/add-document" element={<ProtectedRoute><AddDocument /></ProtectedRoute>} />
+            <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+        </Routes>
+    );
+}
+
+function App() {
+    return (
+        <ErrorBoundary>
+            <AppProvider>
+                <Router>
+                    <AppRoutes />
+                </Router>
+            </AppProvider>
+        </ErrorBoundary>
+    );
+}
+
+export default App;
