@@ -60,10 +60,17 @@ const Profile: React.FC = () => {
         const testDate = new Date();
         testDate.setDate(testDate.getDate() + 30);
         const res = await sendExpiryAlert(userProfile.email, 'Verification Document', 30, testDate.toISOString());
+
+        console.log("Test Alert Response:", res);
+
         if (res?.success) {
             showNotification(res.isSimulation ? '[Simulation] Test alert sent to your email log.' : 'Test alert sent successfully to your Gmail!', 'success');
         } else {
-            showNotification('Failed to send test alert.', 'error');
+            // Show the actual error message from the server if available
+            const errorRes = res as any;
+            const errorMsg = errorRes?.error?.details || errorRes?.error?.error || 'Failed to send test alert. Check console.';
+            showNotification(`Error: ${errorMsg}`, 'error');
+            console.error("Full Test Alert Error:", errorRes?.error);
         }
         setIsTesting(false);
     };

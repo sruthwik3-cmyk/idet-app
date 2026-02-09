@@ -2,8 +2,23 @@
 
 Your application is now configured as a **Node.js Web Service**. This means it runs a lightweight server to handle both the website and the email sending.
 
-## Step 1: Push to GitHub
-Make sure your latest code (including `server.js` and `package.json` changes) is pushed to your GitHub repository.
+## Step 1: Create & Push to GitHub
+Since you haven't pushed your code yet, follow these steps:
+
+1.  **Create Repository:**
+    *   Go to [github.com/new](https://github.com/new).
+    *   Name it `idet-app` (or similar).
+    *   Click **Create repository**.
+    *   **Copy the HTTPS URL** (it looks like `https://github.com/your-username/idet-app.git`).
+
+2.  **Link & Push (Run in Terminal):**
+    Replace `YOUR_REPO_URL` with the URL you just copied:
+    ```bash
+    git remote remove origin
+    git remote add origin YOUR_REPO_URL
+    git branch -M main
+    git push -u origin main
+    ```
 
 ## Step 2: Create Web Service on Render
 1.  Go to [Render Dashboard](https://dashboard.render.com).
