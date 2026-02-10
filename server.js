@@ -64,7 +64,7 @@ app.post('/api/send-email', async (req, res) => {
 
 // Catch-all handler for any request that doesn't match an API route or static file
 // This is critical for SPA (Single Page Application) routing to work
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

@@ -75,15 +75,16 @@ ${isCritical ? 'Immediate renewal is strongly recommended.' : ''}
     } catch (error) {
         console.error("[EmailService] Email Send Error:", error);
 
+        const errorDetails = error instanceof Error ? error.message : String(error);
+
         // Fallback for simulation/dev mode if function is not running locally
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            const errorMsg = "Backend Unreachable: Email NOT Sent. Check node server.js";
+            const errorMsg = `Backend Error: ${errorDetails}. Check if 'node server.js' is running.`;
             console.error(`%c[BACKEND ERROR] ${errorMsg}`, 'color: #ef4444; font-weight: bold; font-size: 14px;');
 
-            // Return actual error so UI knows backend is down
-            return { success: false, isSimulation: false, error: new Error(errorMsg) };
+            return { success: false, isSimulation: false, error: { message: errorMsg, details: errorDetails } };
         }
 
-        return { success: false, error };
+        return { success: false, error: { message: "Failed to connect to email service.", details: errorDetails } };
     }
 };

@@ -69,7 +69,7 @@ const Profile: React.FC = () => {
             showNotification(res.isSimulation ? `[Simulation] ${days}-day alert sent to log.` : `${days}-day alert sent to Gmail!`, 'success');
         } else {
             const errorRes = res as any;
-            const errorMsg = errorRes?.error?.details || errorRes?.error?.error || 'Failed to send test.';
+            const errorMsg = errorRes?.error?.message || errorRes?.error?.details || 'Failed to send test.';
             showNotification(`Error: ${errorMsg}`, 'error');
         }
         setIsTesting(false);
