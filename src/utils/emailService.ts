@@ -77,14 +77,11 @@ ${isCritical ? 'Immediate renewal is strongly recommended.' : ''}
 
         // Fallback for simulation/dev mode if function is not running locally
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.warn("[EmailService] Backend might be down. Simulating success for dev experience.");
-            console.log(`%c[DEV SIMULATION] Email to ${toEmail}: ${subject}`, 'color: #34d399; font-weight: bold; background: #333; padding: 5px;');
+            const errorMsg = "Backend Unreachable: Email NOT Sent. Check node server.js";
+            console.error(`%c[BACKEND ERROR] ${errorMsg}`, 'color: #ef4444; font-weight: bold; font-size: 14px;');
 
-            // Return actual error if we want to confirm backend is down, but for now we keep simulation behavior
-            // to avoid breaking the app flow during dev if backend is intentionally off.
-            // However, to debug, we should probably know it failed.
-            // Let's attach the error to the return object so the UI can decide.
-            return { success: false, isSimulation: true, error: error };
+            // Return actual error so UI knows backend is down
+            return { success: false, isSimulation: false, error: new Error(errorMsg) };
         }
 
         return { success: false, error };
