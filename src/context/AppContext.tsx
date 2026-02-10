@@ -168,6 +168,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         };
     }, []);
 
+    // Request Browser Notification Permission on Mount
+    useEffect(() => {
+        if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log("Browser Notifications enabled!");
+                }
+            });
+        }
+    }, []);
+
     // Alert Checker Logic
     useEffect(() => {
         if (!loading && documents.length > 0 && userProfile) {
@@ -196,6 +207,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     updatedAlerts.emailSent30 = true;
                     needsUpdate = true;
                     playAlertSound(); // Play melody on 30-day alert
+
+                    // Innovative Feature: Browser Notification
+                    if (Notification.permission === 'granted') {
+                        new Notification(`📅 Document Duty: ${doc.name}`, {
+                            body: `This document expires in ${diffDays} days. Action required!`,
+                            icon: '/pwa-192x192.png' // Assuming PWA icon exists or standard fallback
+                        });
+                    }
+
                     if (res.isSimulation) {
                         showNotification(`[30d Alert Simulation] Reminder triggered for ${doc.name}`, 'info');
                     } else {
@@ -212,6 +232,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     updatedAlerts.emailSent7 = true;
                     needsUpdate = true;
                     playAlertSound(); // Play melody on 7-day alert
+
+                    // Innovative Feature: Browser Notification (Critical)
+                    if (Notification.permission === 'granted') {
+                        new Notification(`🚨 URGENT: ${doc.name} Expiring!`, {
+                            body: `Only ${diffDays} days left! Renew immediately to avoid issues.`,
+                            icon: '/pwa-192x192.png',
+                            requireInteraction: true // Keeps notification until user clicks
+                        });
+                    }
+
                     if (res.isSimulation) {
                         showNotification(`[7d Alert Simulation] Reminder triggered for ${doc.name}`, 'info');
                     } else {
