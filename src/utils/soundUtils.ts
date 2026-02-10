@@ -8,35 +8,51 @@ export const playAlertSound = () => {
         if (!AudioContext) return;
 
         const ctx = new AudioContext();
-        const now = ctx.currentTime;
 
         // Tune: C5, E5, G5, A5, C6 (Major 6th Arpeggio with high C) -> Happy/Success feel
-        const melody = [
-            { note: 523.25, duration: 0.1, time: 0 },    // C5
-            { note: 659.25, duration: 0.1, time: 0.1 },  // E5
-            { note: 783.99, duration: 0.1, time: 0.2 },  // G5
-            { note: 880.00, duration: 0.1, time: 0.3 },  // A5
-            { note: 1046.50, duration: 0.4, time: 0.4 }  // C6 (Longer final note)
-        ];
+        const playMelody = () => {
+            const now = ctx.currentTime;
+            const melody = [
+                { note: 523.25, duration: 0.1, time: 0 },    // C5
+                { note: 659.25, duration: 0.1, time: 0.1 },  // E5
+                { note: 783.99, duration: 0.1, time: 0.2 },  // G5
+                { note: 880.00, duration: 0.1, time: 0.3 },  // A5
+                { note: 1046.50, duration: 0.4, time: 0.4 }  // C6 (Longer final note)
+            ];
 
-        melody.forEach(({ note, duration, time }) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
+            melody.forEach(({ note, duration, time }) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
 
-            osc.type = 'triangle'; // 'triangle' gives a slightly softer, flute-like tone than 'sine'
-            osc.frequency.setValueAtTime(note, now + time);
+                osc.type = 'triangle'; // 'triangle' gives a slightly softer, flute-like tone than 'sine'
+                osc.frequency.setValueAtTime(note, now + time);
 
-            // Envelope for each note to make it sound musical (attack and release)
-            gain.gain.setValueAtTime(0, now + time);
-            gain.gain.linearRampToValueAtTime(0.15, now + time + 0.05); // Attack
-            gain.gain.exponentialRampToValueAtTime(0.001, now + time + duration); // Release
+                // Envelope for each note to make it sound musical (attack and release)
+                gain.gain.setValueAtTime(0, now + time);
+                gain.gain.linearRampToValueAtTime(0.15, now + time + 0.05); // Attack
+                gain.gain.exponentialRampToValueAtTime(0.001, now + time + duration); // Release
 
-            osc.connect(gain);
-            gain.connect(ctx.destination);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
 
-            osc.start(now + time);
-            osc.stop(now + time + duration);
-        });
+                osc.start(now + time);
+                osc.stop(now + time + duration);
+            });
+        };
+
+        // Play immediately
+        playMelody();
+
+        // Loop every 1 second for 15 seconds
+        const intervalId = setInterval(playMelody, 1000);
+
+        // Stop after 15 seconds
+        setTimeout(() => {
+            clearInterval(intervalId);
+            // Close context to free resources
+            setTimeout(() => ctx.close(), 1000);
+        }, 15000);
+
     } catch (error) {
         console.warn('Failed to play alert sound:', error);
     }

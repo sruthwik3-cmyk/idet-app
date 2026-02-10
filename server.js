@@ -20,9 +20,13 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // API Endpoint for sending emails
 app.post('/api/send-email', async (req, res) => {
+    console.log(`[${new Date().toISOString()}] Received email request`);
     const { to, subject, html, text } = req.body;
 
+    console.log(`To: ${to}, Subject: ${subject}`);
+
     if (!to || !subject || (!html && !text)) {
+        console.error("Missing required fields");
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -44,8 +48,9 @@ app.post('/api/send-email', async (req, res) => {
             html: html
         };
 
+        console.log("Attempting to send email...");
         const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent:", info.messageId);
+        console.log("Email sent successfully:", info.messageId);
 
         return res.status(200).json({ message: "Email sent successfully", info });
 

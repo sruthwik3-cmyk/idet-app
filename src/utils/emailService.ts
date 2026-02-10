@@ -49,6 +49,7 @@ ${isCritical ? 'Immediate renewal is strongly recommended.' : ''}
     `;
 
     try {
+        console.log(`[EmailService] Sending email to ${toEmail}...`);
         const response = await fetch('/api/send-email', {
             method: 'POST',
             headers: {
@@ -63,19 +64,27 @@ ${isCritical ? 'Immediate renewal is strongly recommended.' : ''}
         });
 
         if (!response.ok) {
-            throw new Error(`Server responded with ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`Server responded with ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
+        console.log("[EmailService] Email sent successfully:", data);
         return { success: true, response: data };
 
     } catch (error) {
-        console.error("Email Send Error:", error);
+        console.error("[EmailService] Email Send Error:", error);
 
         // Fallback for simulation/dev mode if function is not running locally
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.warn("[EmailService] Backend might be down. Simulating success for dev experience.");
             console.log(`%c[DEV SIMULATION] Email to ${toEmail}: ${subject}`, 'color: #34d399; font-weight: bold; background: #333; padding: 5px;');
-            return { success: true, isSimulation: true };
+
+            // Return actual error if we want to confirm backend is down, but for now we keep simulation behavior
+            // to avoid breaking the app flow during dev if backend is intentionally off.
+            // However, to debug, we should probably know it failed.
+            // Let's attach the error to the return object so the UI can decide.
+            return { success: false, isSimulation: true, error: error };
         }
 
         return { success: false, error };
