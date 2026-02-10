@@ -1,0 +1,28 @@
+
+# ⚠️ COPY & PASTE THESE INTO RENDER DASHBOARD (Environment Tab)
+
+GMAIL_USER = sriperambudururuthwik@gmail.com
+GMAIL_APP_PASSWORD = ddlitfgmkjnjmess
+NODE_VERSION = 20
+VITE_SUPABASE_URL = https://egnajcexpflszsgjarzt.supabase.co
+VITE_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmFqY2V4cGZsc3pzZ2phcnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODMyNTYsImV4cCI6MjA4NjA1OTI1Nn0.72fP2YWQ-UA2d0FozeJu0EqmP6wTr2Ro-0gZXQ7JmRw
+
+
+# ⚠️ COPY YOUR WEBSITE URL (Once Deployed)
+
+1. Wait for Render to finish deploying.
+2. It will give you a URL like: https://idet-app.onrender.com (this is just an example!)
+3. Copy THAT URL.
+
+# ⚠️ PASTE INTO GOOGLE CLOUD CONSOLE (Authorized Redirect URIs)
+
+1. Go to: https://console.cloud.google.com/apis/credentials
+2. Edit your "Web client".
+3. Add these TWO URIs (replace https://idet-app.onrender.com with YOUR ACTUAL URL from step 2):
+
+   - https://idet-app.onrender.com
+   - https://idet-app.onrender.com/dashboard
+
+# ⚠️ PASTE INTO SUPABASE (Auth -> URL Configuration)
+
+1. Add the main URL: https://idet-app.onrender.com

@@ -1,0 +1,436 @@
+AudioContext on window: function
+AudioContext on window: function
+AudioContext on window: function
+Calling playAlertSound
+Called playAlertSound
+AudioContext on window: function
+AudioContext on window: function
+AudioContext on window: function
+AudioContext on window: function
+Calling playAlertSound
+Called playAlertSound
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext on window: function
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext on window: function
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext on window: function
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext on window: function
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Starting loop test
+Manually calling new AudioContext()
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Starting loop test
+Manually calling new AudioContext()
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Starting loop test
+Manually calling new AudioContext()
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+MockAudioContext constructor called via implementation
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Starting loop test
+Manually calling new AudioContext()
+MockAudioContext constructor called via implementation
+Manually called new AudioContext()
+Calling playAlertSound in loop test
+MockAudioContext constructor called via implementation
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+Called playAlertSound in loop test
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+
+--- Test Started: Alert System Tests > Email Alerts > should send an email successfully when backend is reachable ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Email Alerts > should return error when backend returns 500 ---
+AudioContext name: Mock
+AudioContext is Mock: true
+
+--- Test Started: Alert System Tests > Sound Alerts > should initialize AudioContext and play sound ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Calling playAlertSound
+MockAudioContext constructor called via implementation
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+Called playAlertSound
+
+--- Test Started: Alert System Tests > Sound Alerts > should loop for 15 seconds ---
+AudioContext name: Mock
+AudioContext is Mock: true
+Starting loop test
+Manually calling new AudioContext()
+MockAudioContext constructor called via implementation
+Manually called new AudioContext()
+Calling playAlertSound in loop test
+MockAudioContext constructor called via implementation
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+Called playAlertSound in loop test
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
+createOscillator called
