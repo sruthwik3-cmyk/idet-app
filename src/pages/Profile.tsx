@@ -85,6 +85,25 @@ const Profile: React.FC = () => {
         }, 2000);
     };
 
+    const [emailStatus, setEmailStatus] = useState<'checking' | 'configured' | 'error'>('checking');
+
+    useEffect(() => {
+        const checkEmailStatus = async () => {
+            try {
+                const res = await fetch('/api/health');
+                if (res.ok) {
+                    const data = await res.json();
+                    setEmailStatus(data.emailService === 'configured' ? 'configured' : 'error');
+                } else {
+                    setEmailStatus('error');
+                }
+            } catch (e) {
+                setEmailStatus('error');
+            }
+        };
+        checkEmailStatus();
+    }, []);
+
     const handleLogout = async () => {
         await supabase.auth.signOut();
         navigate('/');
@@ -312,8 +331,15 @@ const Profile: React.FC = () => {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
                             <div>
-                                <strong style={{ color: 'var(--text-primary)' }}>Gmail Alerts Service</strong>
-                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Test automatic expiry emails</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <strong style={{ color: 'var(--text-primary)' }}>Gmail Alerts Service</strong>
+                                    {emailStatus === 'configured' && <span className="badge badge-success" style={{ padding: '2px 6px', fontSize: '10px' }}>ONLINE</span>}
+                                    {emailStatus === 'error' && <span className="badge badge-danger" style={{ padding: '2px 6px', fontSize: '10px' }}>OFFLINE</span>}
+                                    {emailStatus === 'checking' && <span className="badge badge-neutral" style={{ padding: '2px 6px', fontSize: '10px' }}>CHECKING...</span>}
+                                </div>
+                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                    {emailStatus === 'error' ? 'Check Render Environment Variables (GMAIL_USER)' : 'Test automatic expiry emails'}
+                                </p>
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <button

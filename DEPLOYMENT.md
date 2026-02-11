@@ -1,29 +1,17 @@
 # Deployment Guide (Render)
 
-Your application is now configured as a **Node.js Web Service**. This means it runs a lightweight server to handle both the website and the email sending.
+Your app is fully configured and uploaded to GitHub. Now, deploy it to the web.
 
-## Step 1: Create & Push to GitHub
-Since you haven't pushed your code yet, follow these steps:
+## v1.1 Update: Jarvis & Reliability
+- **New Feature**: "Jarvis" Voice Command Interface. Hands-free control and audio summaries.
+- **Reliability**: Diagnostic Health Check for Gmail Alerts.
+- **Bug Fix**: Improved error handling for email delivery.
 
-1.  **Create Repository:**
-    *   Go to [github.com/new](https://github.com/new).
-    *   Name it `idet-app` (or similar).
-    *   Click **Create repository**.
-    *   **Copy the HTTPS URL** (it looks like `https://github.com/your-username/idet-app.git`).
-
-2.  **Link & Push (Run in Terminal):**
-    Replace `YOUR_REPO_URL` with the URL you just copied:
-    ```bash
-    git remote remove origin
-    git remote add origin YOUR_REPO_URL
-    git branch -M main
-    git push -u origin main
-    ```
-
-## Step 2: Create Web Service on Render
-1.  Go to [Render Dashboard](https://dashboard.render.com).
+## Step 1: Connect to Render
+1.  Go to **[dashboard.render.com](https://dashboard.render.com)** and log in.
 2.  Click **New +** and select **Web Service**.
-3.  Connect your GitHub repository.
+3.  Scroll to **Connect a repository** and find your repo: `idet-app` (or `sruthwik3-cmyk/idet-app`).
+4.  Click **Connect**.
 
 ## Step 3: Configure Service (CRITICAL)
 Use the following settings:
@@ -34,19 +22,52 @@ Use the following settings:
 *   **Build Command:** `npm install && npm run build`
 *   **Start Command:** `node server.js`
 
-## Step 4: Environment Variables (REQUIRED)
+## Step 4: Environment Variables (Manual Copy-Paste)
 You **MUST** add these variables for the app to work.
 Go to the **Environment** tab in your new Render service and add:
 
-| Key | Value |
+| Key | Value (See `RENDER_SETUP.txt` for your secrets) |
 | :--- | :--- |
-| `NODE_VERSION` | `20` (Recommended) |
-| `VITE_SUPABASE_URL` | Your Supabase Project URL |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase Anon Key |
-| `GMAIL_USER` | Your full Gmail address |
-| `GMAIL_APP_PASSWORD` | Your 16-char App Password |
+| `NODE_VERSION` | `20` |
+| `VITE_SUPABASE_URL` | *(Copy from RENDER_SETUP.txt)* |
+| `VITE_SUPABASE_ANON_KEY` | *(Copy from RENDER_SETUP.txt)* |
+| `GMAIL_USER` | *(Copy from RENDER_SETUP.txt)* |
+| `GMAIL_APP_PASSWORD` | *(Copy from RENDER_SETUP.txt)* |
 
-## Step 5: Verify
-Once the deploy finishes (it may take a few minutes), visit the URL provided by Render.
-1.  **Check the site loads:** Login and view dashboard.
-2.  **Check Emails:** Trigger an alert or wait for an auto-alert to verify email sending works.
+## Step 5: Post-Deployment Config (CRITICAL)
+Your LIVE URL is: **`https://idet-app-a0qv.onrender.com`**
+
+### 1. Update Google Cloud (For Login)
+1.  Go to [Google Cloud Console > Credentials](https://console.cloud.google.com/apis/credentials).
+2.  Edit your **Web client** (the OAuth 2.0 Client ID).
+3.  Add this to **Authorized JavaScript origins**:
+    - `https://idet-app-a0qv.onrender.com`
+4.  Add these TWO URLs to **Authorized redirect URIs**:
+    - `https://idet-app-a0qv.onrender.com`
+    - `https://idet-app-a0qv.onrender.com/dashboard`
+5.  Click **Save**.
+
+### 2. Update Supabase (For Auth)
+1.  Go to [Supabase Dashboard > Authentication > URL Configuration](https://supabase.com/dashboard/project/_/auth/url-configuration).
+2.  Add this to **Site URL**:
+    - `https://idet-app-a0qv.onrender.com`
+3.  Add this to **Redirect URLs**:
+    - `https://idet-app-a0qv.onrender.com/**`
+4.  Click **Save**.
+
+## Step 6: Verify
+1.  **Visit your Site:** Go to the Render URL.
+2.  **Login:** Try logging in with Google. (If it fails, check Step 5).
+3.  **Test Alert:** Go to Profile > "Test Alert".
+    - You should hear the sound (User Interaction required first).
+    - You should get a browser notification.
+    - You should receive an email within seconds.
+
+## Troubleshooting
+### Gmail Alerts Not Working?
+1.  Go to the **Profile** page in the app.
+2.  Look at the **"Gmail Alerts Service"** section.
+3.  **Status Indicator:**
+    - `ONLINE` (Green): Server is configured correctly.
+    - `OFFLINE` (Red): Server is missing `GMAIL_USER` or `GMAIL_APP_PASSWORD`.
+4.  **Action:** If OFFLINE, go to your Render Dashboard -> Environment, and ensure the variables are set correctly (no spaces!).

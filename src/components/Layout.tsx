@@ -9,6 +9,8 @@ import {
     PlusCircle
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import VoiceOrb from './VoiceOrb';
+import { useVoiceAssistant } from '../hooks/useVoiceAssistant';
 
 interface LayoutProps {
     children: ReactNode;
@@ -18,6 +20,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
     const { userProfile, notification } = useApp();
     const navigate = useNavigate();
+    const { isListening, isSpeaking, toggleListening } = useVoiceAssistant();
 
     if (hideSidebar) {
         return <div className="layout-minimal">{children}</div>;
@@ -100,6 +103,8 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
             >
                 <PlusCircle size={24} />
             </button>
+
+            <VoiceOrb isListening={isListening} isSpeaking={isSpeaking} toggleListening={toggleListening} />
 
             {/* Notification Toast */}
             {notification && (

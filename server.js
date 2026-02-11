@@ -32,6 +32,11 @@ app.post('/api/send-email', async (req, res) => {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+        console.error("Missing Gmail credentials in environment variables.");
+        return res.status(500).json({ error: "Server misconfiguration: Missing email credentials." });
+    }
+
     try {
         // Create Transporter
         const transporter = nodemailer.createTransport({
@@ -42,6 +47,9 @@ app.post('/api/send-email', async (req, res) => {
             }
         });
 
+        // Verify connection configuration
+        await transporter.verify();
+
         const mailOptions = {
             from: process.env.GMAIL_USER,
             to: to,
@@ -50,7 +58,7 @@ app.post('/api/send-email', async (req, res) => {
             html: html
         };
 
-        console.log("Attempting to send email...");
+        console.log(`Attempting to send email from ${process.env.GMAIL_USER}...`);
         const info = await transporter.sendMail(mailOptions);
         console.log("Email sent successfully:", info.messageId);
 
@@ -60,6 +68,15 @@ app.post('/api/send-email', async (req, res) => {
         console.error("Error sending email:", error);
         return res.status(500).json({ error: "Failed to send email", details: error.message });
     }
+});
+
+app.get('/api/health', (req, res) => {
+    const emailConfigured = !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+    res.json({
+        status: 'ok',
+        emailService: emailConfigured ? 'configured' : 'missing_credentials',
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Catch-all handler for any request that doesn't match an API route or static file
