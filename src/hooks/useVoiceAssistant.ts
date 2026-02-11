@@ -51,6 +51,13 @@ export const useVoiceAssistant = () => {
             else if (datePhrase.includes('next month')) date.setMonth(date.getMonth() + 1);
             else if (datePhrase.includes('30 days')) date.setDate(date.getDate() + 30);
             else if (datePhrase.includes('year')) date.setFullYear(date.getFullYear() + 1);
+            else {
+                // Try to parse explicit date (e.g., "2026-02-12" or "February 12 2026")
+                const explicitDate = new Date(datePhrase);
+                if (!isNaN(explicitDate.getTime())) {
+                    date = explicitDate;
+                }
+            }
 
             return {
                 intent: 'ADD_DOCUMENT',

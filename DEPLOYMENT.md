@@ -40,24 +40,24 @@ Go to the **Environment** tab in your new Render service and add:
 | `GMAIL_APP_PASSWORD` | *(Copy from RENDER_SETUP.txt)* |
 
 ## Step 5: Post-Deployment Config (CRITICAL)
-Your LIVE URL is: **`https://idet-app-a0qv.onrender.com`**
+Your LIVE URL is: **`https://idet-app-1.onrender.com`**
 
 ### 1. Update Google Cloud (For Login)
 1.  Go to [Google Cloud Console > Credentials](https://console.cloud.google.com/apis/credentials).
 2.  Edit your **Web client** (the OAuth 2.0 Client ID).
 3.  Add this to **Authorized JavaScript origins**:
-    - `https://idet-app-a0qv.onrender.com`
+    - `https://idet-app-1.onrender.com`
 4.  Add these TWO URLs to **Authorized redirect URIs**:
-    - `https://idet-app-a0qv.onrender.com`
-    - `https://idet-app-a0qv.onrender.com/dashboard`
+    - `https://idet-app-1.onrender.com`
+    - `https://idet-app-1.onrender.com/dashboard`
 5.  Click **Save**.
 
 ### 2. Update Supabase (For Auth)
 1.  Go to [Supabase Dashboard > Authentication > URL Configuration](https://supabase.com/dashboard/project/_/auth/url-configuration).
 2.  Add this to **Site URL**:
-    - `https://idet-app-a0qv.onrender.com`
+    - `https://idet-app-1.onrender.com`
 3.  Add this to **Redirect URLs**:
-    - `https://idet-app-a0qv.onrender.com/**`
+    - `https://idet-app-1.onrender.com/**`
 4.  Click **Save**.
 
 ## Step 6: Verify
