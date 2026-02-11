@@ -31,15 +31,69 @@ export const useVoiceAssistant = () => {
         }
     }, []);
 
+    const parseSmartCommand = (text: string) => {
+        // Regex for "Add [Category] document [Name] expiring [Date]"
+        // Examples: 
+        // "Add Medical document Vaccine Record expiring next Friday"
+        // "Create new Personal document Gym Membership due in 30 days"
+        const addRegex = /(?:add|create)\s+(?:new\s+)?(\w+)?\s*document\s+(?:called\s+|named\s+)?(.+?)\s+(?:expiring|due)\s+(.+)/i;
+        const addMatch = text.match(addRegex);
+
+        if (addMatch) {
+            const category = addMatch[1] || 'Personal'; // Default if standard "Add document..."
+            const name = addMatch[2].trim();
+            const datePhrase = addMatch[3].trim();
+
+            // Simple date parsing simulation (in real app, use a library like 'chrono-node')
+            let date = new Date();
+            if (datePhrase.includes('tomorrow')) date.setDate(date.getDate() + 1);
+            else if (datePhrase.includes('next week')) date.setDate(date.getDate() + 7);
+            else if (datePhrase.includes('next month')) date.setMonth(date.getMonth() + 1);
+            else if (datePhrase.includes('30 days')) date.setDate(date.getDate() + 30);
+            else if (datePhrase.includes('year')) date.setFullYear(date.getFullYear() + 1);
+
+            return {
+                intent: 'ADD_DOCUMENT',
+                data: {
+                    name,
+                    category: ['Personal', 'Financial', 'Medical', 'Legal', 'Education', 'Vehicle'].includes(category) ? category : 'Custom',
+                    customCategory: category,
+                    expiryDate: date.toISOString().split('T')[0]
+                }
+            };
+        }
+
+        // Regex for "Search for [Query]"
+        const searchRegex = /(?:search|find|show)\s+(?:for\s+)?(.+)/i;
+        const searchMatch = text.match(searchRegex);
+        if (searchMatch && !text.includes('dashboard') && !text.includes('home')) {
+            return {
+                intent: 'SEARCH',
+                data: { query: searchMatch[1].trim() }
+            };
+        }
+
+        return null;
+    };
+
     const processCommand = useCallback((command: string) => {
         const lowerCmd = command.toLowerCase();
-        console.log('Voice Command:', lowerCmd);
-
-        // Optional: Check if addressed as Jarvis
+        const smartAction = parseSmartCommand(command);
         const isAddressedToJarvis = lowerCmd.includes('jarvis');
 
-        // If strict mode is desired, we could return here if !isAddressedToJarvis
-        // But for better UX, we'll process anyway, just changing the response tone maybe.
+        if (smartAction) {
+            if (smartAction.intent === 'ADD_DOCUMENT') {
+                navigate('/add-document', { state: { voiceData: smartAction.data } });
+                speak(isAddressedToJarvis
+                    ? `Initiating protocol for new ${smartAction.data.customCategory} document: ${smartAction.data.name}.`
+                    : `Creating new ${smartAction.data.customCategory} document.`);
+                return;
+            } else if (smartAction.intent === 'SEARCH') {
+                navigate('/dashboard', { state: { searchQuery: smartAction.data.query } });
+                speak(`Searching database for ${smartAction.data.query}.`);
+                return;
+            }
+        }
 
         if (lowerCmd.includes('dashboard') || lowerCmd.includes('home')) {
             navigate('/dashboard');

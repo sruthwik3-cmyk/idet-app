@@ -2,6 +2,11 @@
 
 Your app is fully configured and uploaded to GitHub. Now, deploy it to the web.
 
+## v1.2 Update: Jarvis Smart Commands 🧠
+- **Smart Add**: "Jarvis, add a Medical document called Vaccine Record expiring next Friday" -> Auto-fills form.
+- **Smart Search**: "Jarvis, search for Passport" -> Auto-filters Dashboard.
+- **Context Awareness**: Better handling of navigation and intents.
+
 ## v1.1 Update: Jarvis & Reliability
 - **New Feature**: "Jarvis" Voice Command Interface. Hands-free control and audio summaries.
 - **Reliability**: Diagnostic Health Check for Gmail Alerts.

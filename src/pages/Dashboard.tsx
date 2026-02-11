@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
 
 const Dashboard: React.FC = () => {
     const { stats, documents, deleteDocument, loading } = useApp();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const [searchTerm, setSearchTerm] = useState('');
+    // Initialize search from Voice Command if present
+    const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const today = new Date();
 

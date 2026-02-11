@@ -33,7 +33,10 @@ const AddDocument: React.FC = () => {
     const [calendarUrl, setCalendarUrl] = useState('');
     const [showSuccess, setShowSuccess] = useState(false);
 
-    // Initialize category logic for Edit Mode
+    // Check for Voice Command Data
+    const voiceData = location.state?.voiceData;
+
+    // Initialize category logic for Edit Mode or Voice Mode
     useEffect(() => {
         if (editDoc) {
             const standardCategories = ['Personal', 'Financial', 'Medical', 'Legal', 'Education', 'Vehicle'];
@@ -43,8 +46,19 @@ const AddDocument: React.FC = () => {
                 setFormData(prev => ({ ...prev, category: 'Custom' }));
                 setCustomCategory(editDoc.category);
             }
+        } else if (voiceData) {
+            // Auto-fill from Voice Command
+            setFormData(prev => ({
+                ...prev,
+                name: voiceData.name,
+                category: voiceData.category,
+                expiryDate: voiceData.expiryDate
+            }));
+            if (voiceData.category === 'Custom') {
+                setCustomCategory(voiceData.customCategory);
+            }
         }
-    }, [editDoc]);
+    }, [editDoc, voiceData]);
 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
