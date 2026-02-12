@@ -186,32 +186,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [documents, loading, userProfile]);
 
     const checkAndSendAlerts = async () => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
         for (const doc of documents) {
-            const expDate = new Date(doc.expiryDate);
-            expDate.setHours(0, 0, 0, 0);
+            // Use strict UTC date calculation (same as Dashboard)
+            const expiry = new Date(doc.expiryDate);
+            const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
 
-            const diffTime = expDate.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const today = new Date();
+            const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+            const diffMs = expiryUTC - todayUTC;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
             let updatedAlerts = { ...doc.alerts };
             let needsUpdate = false;
 
-            // 30 Day Reminder
-            if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30 && userProfile?.email) {
+            // 30 Day Reminder - Trigger EXACTLY on day 30
+            if (diffDays === 30 && !doc.alerts.emailSent30 && userProfile?.email) {
+                console.log(`[30-Day Alert] Triggering for ${doc.name}, daysLeft: ${diffDays}`);
                 const res = await sendExpiryAlert(userProfile.email, doc.name, 30, doc.expiryDate, doc.priority);
                 if (res?.success) {
                     updatedAlerts.emailSent30 = true;
                     needsUpdate = true;
-                    // Sound is handled by Dashboard.tsx with strict logic (exactly 30 days)
 
-                    // Innovative Feature: Browser Notification
+                    // Browser Notification
                     if (Notification.permission === 'granted') {
                         new Notification(`📅 Document Duty: ${doc.name}`, {
                             body: `This document expires in ${diffDays} days. Action required!`,
-                            icon: '/pwa-192x192.png' // Assuming PWA icon exists or standard fallback
+                            icon: '/pwa-192x192.png'
                         });
                     }
 
@@ -220,24 +221,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     } else {
                         showNotification(`[30d Alert] Email reminder sent for ${doc.name}`, 'success');
                     }
+                } else {
+                    console.error(`[30-Day Alert] Failed for ${doc.name}:`, res?.error);
+                    showNotification(`[30d Alert] Failed to send email for ${doc.name}`, 'error');
                 }
             }
 
-            // 7 Day Reminder 
-            if (diffDays <= 7 && !doc.alerts.emailSent7 && userProfile?.email) {
-                // For critical docs near expiry, we always emphasize the urgency
+            // 7 Day Reminder - Trigger EXACTLY on day 7
+            if (diffDays === 7 && !doc.alerts.emailSent7 && userProfile?.email) {
+                console.log(`[7-Day Alert] Triggering for ${doc.name}, daysLeft: ${diffDays}`);
                 const res = await sendExpiryAlert(userProfile.email, doc.name, 7, doc.expiryDate, doc.priority);
                 if (res?.success) {
                     updatedAlerts.emailSent7 = true;
                     needsUpdate = true;
-                    // Sound is handled by Dashboard.tsx with strict logic (exactly 7 days)
 
-                    // Innovative Feature: Browser Notification (Critical)
+                    // Browser Notification (Critical)
                     if (Notification.permission === 'granted') {
                         new Notification(`🚨 URGENT: ${doc.name} Expiring!`, {
                             body: `Only ${diffDays} days left! Renew immediately to avoid issues.`,
                             icon: '/pwa-192x192.png',
-                            requireInteraction: true // Keeps notification until user clicks
+                            requireInteraction: true
                         });
                     }
 
@@ -246,6 +249,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     } else {
                         showNotification(`[7d Alert] Email reminder sent for ${doc.name}`, 'success');
                     }
+                } else {
+                    console.error(`[7-Day Alert] Failed for ${doc.name}:`, res?.error);
+                    showNotification(`[7d Alert] Failed to send email for ${doc.name}`, 'error');
                 }
             }
 
