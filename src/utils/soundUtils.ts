@@ -87,6 +87,11 @@ export const playAlertSound = () => {
         });
     };
 
+    // Prevent multiple overlapping loops
+    if ((window as any).alertSoundInterval) {
+        return;
+    }
+
     // Play immediately
     playTune();
 
@@ -98,8 +103,20 @@ export const playAlertSound = () => {
         loopCount++;
         if (loopCount >= maxLoops) {
             clearInterval(intervalId);
+            (window as any).alertSoundInterval = null; // Reset flag
             return;
         }
         playTune();
-    }, 2800); // Wait a bit longer than the melody duration handling delays
+    }, 2800);
+
+    // Store interval ID globally (or on module scope if acceptable, but window is safer for hot module reload/debug)
+    (window as any).alertSoundInterval = intervalId;
+
+    // Failsafe stop
+    setTimeout(() => {
+        if ((window as any).alertSoundInterval === intervalId) {
+            clearInterval(intervalId);
+            (window as any).alertSoundInterval = null;
+        }
+    }, 15000);
 };
