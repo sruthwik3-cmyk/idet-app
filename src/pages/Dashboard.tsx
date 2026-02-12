@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
+import { playAlertSound } from '../utils/soundUtils';
 
 const Dashboard: React.FC = () => {
     const { stats, documents, deleteDocument, loading } = useApp();
@@ -13,6 +14,20 @@ const Dashboard: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const today = new Date();
+
+    // Sound Alert Logic
+    React.useEffect(() => {
+        if (loading) return;
+
+        const shouldPlaySound = documents.some(doc => {
+            const daysLeft = Math.ceil((new Date(doc.expiryDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            return daysLeft === 30 || daysLeft === 7;
+        });
+
+        if (shouldPlaySound) {
+            playAlertSound();
+        }
+    }, [documents, loading]);
 
     if (loading) {
         return <SkeletonDashboard />;
@@ -275,9 +290,9 @@ const Dashboard: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                                                    <span style={{ color: daysLeft < 7 ? '#f87171' : 'inherit', fontWeight: daysLeft < 7 ? 'bold' : 'normal' }}>
+                                                    <span style={{ color: daysLeft <= 30 ? '#f87171' : '#34d399', fontWeight: daysLeft <= 30 ? 'bold' : 'normal' }}>
                                                         {daysLeft < 0 ? `Expired ${Math.abs(daysLeft)} days ago` : `Expires in ${daysLeft} days`}
-                                                        <span style={{ opacity: 0.6, fontWeight: 'normal', marginLeft: '4px' }}>
+                                                        <span style={{ opacity: 0.6, fontWeight: 'normal', marginLeft: '4px', color: 'var(--text-secondary)' }}>
                                                             ({new Date(doc.expiryDate).toLocaleDateString('en-GB')})
                                                         </span>
                                                     </span>
