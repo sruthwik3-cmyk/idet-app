@@ -186,8 +186,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [documents, loading, userProfile]);
 
     const checkAndSendAlerts = async () => {
+        console.log("=== EMAIL ALERT CHECK STARTED ===");
+        console.log("User email:", userProfile?.email);
+        console.log("Documents count:", documents.length);
+
         for (const doc of documents) {
-            // Use strict UTC date calculation (same as Dashboard)
             const expiry = new Date(doc.expiryDate);
             const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
 
@@ -197,65 +200,80 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const diffMs = expiryUTC - todayUTC;
             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
+            console.log(`[Email Check] Doc: "${doc.name}", DaysLeft: ${diffDays}, emailSent30: ${doc.alerts?.emailSent30}, emailSent7: ${doc.alerts?.emailSent7}`);
+
             let updatedAlerts = { ...doc.alerts };
             let needsUpdate = false;
 
-            // 30 Day Reminder - Trigger EXACTLY on day 30
-            if (diffDays === 30 && !doc.alerts.emailSent30 && userProfile?.email) {
-                console.log(`[30-Day Alert] Triggering for ${doc.name}, daysLeft: ${diffDays}`);
-                const res = await sendExpiryAlert(userProfile.email, doc.name, 30, doc.expiryDate, doc.priority);
-                if (res?.success) {
-                    updatedAlerts.emailSent30 = true;
-                    needsUpdate = true;
+            // 30 Day Reminder - Send when document is 30 days or less from expiry (but more than 7)
+            // The emailSent30 flag ensures it only sends ONCE per document
+            if (diffDays <= 30 && diffDays > 7 && !doc.alerts?.emailSent30 && userProfile?.email) {
+                console.log(`[30-Day Alert] SENDING for "${doc.name}", daysLeft: ${diffDays}`);
+                try {
+                    const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                    console.log(`[30-Day Alert] Response:`, res);
+                    if (res?.success) {
+                        updatedAlerts.emailSent30 = true;
+                        needsUpdate = true;
 
-                    // Browser Notification
-                    if (Notification.permission === 'granted') {
-                        new Notification(`📅 Document Duty: ${doc.name}`, {
-                            body: `This document expires in ${diffDays} days. Action required!`,
-                            icon: '/pwa-192x192.png'
-                        });
-                    }
+                        if (Notification.permission === 'granted') {
+                            new Notification(`📅 Document Duty: ${doc.name}`, {
+                                body: `This document expires in ${diffDays} days. Action required!`,
+                                icon: '/pwa-192x192.png'
+                            });
+                        }
 
-                    if (res.isSimulation) {
-                        showNotification(`[30d Alert Simulation] Reminder triggered for ${doc.name}`, 'info');
+                        if (res.isSimulation) {
+                            showNotification(`[30d Alert Simulation] Reminder triggered for ${doc.name}`, 'info');
+                        } else {
+                            showNotification(`[30d Alert] Email reminder sent for ${doc.name}`, 'success');
+                        }
                     } else {
-                        showNotification(`[30d Alert] Email reminder sent for ${doc.name}`, 'success');
+                        console.error(`[30-Day Alert] FAILED for "${doc.name}":`, res?.error);
+                        showNotification(`[30d Alert] Failed to send email for ${doc.name}: ${(res as any)?.error?.message || 'Unknown error'}`, 'error');
                     }
-                } else {
-                    console.error(`[30-Day Alert] Failed for ${doc.name}:`, res?.error);
-                    showNotification(`[30d Alert] Failed to send email for ${doc.name}`, 'error');
+                } catch (err) {
+                    console.error(`[30-Day Alert] EXCEPTION for "${doc.name}":`, err);
+                    showNotification(`[30d Alert] Error sending email for ${doc.name}`, 'error');
                 }
             }
 
-            // 7 Day Reminder - Trigger EXACTLY on day 7
-            if (diffDays === 7 && !doc.alerts.emailSent7 && userProfile?.email) {
-                console.log(`[7-Day Alert] Triggering for ${doc.name}, daysLeft: ${diffDays}`);
-                const res = await sendExpiryAlert(userProfile.email, doc.name, 7, doc.expiryDate, doc.priority);
-                if (res?.success) {
-                    updatedAlerts.emailSent7 = true;
-                    needsUpdate = true;
+            // 7 Day Reminder - Send when document is 7 days or less from expiry
+            // The emailSent7 flag ensures it only sends ONCE per document
+            if (diffDays <= 7 && diffDays >= 0 && !doc.alerts?.emailSent7 && userProfile?.email) {
+                console.log(`[7-Day Alert] SENDING for "${doc.name}", daysLeft: ${diffDays}`);
+                try {
+                    const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                    console.log(`[7-Day Alert] Response:`, res);
+                    if (res?.success) {
+                        updatedAlerts.emailSent7 = true;
+                        needsUpdate = true;
 
-                    // Browser Notification (Critical)
-                    if (Notification.permission === 'granted') {
-                        new Notification(`🚨 URGENT: ${doc.name} Expiring!`, {
-                            body: `Only ${diffDays} days left! Renew immediately to avoid issues.`,
-                            icon: '/pwa-192x192.png',
-                            requireInteraction: true
-                        });
-                    }
+                        if (Notification.permission === 'granted') {
+                            new Notification(`🚨 URGENT: ${doc.name} Expiring!`, {
+                                body: `Only ${diffDays} days left! Renew immediately to avoid issues.`,
+                                icon: '/pwa-192x192.png',
+                                requireInteraction: true
+                            });
+                        }
 
-                    if (res.isSimulation) {
-                        showNotification(`[7d Alert Simulation] Reminder triggered for ${doc.name}`, 'info');
+                        if (res.isSimulation) {
+                            showNotification(`[7d Alert Simulation] Reminder triggered for ${doc.name}`, 'info');
+                        } else {
+                            showNotification(`[7d Alert] Email reminder sent for ${doc.name}`, 'success');
+                        }
                     } else {
-                        showNotification(`[7d Alert] Email reminder sent for ${doc.name}`, 'success');
+                        console.error(`[7-Day Alert] FAILED for "${doc.name}":`, res?.error);
+                        showNotification(`[7d Alert] Failed to send email for ${doc.name}: ${(res as any)?.error?.message || 'Unknown error'}`, 'error');
                     }
-                } else {
-                    console.error(`[7-Day Alert] Failed for ${doc.name}:`, res?.error);
-                    showNotification(`[7d Alert] Failed to send email for ${doc.name}`, 'error');
+                } catch (err) {
+                    console.error(`[7-Day Alert] EXCEPTION for "${doc.name}":`, err);
+                    showNotification(`[7d Alert] Error sending email for ${doc.name}`, 'error');
                 }
             }
 
             if (needsUpdate) {
+                console.log(`[Alert Update] Saving alert flags for "${doc.name}"`);
                 await supabase.from('documents')
                     .update({ alerts_json: updatedAlerts })
                     .eq('id', doc.id);
@@ -263,6 +281,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
             }
         }
+        console.log("=== EMAIL ALERT CHECK COMPLETE ===");
     };
 
     const fetchUserData = async (userId: string) => {
