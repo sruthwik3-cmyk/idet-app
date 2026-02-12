@@ -38,13 +38,20 @@ app.post('/api/send-email', async (req, res) => {
     }
 
     try {
-        // Create Transporter
+        // Create Transporter - Force IPv4 to avoid Render IPv6 issues
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false, // Use STARTTLS
             auth: {
                 user: process.env.GMAIL_USER,
                 pass: process.env.GMAIL_APP_PASSWORD
-            }
+            },
+            tls: {
+                rejectUnauthorized: false
+            },
+            // Force IPv4 - Render doesn't support IPv6 outbound
+            family: 4
         });
 
         // Verify connection configuration
