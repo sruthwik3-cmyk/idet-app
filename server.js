@@ -4,6 +4,10 @@ import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import dns from 'dns';
+
+// CRITICAL: Force IPv4 for ALL DNS lookups - Render doesn't support IPv6 outbound
+dns.setDefaultResultOrder('ipv4first');
 
 dotenv.config();
 
@@ -50,8 +54,10 @@ app.post('/api/send-email', async (req, res) => {
             tls: {
                 rejectUnauthorized: false
             },
-            // Force IPv4 - Render doesn't support IPv6 outbound
-            family: 4
+            // Force IPv4 via custom DNS lookup
+            dnsLookup: (hostname, options, callback) => {
+                dns.lookup(hostname, { family: 4 }, callback);
+            }
         });
 
         // Verify connection configuration
