@@ -7,7 +7,7 @@ export const initEmailService = () => {
 
 export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft: number, expiryDateStr: string, priority: string = 'Important') => {
     const isCritical = priority === 'Critical';
-    const subject = isCritical ? `🚨 [URGENT] Document Expiry: ${docName}` : `Reminder: ${docName} verification`;
+    const subject = isCritical ? `🚨 [URGENT] ${docName} is expiring!` : `Reminder: ${docName} Expiry Alert`;
 
     // Generate Google Calendar Link
     // Format dates as YYYYMMDDT000000Z
@@ -16,36 +16,72 @@ export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft
 
     const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Expiry: ${docName}`)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(`Document Category: ${priority} Priority\n\nThis document expires today. Please verify renewal status.`)}&sf=true&output=xml`;
 
-    // HTML Body
+    // HTML Body - Professional Slate/Indigo Theme
     const htmlBody = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-            <h2 style="color: ${isCritical ? '#ef4444' : '#333'}">${isCritical ? 'URGENT ACTION REQUIRED' : 'Document Expiry Reminder'}</h2>
-            <p>Hello,</p>
-            <p>This is a notification regarding your document: <strong>${docName}</strong>.</p>
-            <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 5px solid ${isCritical ? '#ef4444' : '#3b82f6'}">
-                <p style="margin: 0; font-size: 1.1em;">
-                    <strong>Status:</strong> Expires in <strong>${daysLeft} days</strong> (${new Date(expiryDateStr).toLocaleDateString()}).
-                </p>
-                ${isCritical ? '<p style="margin-top: 10px; color: #ef4444; font-weight: bold;">Immediate renewal is strongly recommended to avoid penalties.</p>' : ''}
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="${calendarUrl}" style="background-color: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-                    📅 Add to Google Calendar
-                </a>
-            </div>
+        <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 40px 20px;">
+            <div style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #e2e8f0;">
+                <div style="background-color: #4f46e5; padding: 30px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.025em;">
+                        Document Expiry Notification
+                    </h1>
+                </div>
+                
+                <div style="padding: 40px 30px;">
+                    <p style="color: #1e293b; font-size: 16px; line-height: 1.6; margin-top: 0;">
+                        Hello,
+                    </p>
+                    <p style="color: #475569; font-size: 16px; line-height: 1.6;">
+                        This is an official notification regarding the upcoming expiration of your document: <strong style="color: #1e293b;">${docName}</strong>.
+                    </p>
+                    
+                    <div style="background-color: #f1f5f9; border-radius: 8px; padding: 24px; margin: 32px 0; border-left: 4px solid ${isCritical ? '#ef4444' : '#6366f1'};">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 8px;">Status</td>
+                            </tr>
+                            <tr>
+                                <td style="color: #1e293b; font-size: 18px; font-weight: 600;">
+                                    Expiring in ${daysLeft} days
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 14px; padding-top: 16px;">Expiration Date: ${new Date(expiryDateStr).toLocaleDateString(undefined, { dateStyle: 'long' })}</td>
+                            </tr>
+                        </table>
+                    </div>
 
-            <p>Please take necessary action.</p>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
-            <p style="font-size: 0.8em; color: #666;">Sent from IDET Document Manager</p>
+                    ${isCritical ? `
+                    <p style="color: #b91c1c; font-size: 14px; font-weight: 600; display: flex; alignItems: center; gap: 8px;">
+                        ⚠️ ACTION REQUIRED: Immediate renewal is recommended to ensure continuity.
+                    </p>` : ''}
+
+                    <div style="text-align: center; margin: 40px 0 20px;">
+                        <a href="${calendarUrl}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block;">
+                            📅 Add to Calendar
+                        </a>
+                    </div>
+                </div>
+
+                <div style="background-color: #f1f5f9; padding: 20px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="margin: 0; color: #94a3b8; font-size: 12px;">
+                        Sent automatically by IDET Document Manager
+                    </p>
+                </div>
+            </div>
         </div>
     `;
 
     const textBody = `
-${isCritical ? 'URGENT ACTION REQUIRED' : 'Document Expiry Reminder'}
+DOCUMENT EXPIRY NOTIFICATION
 
-Your document "${docName}" is expiring in ${daysLeft} days.
-${isCritical ? 'Immediate renewal is strongly recommended.' : ''}
+Your document "${docName}" is scheduled to expire in ${daysLeft} days (${new Date(expiryDateStr).toLocaleDateString()}).
+
+Priority: ${priority}
+Action: Please review and initiate renewal if necessary.
+
+Add to Calendar: ${calendarUrl}
+
+Sent from IDET Document Manager
     `;
 
     try {

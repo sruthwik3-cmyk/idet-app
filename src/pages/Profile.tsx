@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, RefreshCw, Bell, Send, Edit2, Save, X, Camera } from 'lucide-react';
 import { sendExpiryAlert } from '../utils/emailService';
+import { playAlertSound } from '../utils/soundUtils';
 
 import { supabase } from '../utils/supabaseClient';
 
@@ -64,6 +65,7 @@ const Profile: React.FC = () => {
         console.log(`Test ${days}-Day Alert Response:`, res);
 
         if (res?.success) {
+            playAlertSound();
             showNotification(res.isSimulation ? `[Simulation] ${days}-day alert sent to log.` : `${days}-day alert sent to Gmail!`, 'success');
         } else {
             const errorRes = res as any;

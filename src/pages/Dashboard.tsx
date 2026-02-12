@@ -3,7 +3,6 @@ import { useApp } from '../context/AppContext';
 import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
-import { playAlertSound } from '../utils/soundUtils';
 // Wait, I see useApp has notification. Let's use that or just console logs if UI not ready.
 // Actually, I'll implement a custom visual indicator for the user to see WHICH doc is triggering.
 
@@ -15,57 +14,7 @@ const Dashboard: React.FC = () => {
     // Initialize search from Voice Command if present
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
-    const [alertDebugMsg, setAlertDebugMsg] = useState<string | null>(null);
 
-    // Sound Alert Logic - Play ONCE per document per day
-    React.useEffect(() => {
-        if (loading) return;
-
-        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-        const playedToday = JSON.parse(localStorage.getItem('soundAlertsPlayed') || '{}');
-
-        // Clean up old entries (older than today)
-        if (playedToday.date !== today) {
-            localStorage.setItem('soundAlertsPlayed', JSON.stringify({ date: today, docs: [] }));
-        }
-
-        console.log("=== ALERT SYSTEM DEBUG ===");
-        console.log("Today:", today);
-        console.log("Total Documents:", documents.length);
-
-
-        const triggeredDocs = documents.filter(doc => {
-            const expiry = new Date(doc.expiryDate);
-            expiry.setHours(0, 0, 0, 0);
-
-            const current = new Date();
-            current.setHours(0, 0, 0, 0);
-
-            const diffTime = expiry.getTime() - current.getTime();
-            const daysLeft = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-            console.log(`Doc: ${doc.name}, DaysLeft: ${daysLeft}`);
-
-            // Only trigger if exactly 30 or 7 days AND not already played today
-            const shouldTrigger = (daysLeft === 30 || daysLeft === 7);
-            const alreadyPlayed = playedToday.docs?.includes(doc.id);
-
-            return shouldTrigger && !alreadyPlayed;
-        });
-
-        if (triggeredDocs.length > 0) {
-            console.log("✅ PLAYING SOUND FOR:", triggeredDocs.map(d => d.name));
-            setAlertDebugMsg(`Sound Alert: ${triggeredDocs.map(d => d.name).join(', ')}`);
-            playAlertSound();
-
-            // Mark as played
-            const updated = JSON.parse(localStorage.getItem('soundAlertsPlayed') || '{}');
-            updated.docs = [...(updated.docs || []), ...triggeredDocs.map(d => d.id)];
-            localStorage.setItem('soundAlertsPlayed', JSON.stringify(updated));
-        } else {
-            console.log("❌ NO SOUND TRIGGERED");
-        }
-    }, [documents, loading]);
 
     if (loading) {
         return <SkeletonDashboard />;
@@ -201,20 +150,8 @@ const Dashboard: React.FC = () => {
                 }
             `}</style>
             <div className="page-header">
-                {alertDebugMsg && (
-                    <div style={{
-                        background: '#f87171', color: 'white', padding: '1rem', borderRadius: '8px', marginBottom: '1rem',
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                    }}>
-                        <span>🔔 {alertDebugMsg}</span>
-                        <button onClick={() => setAlertDebugMsg(null)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>✕</button>
-                    </div>
-                )}
                 <div>
-                    <h1 className="page-title">
-                        Dashboard <span style={{ fontSize: '0.8rem', backgroundColor: '#f59e0b', color: 'black', padding: '2px 6px', borderRadius: '4px', marginLeft: '10px' }}>v1.2.2 (DEPLOYED)</span>
-                    </h1>
-                    <p style={{ margin: 0, color: '#f59e0b', fontSize: '0.9rem', fontWeight: 'bold' }}>If you see this orange text, the update is COMPLETED ✅</p>
+                    <h1 className="page-title">Dashboard</h1>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <button

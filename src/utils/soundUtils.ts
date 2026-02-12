@@ -37,6 +37,7 @@ export const unlockAudioContext = async () => {
  * Loops for approx 15 seconds.
  */
 export const playAlertSound = () => {
+    console.log("[Sound] playAlertSound() called");
     const ctx = getAudioContext();
     if (!ctx) {
         console.warn("AudioContext not supported");

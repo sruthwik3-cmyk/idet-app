@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabaseClient';
 import { initEmailService, sendExpiryAlert } from '../utils/emailService';
+import { playAlertSound } from '../utils/soundUtils';
 
 export interface Document {
     id: string;
@@ -215,6 +216,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     if (res?.success) {
                         updatedAlerts.emailSent30 = true;
                         needsUpdate = true;
+                        playAlertSound(); // TRIGGER SOUND HERE
 
                         if (Notification.permission === 'granted') {
                             new Notification(`📅 Document Duty: ${doc.name}`, {
@@ -248,6 +250,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     if (res?.success) {
                         updatedAlerts.emailSent7 = true;
                         needsUpdate = true;
+                        playAlertSound(); // TRIGGER SOUND HERE
 
                         if (Notification.permission === 'granted') {
                             new Notification(`🚨 URGENT: ${doc.name} Expiring!`, {
