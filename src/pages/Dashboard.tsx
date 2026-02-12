@@ -184,7 +184,9 @@ const Dashboard: React.FC = () => {
                     </div>
                 )}
                 <div>
-                    <h1 className="page-title">Dashboard</h1>
+                    <h1 className="page-title">
+                        Dashboard <span style={{ fontSize: '0.8rem', opacity: 0.5, fontWeight: 'normal', marginLeft: '10px' }}>v1.2 (Sound Active)</span>
+                    </h1>
                     <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Welcome back, overview of your documents.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
