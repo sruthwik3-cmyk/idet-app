@@ -206,7 +206,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 if (res?.success) {
                     updatedAlerts.emailSent30 = true;
                     needsUpdate = true;
-                    playAlertSound(); // Play melody on 30-day alert
+                    // Sound is handled by Dashboard.tsx with strict logic (exactly 30 days)
 
                     // Innovative Feature: Browser Notification
                     if (Notification.permission === 'granted') {
@@ -231,7 +231,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 if (res?.success) {
                     updatedAlerts.emailSent7 = true;
                     needsUpdate = true;
-                    playAlertSound(); // Play melody on 7-day alert
+                    // Sound is handled by Dashboard.tsx with strict logic (exactly 7 days)
 
                     // Innovative Feature: Browser Notification (Critical)
                     if (Notification.permission === 'granted') {
