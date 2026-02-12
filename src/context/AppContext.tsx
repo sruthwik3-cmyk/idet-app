@@ -66,7 +66,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         // Check active session
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user) {
-                fetchUserData(session.user.id);
+                fetchUserData(session.user.id, session.user.email);
                 setupRealtimeSubscription(session.user.id);
             } else {
                 setLoading(false);
@@ -76,7 +76,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session?.user) {
-                fetchUserData(session.user.id);
+                fetchUserData(session.user.id, session.user.email);
                 setupRealtimeSubscription(session.user.id);
             } else {
                 if (realtimeSubscription) supabase.removeChannel(realtimeSubscription);
@@ -284,7 +284,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         console.log("=== EMAIL ALERT CHECK COMPLETE ===");
     };
 
-    const fetchUserData = async (userId: string) => {
+    const fetchUserData = async (userId: string, authEmail?: string | null) => {
         setLoading(true);
         try {
             // Fetch Profile
@@ -295,12 +295,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 .single();
 
             if (profile) {
+                // Use profile email, fallback to Google auth email
+                const resolvedEmail = (profile.email as string) || authEmail || undefined;
+                console.log('[Profile] Loaded email:', resolvedEmail, '(profile:', profile.email, ', auth:', authEmail, ')');
+
                 setUserProfile({
-                    fullName: profile.full_name as string, // Explicitly cast to string
-                    email: profile.email as string,       // Explicitly cast to string
-                    phone: profile.phone as string,       // Explicitly cast to string
-                    dob: profile.dob as string,           // Explicitly cast to string
-                    userGroup: profile.user_group as 'Self' | 'Family' | 'Organization' // Explicitly cast
+                    fullName: profile.full_name as string,
+                    email: resolvedEmail as string,
+                    phone: profile.phone as string,
+                    dob: profile.dob as string,
+                    userGroup: profile.user_group as 'Self' | 'Family' | 'Organization'
                 });
             }
 
