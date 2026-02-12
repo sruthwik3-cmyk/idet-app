@@ -3,7 +3,6 @@ import { useApp } from '../context/AppContext';
 import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
-import { SkeletonDashboard } from '../components/SkeletonCards';
 import { playAlertSound } from '../utils/soundUtils';
 // Wait, I see useApp has notification. Let's use that or just console logs if UI not ready.
 // Actually, I'll implement a custom visual indicator for the user to see WHICH doc is triggering.
@@ -17,7 +16,6 @@ const Dashboard: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [alertDebugMsg, setAlertDebugMsg] = useState<string | null>(null);
-    const today = new Date();
 
     // Sound Alert Logic
     React.useEffect(() => {
@@ -278,7 +276,6 @@ const Dashboard: React.FC = () => {
                     {filteredDocs.length > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             {filteredDocs.map(doc => {
-                                const daysLeft = Math.ceil((new Date(doc.expiryDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
                                 // Also update visual display loop to match strict logic for consistency if needed, 
                                 // but existing Math.ceil is usually fine. 
                                 // Let's try to match the strict logic for the visual label too.
@@ -288,7 +285,6 @@ const Dashboard: React.FC = () => {
                                 const todayUTC = Date.UTC(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
                                 const strictDaysLeft = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
-                                const displayName = doc.name;
                                 const isCritical = doc.priority === 'Critical';
 
                                 return (
