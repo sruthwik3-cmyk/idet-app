@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabaseClient';
 import { initEmailService, sendExpiryAlert } from '../utils/emailService';
-import { playAlertSound } from '../utils/soundUtils';
 
 export interface Document {
     id: string;
