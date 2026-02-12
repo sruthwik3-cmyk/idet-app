@@ -16,8 +16,6 @@ const Dashboard: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [alertDebugMsg, setAlertDebugMsg] = useState<string | null>(null);
-    const [debugInfo, setDebugInfo] = useState<any[]>([]);
-    const [showDebugPanel, setShowDebugPanel] = useState(true);
 
     // Sound Alert Logic - Play ONCE per document per day
     React.useEffect(() => {
@@ -31,38 +29,10 @@ const Dashboard: React.FC = () => {
             localStorage.setItem('soundAlertsPlayed', JSON.stringify({ date: today, docs: [] }));
         }
 
-        // DEBUG: Track ALL documents
-        const debugData = documents.map(doc => {
-            const expiry = new Date(doc.expiryDate);
-            expiry.setHours(0, 0, 0, 0);
-
-            const current = new Date();
-            current.setHours(0, 0, 0, 0);
-
-            const diffTime = expiry.getTime() - current.getTime();
-            const daysLeft = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-            const shouldTriggerSound = (daysLeft === 30 || daysLeft === 7);
-            const soundAlreadyPlayed = playedToday.docs?.includes(doc.id);
-            const emailSent30 = doc.alerts?.emailSent30 || false;
-            const emailSent7 = doc.alerts?.emailSent7 || false;
-
-            return {
-                name: doc.name,
-                daysLeft,
-                shouldTriggerSound,
-                soundAlreadyPlayed,
-                emailSent30,
-                emailSent7,
-                willPlaySound: shouldTriggerSound && !soundAlreadyPlayed
-            };
-        });
-
-        setDebugInfo(debugData);
-
         console.log("=== ALERT SYSTEM DEBUG ===");
         console.log("Today:", today);
-        console.log("Documents:", debugData);
+        console.log("Total Documents:", documents.length);
+
 
         const triggeredDocs = documents.filter(doc => {
             const expiry = new Date(doc.expiryDate);
