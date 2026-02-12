@@ -20,7 +20,16 @@ const Dashboard: React.FC = () => {
         if (loading) return;
 
         const shouldPlaySound = documents.some(doc => {
-            const daysLeft = Math.ceil((new Date(doc.expiryDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            const expiry = new Date(doc.expiryDate);
+            expiry.setHours(0, 0, 0, 0);
+
+            const current = new Date();
+            current.setHours(0, 0, 0, 0);
+
+            const diffTime = expiry.getTime() - current.getTime();
+            const daysLeft = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            console.log(`Doc: ${doc.name}, DaysLeft: ${daysLeft}`);
             return daysLeft === 30 || daysLeft === 7;
         });
 

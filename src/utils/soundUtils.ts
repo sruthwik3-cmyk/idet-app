@@ -11,7 +11,14 @@ export const playAlertSound = () => {
         }
         console.log("AudioContext found, creating instance");
         const ctx = new AudioContext();
-        console.log("AudioContext instance created");
+        console.log("AudioContext instance created", ctx.state);
+
+        // Resume context if suspended (browser autoplay policy)
+        if (ctx.state === 'suspended') {
+            ctx.resume().then(() => {
+                console.log("AudioContext resumed successfully");
+            }).catch(e => console.error("Failed to resume AudioContext:", e));
+        }
 
         // Tune: C5, E5, G5, A5, C6 (Major 6th Arpeggio with high C) -> Happy/Success feel
         const playMelody = () => {
