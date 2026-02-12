@@ -11,6 +11,7 @@ import {
 import { useApp } from '../context/AppContext';
 import VoiceOrb from './VoiceOrb';
 import { useVoiceAssistant } from '../hooks/useVoiceAssistant';
+import { unlockAudioContext } from '../utils/soundUtils';
 
 interface LayoutProps {
     children: ReactNode;
@@ -21,6 +22,26 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
     const { userProfile, notification } = useApp();
     const navigate = useNavigate();
     const { isListening, isSpeaking, toggleListening } = useVoiceAssistant();
+
+    // Global listener to unlock audio context on first interaction
+    React.useEffect(() => {
+        const unlock = () => {
+            unlockAudioContext();
+            document.removeEventListener('click', unlock);
+            document.removeEventListener('keydown', unlock);
+            document.removeEventListener('touchstart', unlock);
+        };
+
+        document.addEventListener('click', unlock);
+        document.addEventListener('keydown', unlock);
+        document.addEventListener('touchstart', unlock);
+
+        return () => {
+            document.removeEventListener('click', unlock);
+            document.removeEventListener('keydown', unlock);
+            document.removeEventListener('touchstart', unlock);
+        };
+    }, []);
 
     if (hideSidebar) {
         return <div className="layout-minimal">{children}</div>;

@@ -1,87 +1,105 @@
+// Singleton AudioContext to manage browser autoplay policy
+let audioContext: AudioContext | null = null;
+
+const getAudioContext = () => {
+    if (!audioContext) {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContext) {
+            audioContext = new AudioContext();
+        }
+    }
+    return audioContext;
+};
+
+// Helper for testing to reset the singleton
+export const resetAudioContextForTest = () => {
+    audioContext = null;
+};
+
 /**
- * Plays a pleasant musical melody using the Web Audio API.
- * This function creates a sequence of oscillators to generate a short, happy tune.
+ * Unlocks the AudioContext on first user interaction.
+ * Call this function on a global click handler.
+ */
+export const unlockAudioContext = async () => {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+        try {
+            await ctx.resume();
+            console.log("AudioContext resumed by user interaction");
+        } catch (e) {
+            console.error("Failed to unlock AudioContext:", e);
+        }
+    }
+};
+
+/**
+ * Plays a pleasant musical melody (Alert Song).
+ * Loops for approx 15 seconds.
  */
 export const playAlertSound = () => {
-    try {
-        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioContext) {
-            console.warn("AudioContext not found on window");
+    const ctx = getAudioContext();
+    if (!ctx) {
+        console.warn("AudioContext not supported");
+        return;
+    }
+
+    // Ensure context is running (attempt resume if likely blocked, though unlockAudioContext should have handled it)
+    if (ctx.state === 'suspended') {
+        ctx.resume().catch(e => console.error("Auto-resume failed:", e));
+    }
+
+    // Extended Melody: "Success" Arpeggio + Descending Run
+    // C5, E5, G5, C6, G5, E5, C5, D5, F5, A5, D6...
+    const melody = [
+        { note: 523.25, duration: 0.15, time: 0 },    // C5
+        { note: 659.25, duration: 0.15, time: 0.15 }, // E5
+        { note: 783.99, duration: 0.15, time: 0.30 }, // G5
+        { note: 1046.50, duration: 0.30, time: 0.45 },// C6
+        { note: 783.99, duration: 0.15, time: 0.75 }, // G5
+        { note: 659.25, duration: 0.15, time: 0.90 }, // E5
+        { note: 523.25, duration: 0.30, time: 1.05 }, // C5
+
+        { note: 587.33, duration: 0.15, time: 1.50 }, // D5
+        { note: 698.46, duration: 0.15, time: 1.65 }, // F5
+        { note: 880.00, duration: 0.15, time: 1.80 }, // A5
+        { note: 1174.66, duration: 0.40, time: 1.95 }, // D6
+    ];
+
+    const playTune = () => {
+        const now = ctx.currentTime;
+        melody.forEach(({ note, duration, time }) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine'; // Sine for smoother "beep" tone, or triangle for 8-bit game feel. Sine is cleaner.
+            osc.frequency.setValueAtTime(note, now + time);
+
+            // Envelope
+            gain.gain.setValueAtTime(0, now + time);
+            gain.gain.linearRampToValueAtTime(0.2, now + time + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + time + duration);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(now + time);
+            osc.stop(now + time + duration + 0.1);
+        });
+    };
+
+    // Play immediately
+    playTune();
+
+    // Loop duration approx 2.5s -> repeat 5 times to cover ~12.5-15s
+    let loopCount = 0;
+    const maxLoops = 5;
+
+    const intervalId = setInterval(() => {
+        loopCount++;
+        if (loopCount >= maxLoops) {
+            clearInterval(intervalId);
             return;
         }
-        console.log("AudioContext found, creating instance");
-        const ctx = new AudioContext();
-        console.log("AudioContext instance created", ctx.state);
-
-        // Resume context if suspended (browser autoplay policy)
-        if (ctx.state === 'suspended') {
-            ctx.resume().then(() => {
-                console.log("AudioContext resumed successfully");
-            }).catch(e => console.error("Failed to resume AudioContext:", e));
-        }
-
-        // Tune: C5, E5, G5, A5, C6 (Major 6th Arpeggio with high C) -> Happy/Success feel
-        const playMelody = () => {
-            console.log("playMelody called");
-            try {
-                const now = ctx.currentTime;
-                const melody = [
-                    { note: 523.25, duration: 0.1, time: 0 },    // C5
-                    { note: 659.25, duration: 0.1, time: 0.1 },  // E5
-                    { note: 783.99, duration: 0.1, time: 0.2 },  // G5
-                    { note: 880.00, duration: 0.1, time: 0.3 },  // A5
-                    { note: 1046.50, duration: 0.4, time: 0.4 }  // C6 (Longer final note)
-                ];
-
-                melody.forEach(({ note, duration, time }) => {
-                    console.log(`Creating oscillator for note ${note}`);
-                    const osc = ctx.createOscillator();
-                    if (!osc) {
-                        console.error("osc creation failed (returned null/undefined)");
-                        return;
-                    }
-                    const gain = ctx.createGain();
-
-                    osc.type = 'triangle'; // 'triangle' gives a slightly softer, flute-like tone than 'sine'
-                    osc.frequency.setValueAtTime(note, now + time);
-
-                    // Envelope for each note to make it sound musical (attack and release)
-                    gain.gain.setValueAtTime(0, now + time);
-                    gain.gain.linearRampToValueAtTime(0.15, now + time + 0.05); // Attack
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + time + duration); // Release
-
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-
-                    osc.start(now + time);
-                    osc.stop(now + time + duration);
-                });
-            } catch (err) {
-                console.error("Error in playMelody:", err);
-            }
-        };
-
-        // Play immediately
-        playMelody();
-
-        // Loop every 1 second for 15 seconds
-        const intervalId = setInterval(() => {
-            console.log("Interval triggered");
-            playMelody();
-        }, 1000);
-
-        // Stop after 15 seconds
-        setTimeout(() => {
-            console.log("Stopping alert sound");
-            clearInterval(intervalId);
-            // Close context to free resources
-            setTimeout(() => {
-                console.log("Closing AudioContext");
-                ctx.close()
-            }, 1000);
-        }, 15000);
-
-    } catch (error) {
-        console.error('Failed to play alert sound:', error);
-    }
+        playTune();
+    }, 2800); // Wait a bit longer than the melody duration handling delays
 };

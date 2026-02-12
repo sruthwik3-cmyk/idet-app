@@ -3,7 +3,10 @@ import { useApp } from '../context/AppContext';
 import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
+import { SkeletonDashboard } from '../components/SkeletonCards';
 import { playAlertSound } from '../utils/soundUtils';
+// Wait, I see useApp has notification. Let's use that or just console logs if UI not ready.
+// Actually, I'll implement a custom visual indicator for the user to see WHICH doc is triggering.
 
 const Dashboard: React.FC = () => {
     const { stats, documents, deleteDocument, loading } = useApp();
@@ -13,6 +16,7 @@ const Dashboard: React.FC = () => {
     // Initialize search from Voice Command if present
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
+    const [alertDebugMsg, setAlertDebugMsg] = useState<string | null>(null);
     const today = new Date();
 
     // Sound Alert Logic
@@ -172,6 +176,15 @@ const Dashboard: React.FC = () => {
                 }
             `}</style>
             <div className="page-header">
+                {alertDebugMsg && (
+                    <div style={{
+                        background: '#f87171', color: 'white', padding: '1rem', borderRadius: '8px', marginBottom: '1rem',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                    }}>
+                        <span>🔔 {alertDebugMsg}</span>
+                        <button onClick={() => setAlertDebugMsg(null)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>✕</button>
+                    </div>
+                )}
                 <div>
                     <h1 className="page-title">Dashboard</h1>
                     <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Welcome back, overview of your documents.</p>
@@ -266,6 +279,16 @@ const Dashboard: React.FC = () => {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             {filteredDocs.map(doc => {
                                 const daysLeft = Math.ceil((new Date(doc.expiryDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                                // Also update visual display loop to match strict logic for consistency if needed, 
+                                // but existing Math.ceil is usually fine. 
+                                // Let's try to match the strict logic for the visual label too.
+                                const expiryDate = new Date(doc.expiryDate);
+                                const todayDate = new Date();
+                                const expiryUTC = Date.UTC(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+                                const todayUTC = Date.UTC(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+                                const strictDaysLeft = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+                                const displayName = doc.name;
                                 const isCritical = doc.priority === 'Critical';
 
                                 return (
@@ -299,8 +322,8 @@ const Dashboard: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                                                    <span style={{ color: daysLeft <= 30 ? '#f87171' : '#34d399', fontWeight: daysLeft <= 30 ? 'bold' : 'normal' }}>
-                                                        {daysLeft < 0 ? `Expired ${Math.abs(daysLeft)} days ago` : `Expires in ${daysLeft} days`}
+                                                    <span style={{ color: strictDaysLeft <= 30 ? '#f87171' : '#34d399', fontWeight: strictDaysLeft <= 30 ? 'bold' : 'normal' }}>
+                                                        {strictDaysLeft < 0 ? `Expired ${Math.abs(strictDaysLeft)} days ago` : `Expires in ${strictDaysLeft} days`}
                                                         <span style={{ opacity: 0.6, fontWeight: 'normal', marginLeft: '4px', color: 'var(--text-secondary)' }}>
                                                             ({new Date(doc.expiryDate).toLocaleDateString('en-GB')})
                                                         </span>

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { sendExpiryAlert } from './emailService';
-import { playAlertSound } from './soundUtils';
+import { playAlertSound, resetAudioContextForTest } from './soundUtils';
 
 // Mock fetch
 global.fetch = vi.fn();
@@ -33,6 +33,7 @@ describe('Alert System Tests', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.useFakeTimers();
+        resetAudioContextForTest(); // Reset singleton before each test
 
         // Stub globals
         vi.stubGlobal('AudioContext', MockAudioContext);
@@ -128,8 +129,13 @@ describe('Alert System Tests', () => {
             // Advance to end (15s total)
             vi.advanceTimersByTime(14000);
 
-            // Should be closed
-            expect(mockAudioContext.close).toHaveBeenCalled();
+            // Should be closed -> NO, with singleton we don't close anymore
+            // expect(mockAudioContext.close).toHaveBeenCalled();
+
+            // Just verify interval cleared (implied if no more oscillators created after stop?)
+            // We can't easily check clearInterval directly without spying on global, 
+            // but we can check that no NEW oscillators are created after a long time logic if we wanted.
+            // For now, removing the close expectation is enough.
         });
     });
 });
