@@ -185,9 +185,9 @@ const Dashboard: React.FC = () => {
                 )}
                 <div>
                     <h1 className="page-title">
-                        Dashboard <span style={{ fontSize: '0.8rem', opacity: 0.5, fontWeight: 'normal', marginLeft: '10px' }}>v1.2 (Sound Active)</span>
+                        Dashboard <span style={{ fontSize: '0.8rem', backgroundColor: '#f59e0b', color: 'black', padding: '2px 6px', borderRadius: '4px', marginLeft: '10px' }}>v1.2.2 (DEPLOYED)</span>
                     </h1>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Welcome back, overview of your documents.</p>
+                    <p style={{ margin: 0, color: '#f59e0b', fontSize: '0.9rem', fontWeight: 'bold' }}>If you see this orange text, the update is COMPLETED ✅</p>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
