@@ -17,11 +17,19 @@ const Dashboard: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [alertDebugMsg, setAlertDebugMsg] = useState<string | null>(null);
 
-    // Sound Alert Logic
+    // Sound Alert Logic - Play ONCE per document per day
     React.useEffect(() => {
         if (loading) return;
 
-        const shouldPlaySound = documents.some(doc => {
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const playedToday = JSON.parse(localStorage.getItem('soundAlertsPlayed') || '{}');
+
+        // Clean up old entries (older than today)
+        if (playedToday.date !== today) {
+            localStorage.setItem('soundAlertsPlayed', JSON.stringify({ date: today, docs: [] }));
+        }
+
+        const triggeredDocs = documents.filter(doc => {
             const expiry = new Date(doc.expiryDate);
             expiry.setHours(0, 0, 0, 0);
 
@@ -32,11 +40,23 @@ const Dashboard: React.FC = () => {
             const daysLeft = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
             console.log(`Doc: ${doc.name}, DaysLeft: ${daysLeft}`);
-            return daysLeft === 30 || daysLeft === 7;
+
+            // Only trigger if exactly 30 or 7 days AND not already played today
+            const shouldTrigger = (daysLeft === 30 || daysLeft === 7);
+            const alreadyPlayed = playedToday.docs?.includes(doc.id);
+
+            return shouldTrigger && !alreadyPlayed;
         });
 
-        if (shouldPlaySound) {
+        if (triggeredDocs.length > 0) {
+            console.log("Playing sound for:", triggeredDocs.map(d => d.name));
+            setAlertDebugMsg(`Sound Alert: ${triggeredDocs.map(d => d.name).join(', ')}`);
             playAlertSound();
+
+            // Mark as played
+            const updated = JSON.parse(localStorage.getItem('soundAlertsPlayed') || '{}');
+            updated.docs = [...(updated.docs || []), ...triggeredDocs.map(d => d.id)];
+            localStorage.setItem('soundAlertsPlayed', JSON.stringify(updated));
         }
     }, [documents, loading]);
 
