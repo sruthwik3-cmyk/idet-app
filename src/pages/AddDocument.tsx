@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, CheckCircle, Bell } from 'lucide-react';
-import { playAlertSound } from '../utils/soundUtils';
 
 const AddDocument: React.FC = () => {
     const { addDocument, updateDocument, documents } = useApp();
@@ -67,7 +66,6 @@ const AddDocument: React.FC = () => {
 
         if (isEditMode) {
             updateDocument(editDoc.id, docPayload);
-            playAlertSound();
             navigate('/dashboard');
         } else {
             addDocument(docPayload);
@@ -77,7 +75,6 @@ const AddDocument: React.FC = () => {
             const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Expiry: ${formData.name}`)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(`Document Category: ${finalCategory}\nNotes: ${formData.notes}\nPriority: ${formData.priority}`)}&sf=true&output=xml`;
             setCalendarUrl(url);
             setShowSuccess(true);
-            playAlertSound();
             window.open(url, '_blank');
         }
     };

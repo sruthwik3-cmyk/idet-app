@@ -3,7 +3,6 @@ import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, RefreshCw, Bell, Send, Edit2, Save, X, Camera } from 'lucide-react';
 import { sendExpiryAlert } from '../utils/emailService';
-import { playAlertSound } from '../utils/soundUtils';
 
 import { supabase } from '../utils/supabaseClient';
 
@@ -45,7 +44,6 @@ const Profile: React.FC = () => {
                 ...formData
             });
             setIsEditing(false);
-            playAlertSound();
             showNotification('Profile updated successfully!', 'success');
         } catch (error) {
             console.error('Error updating profile:', error);
