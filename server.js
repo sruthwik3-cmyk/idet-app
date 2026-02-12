@@ -5,9 +5,12 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import dns from 'dns';
+import { promisify } from 'util';
 
-// CRITICAL: Force IPv4 for ALL DNS lookups - Render doesn't support IPv6 outbound
+// Force IPv4 globally
 dns.setDefaultResultOrder('ipv4first');
+
+const resolve4 = promisify(dns.resolve4);
 
 dotenv.config();
 
@@ -18,7 +21,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors()); // Enable CORS for all routes
+app.use(cors());
 app.use(express.json());
 
 // Serve static files from the 'dist' directory
@@ -42,27 +45,43 @@ app.post('/api/send-email', async (req, res) => {
     }
 
     try {
-        // Create Transporter - Force IPv4 to avoid Render IPv6 issues
+        // Step 1: Manually resolve smtp.gmail.com to IPv4
+        let smtpHost = 'smtp.gmail.com';
+        try {
+            const addresses = await resolve4('smtp.gmail.com');
+            if (addresses && addresses.length > 0) {
+                smtpHost = addresses[0]; // Use first IPv4 address (e.g., 142.250.x.x)
+                console.log(`[DNS] Resolved smtp.gmail.com to IPv4: ${smtpHost}`);
+            }
+        } catch (dnsErr) {
+            console.warn(`[DNS] Could not resolve IPv4, using hostname: ${dnsErr.message}`);
+        }
+
+        // Step 2: Create transporter with the IPv4 address
         const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
+            host: smtpHost,
             port: 587,
-            secure: false, // Use STARTTLS
+            secure: false,
             auth: {
                 user: process.env.GMAIL_USER,
                 pass: process.env.GMAIL_APP_PASSWORD
             },
             tls: {
+                // Required when using IP address instead of hostname
+                servername: 'smtp.gmail.com',
                 rejectUnauthorized: false
             },
-            // Force IPv4 via custom DNS lookup
-            dnsLookup: (hostname, options, callback) => {
-                dns.lookup(hostname, { family: 4 }, callback);
-            }
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 15000
         });
 
-        // Verify connection configuration
+        // Step 3: Verify connection
+        console.log(`[SMTP] Connecting to ${smtpHost}:587...`);
         await transporter.verify();
+        console.log(`[SMTP] Connection verified successfully!`);
 
+        // Step 4: Send email
         const mailOptions = {
             from: process.env.GMAIL_USER,
             to: to,
@@ -71,14 +90,14 @@ app.post('/api/send-email', async (req, res) => {
             html: html
         };
 
-        console.log(`Attempting to send email from ${process.env.GMAIL_USER}...`);
+        console.log(`[SMTP] Sending email from ${process.env.GMAIL_USER}...`);
         const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent successfully:", info.messageId);
+        console.log("[SMTP] Email sent successfully:", info.messageId);
 
         return res.status(200).json({ message: "Email sent successfully", info });
 
     } catch (error) {
-        console.error("Error sending email:", error);
+        console.error("[SMTP] Error sending email:", error.message);
         return res.status(500).json({ error: "Failed to send email", details: error.message });
     }
 });
@@ -92,8 +111,7 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Catch-all handler for any request that doesn't match an API route or static file
-// This is critical for SPA (Single Page Application) routing to work
+// Catch-all for SPA routing
 app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
