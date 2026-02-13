@@ -7,8 +7,10 @@ export const initEmailService = () => {
 };
 
 export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft: number, expiryDateStr: string, priority: string = 'Important') => {
-    const isCritical = priority === 'Critical';
-    const subject = isCritical ? `🚨 [URGENT] ${docName} is expiring!` : `Reminder: ${docName} Expiry Alert`;
+    const isCritical = priority === 'Critical' || daysLeft <= 7;
+    const isExtreme = daysLeft <= 7;
+    const subject = isExtreme ? `🚨 [EXTREME URGENCY] ${docName} expires in ${daysLeft} days!` :
+        isCritical ? `🚨 [URGENT] ${docName} is expiring!` : `Reminder: ${docName} Expiry Alert (${daysLeft}d)`;
 
     const calendarUrl = generateCalendarUrl(docName, expiryDateStr, priority);
 
