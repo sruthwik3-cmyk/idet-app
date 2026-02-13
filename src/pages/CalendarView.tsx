@@ -17,7 +17,6 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 const getCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
         'Personal': '#60a5fa',
-        'Financial': '#34d399',
         'Medical': '#f87171',
         'Legal': '#fbbf24',
         'Education': '#a78bfa',
@@ -140,7 +139,6 @@ const CalendarView: React.FC = () => {
                                         const getCategoryColor = (cat: string) => {
                                             const colors: Record<string, string> = {
                                                 'Personal': '#60a5fa', // Blue
-                                                'Financial': '#34d399', // Green
                                                 'Medical': '#f87171', // Red
                                                 'Legal': '#fbbf24', // Amber
                                                 'Education': '#a78bfa', // Purple

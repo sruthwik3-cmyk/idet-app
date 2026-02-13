@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { v4 as uuidv4 } from 'uuid';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabaseClient';
-import { initEmailService, sendExpiryAlert, sendConfirmationEmail } from '../utils/emailService';
+import { initEmailService, sendExpiryAlert } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 
 export interface Document {
@@ -271,9 +271,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             setDocuments(prev => [...prev, { ...docData, id: data.id, alerts: newAlerts }]);
             checkAndSendAlerts();
             playAlertSound(); // TRIGGER SOUND UPON ADDING DOCUMENT
-            if (userProfile?.email) {
-                sendConfirmationEmail(userProfile.email, docData.name, docData.category, docData.expiryDate);
-            }
         }
     };
 

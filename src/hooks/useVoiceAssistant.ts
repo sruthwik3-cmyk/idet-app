@@ -63,7 +63,7 @@ export const useVoiceAssistant = () => {
                 intent: 'ADD_DOCUMENT',
                 data: {
                     name,
-                    category: ['Personal', 'Financial', 'Medical', 'Legal', 'Education', 'Vehicle'].includes(category) ? category : 'Custom',
+                    category: ['Personal', 'Medical', 'Legal', 'Education', 'Vehicle'].includes(category) ? category : 'Custom',
                     customCategory: category,
                     expiryDate: date.toISOString().split('T')[0]
                 }
