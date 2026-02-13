@@ -33,7 +33,7 @@ interface AppContextType {
     documents: Document[];
     userProfile: UserProfile | null;
     addDocument: (doc: Omit<Document, 'id' | 'alerts'>) => Promise<Document | null>;
-    updateDocument: (id: string, updates: Partial<Document>) => void;
+    updateDocument: (id: string, updates: Partial<Document>) => Promise<boolean>;
     updateUserProfile: (profile: UserProfile) => void;
     deleteDocument: (id: string) => void;
     stats: {
