@@ -159,44 +159,60 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [documents, loading, userProfile]);
 
     const checkAndSendAlerts = async () => {
+        if (!userProfile?.email || documents.length === 0) return;
+
+        // Calculate today once at start of loop
+        const now = new Date();
+        const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
         for (const doc of documents) {
             const expiry = new Date(doc.expiryDate);
             const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
-            const today = new Date();
-            const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+
+            // diffDays should be exactly integer due to UTC normalization
             const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
             let updatedAlerts = { ...doc.alerts };
             let needsUpdate = false;
 
-            if (diffDays <= 30 && diffDays > 7 && !doc.alerts?.emailSent30 && userProfile?.email) {
+            // 30-Day Alert block
+            if (diffDays <= 30 && diffDays > 7 && !doc.alerts?.emailSent30) {
+                // TRIGGER SIMULTANEOUSLY
+                playAlertSound();
+                if (Notification.permission === 'granted') {
+                    new Notification(`📅 Document Duty: ${doc.name}`, { body: `Expires in ${diffDays} days.`, icon: '/pwa-192x192.png' });
+                }
+
+                // Fire and await email
                 const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
                 if (res?.success) {
                     updatedAlerts.emailSent30 = true;
                     needsUpdate = true;
-                    playAlertSound();
-                    if (Notification.permission === 'granted') {
-                        new Notification(`📅 Document Duty: ${doc.name}`, { body: `Expires in ${diffDays} days.`, icon: '/pwa-192x192.png' });
-                    }
-                    showNotification(`Email reminder sent for ${doc.name}`, 'success');
+                    showNotification(`30-day email reminder sent for ${doc.name}`, 'success');
                 }
             }
 
-            if (diffDays <= 7 && diffDays >= 0 && !doc.alerts?.emailSent7 && userProfile?.email) {
+            // 7-Day Alert block
+            if (diffDays <= 7 && diffDays >= 0 && !doc.alerts?.emailSent7) {
+                // TRIGGER SIMULTANEOUSLY
+                playAlertSound();
+                if (Notification.permission === 'granted') {
+                    new Notification(`🚨 URGENT: ${doc.name}`, { body: `Only ${diffDays} days left!`, icon: '/pwa-192x192.png', requireInteraction: true });
+                }
+
+                // Fire and await email
                 const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
                 if (res?.success) {
                     updatedAlerts.emailSent7 = true;
                     needsUpdate = true;
-                    playAlertSound();
-                    if (Notification.permission === 'granted') {
-                        new Notification(`🚨 URGENT: ${doc.name}`, { body: `Only ${diffDays} days left!`, icon: '/pwa-192x192.png', requireInteraction: true });
-                    }
-                    showNotification(`Urgent email sent for ${doc.name}`, 'success');
+                    showNotification(`Urgent 7-day email sent for ${doc.name}`, 'success');
                 }
             }
 
             if (needsUpdate) {
+                // Sync with DB
                 await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
+                // Update local state to prevent re-trigger
                 setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
             }
         }
