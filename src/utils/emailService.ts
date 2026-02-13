@@ -1,4 +1,5 @@
 // Email Service - Direct Gmail via Netlify Functions
+import { generateCalendarUrl } from './calendarUtils';
 
 export const initEmailService = () => {
     // No frontend init required for backend functions
@@ -9,12 +10,7 @@ export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft
     const isCritical = priority === 'Critical';
     const subject = isCritical ? `🚨 [URGENT] ${docName} is expiring!` : `Reminder: ${docName} Expiry Alert`;
 
-    // Generate Google Calendar Link
-    // Format dates as YYYYMMDDT000000Z
-    const startDate = new Date(expiryDateStr).toISOString().replace(/-|:|\.\d\d\d/g, "");
-    const endDate = new Date(new Date(expiryDateStr).getTime() + 60 * 60 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
-
-    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Expiry: ${docName}`)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(`Document Category: ${priority} Priority\n\nThis document expires today. Please verify renewal status.`)}&sf=true&output=xml`;
+    const calendarUrl = generateCalendarUrl(docName, expiryDateStr, priority);
 
     // HTML Body - Professional Slate/Indigo Theme
     const htmlBody = `
@@ -101,10 +97,7 @@ Sent from IDET Document Manager
 export const sendConfirmationEmail = async (toEmail: string, docName: string, category: string, expiryDate: string) => {
     const subject = `✅ Document Secured: ${docName} is now in your Vault`;
 
-    // Generate dates for Calendar
-    const startDate = new Date(expiryDate).toISOString().replace(/-|:|\.\d\d\d/g, "");
-    const endDate = new Date(new Date(expiryDate).getTime() + 60 * 60 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
-    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Expiry: ${docName}`)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(`Category: ${category}\n\nThis is a confirmation that your document has been secured in your IDET Vault.`)}&sf=true&output=xml`;
+    const calendarUrl = generateCalendarUrl(docName, expiryDate, category);
 
     const htmlBody = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
