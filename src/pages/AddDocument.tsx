@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp, Document } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle, Shield, ArrowLeft, Zap, Calendar as CalendarIcon, Info } from 'lucide-react';
+import { CheckCircle, Shield, ArrowLeft, Calendar as CalendarIcon, Info } from 'lucide-react';
 import { format, parse, isValid } from 'date-fns';
 
 const AddDocument: React.FC = () => {
