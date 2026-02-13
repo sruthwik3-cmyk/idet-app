@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { v4 as uuidv4 } from 'uuid';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabaseClient';
-import { initEmailService, sendExpiryAlert } from '../utils/emailService';
+import { initEmailService, sendExpiryAlert, sendConfirmationEmail } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 
 export interface Document {
@@ -178,7 +178,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     if (Notification.permission === 'granted') {
                         new Notification(`📅 Document Duty: ${doc.name}`, { body: `Expires in ${diffDays} days.`, icon: '/pwa-192x192.png' });
                     }
-                    showNotification(res.isSimulation ? `Reminder triggered for ${doc.name}` : `Email sent for ${doc.name}`, 'success');
+                    showNotification(`Email reminder sent for ${doc.name}`, 'success');
                 }
             }
 
@@ -191,7 +191,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     if (Notification.permission === 'granted') {
                         new Notification(`🚨 URGENT: ${doc.name}`, { body: `Only ${diffDays} days left!`, icon: '/pwa-192x192.png', requireInteraction: true });
                     }
-                    showNotification(res.isSimulation ? `Urgent reminder for ${doc.name}` : `Urgent email sent for ${doc.name}`, 'success');
+                    showNotification(`Urgent email sent for ${doc.name}`, 'success');
                 }
             }
 
@@ -255,6 +255,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             setDocuments(prev => [...prev, { ...docData, id: data.id, alerts: newAlerts }]);
             checkAndSendAlerts();
             playAlertSound(); // TRIGGER SOUND UPON ADDING DOCUMENT
+            if (userProfile?.email) {
+                sendConfirmationEmail(userProfile.email, docData.name, docData.category, docData.expiryDate);
+            }
         }
     };
 

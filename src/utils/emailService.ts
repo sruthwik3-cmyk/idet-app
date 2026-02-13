@@ -85,42 +85,72 @@ Sent from IDET Document Manager
     `;
 
     try {
-        console.log(`[EmailService] Sending email to ${toEmail}...`);
         const response = await fetch('/api/send-email', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                to: toEmail,
-                subject: subject,
-                html: htmlBody,
-                text: textBody
-            }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: toEmail, subject, html: htmlBody, text: textBody }),
         });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Server responded with ${response.status}: ${errorText}`);
-        }
-
         const data = await response.json();
-        console.log("[EmailService] Email sent successfully:", data);
-        return { success: true, response: data };
-
+        return { success: response.ok, response: data };
     } catch (error) {
-        console.error("[EmailService] Email Send Error:", error);
+        console.error("[EmailService] Error:", error);
+        return { success: false, error };
+    }
+};
 
-        const errorDetails = error instanceof Error ? error.message : String(error);
+export const sendConfirmationEmail = async (toEmail: string, docName: string, category: string, expiryDate: string) => {
+    const subject = `✅ Document Secured: ${docName} is now in your Vault`;
 
-        // Fallback for simulation/dev mode if function is not running locally
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            const errorMsg = `Backend Error: ${errorDetails}. Check if 'node server.js' is running.`;
-            console.error(`%c[BACKEND ERROR] ${errorMsg}`, 'color: #ef4444; font-weight: bold; font-size: 14px;');
+    // Generate dates for Calendar
+    const startDate = new Date(expiryDate).toISOString().replace(/-|:|\.\d\d\d/g, "");
+    const endDate = new Date(new Date(expiryDate).getTime() + 60 * 60 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Expiry: ${docName}`)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(`Category: ${category}\n\nThis is a confirmation that your document has been secured in your IDET Vault.`)}&sf=true&output=xml`;
 
-            return { success: false, isSimulation: false, error: { message: errorMsg, details: errorDetails } };
-        }
+    const htmlBody = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+            <div style="background-color: #4f46e5; padding: 24px; border-radius: 8px 8px 0 0; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 24px;">All Systems Go! 🚀</h1>
+                <p style="margin: 8px 0 0; opacity: 0.9;">Gmail, Sound, and Calendar Alerts are Synchronized</p>
+            </div>
+            <div style="padding: 30px;">
+                <p style="font-size: 16px; color: #1e293b;">Hello,</p>
+                <p style="font-size: 16px; color: #475569;">Your document <strong style="color: #1e293b;">${docName}</strong> is now securely tracked in your vault.</p>
+                
+                <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; margin: 24px 0;">
+                    <p style="margin: 0; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Details</p>
+                    <p style="margin: 8px 0 4px; font-size: 18px; color: #1e293b; font-weight: 600;">${category}</p>
+                    <p style="margin: 0; font-size: 14px; color: #475569;">Expires on: ${new Date(expiryDate).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
+                </div>
 
-        return { success: false, error: { message: "Failed to connect to email service.", details: errorDetails } };
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding: 12px; border: 1px dashed #6366f1; border-radius: 8px; background: rgba(99, 102, 241, 0.02);">
+                    <div style="font-size: 24px;">🚨</div>
+                    <div>
+                        <p style="margin: 0; font-weight: 600; color: #4338ca;">Multi-Channel Alerts Active</p>
+                        <p style="margin: 0; font-size: 13px; color: #6366f1;">Gmail, sound, and notifications will trigger on schedule.</p>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 32px;">
+                    <a href="${calendarUrl}" style="background-color: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);">
+                        📅 Add to Google Calendar
+                    </a>
+                </div>
+            </div>
+            <div style="padding: 20px; text-align: center; background: #f8fafc; border-radius: 0 0 12px 12px; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0; font-size: 12px; color: #94a3b8;">Sent automatically by IDET Document Manager</p>
+            </div>
+        </div>
+    `;
+
+    try {
+        await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: toEmail, subject, html: htmlBody, text: `Success! ${docName} is secured in your vault.` }),
+        });
+        return { success: true };
+    } catch (e) {
+        console.error("Confirmation email failed:", e);
+        return { success: false };
     }
 };
