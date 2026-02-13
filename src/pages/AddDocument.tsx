@@ -97,10 +97,24 @@ const AddDocument: React.FC = () => {
             }
 
             if (resultDoc) {
-                // AUTOMATIC GOOGLE CALENDAR OPEN
-                // This works for ALL cases (whether it's <30 or >30 days)
+                // Determine days for UI feedback/alerts
+                const now = new Date();
+                const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+                const expiry = new Date(finalExpiryDate);
+                const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
+                const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+                // AUTOMATIC GOOGLE CALENDAR OPEN (Always)
                 const calUrl = generateCalendarUrl(submissionData.name, submissionData.expiryDate, submissionData.priority);
-                window.open(calUrl, '_blank');
+                const calWindow = window.open(calUrl, '_blank');
+
+                if (!calWindow) {
+                    console.error('[AddDoc] Popup blocked!');
+                    alert('Please allow popups to automatically sync with Google Calendar.');
+                }
+
+                // If >30, only calendar was expected. If <= 30, Gmail/Sound are already handled in AppContext.
+                console.log(`[AddDoc] Success handling for ${diffDays} days to expiry.`);
 
                 navigate('/dashboard');
             } else {

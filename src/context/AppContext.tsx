@@ -318,7 +318,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             // 30-Day Rule: ≤30 and >7 days → Sound + Gmail
             if (diffDays <= 30 && diffDays > 7) {
                 console.log(`[AddDoc] 🔔 Within 30-day window. Scheduling Gmail alert.`);
-                // REMOVED playAlertSound() to prevent double triggers with checkAndSendAlerts
+                playAlertSound();
 
                 if (userProfile?.email) {
                     try {
@@ -341,7 +341,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             // 7-Day Rule: ≤7 and ≥0 days → Sound + Gmail (urgent)
             if (diffDays <= 7 && diffDays >= 0) {
                 console.log(`[AddDoc] 🚨 Within 7-day window! Scheduling urgent Gmail alert.`);
-                // REMOVED playAlertSound() to prevent double triggers with checkAndSendAlerts
+                playAlertSound();
 
                 if (userProfile?.email) {
                     try {
