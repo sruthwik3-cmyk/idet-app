@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
 
 const AddDocument: React.FC = () => {
-    const { addDocument, updateDocument, documents } = useApp();
+    const { addDocument, updateDocument } = useApp();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -12,12 +12,6 @@ const AddDocument: React.FC = () => {
     const editDoc = location.state?.document;
     const isEditMode = !!editDoc;
 
-    // Smart Categories: Extract unique custom categories from existing documents
-    const existingCustomCategories = Array.from(new Set(
-        documents
-            .map((d: any) => d.category)
-            .filter((c: string) => !['Personal', 'Medical', 'Legal', 'Education', 'Vehicle'].includes(c))
-    ));
 
     const [formData, setFormData] = useState({
         name: editDoc?.name || '',
@@ -136,15 +130,8 @@ const AddDocument: React.FC = () => {
                                 required
                                 value={customCategory}
                                 onChange={(e) => setCustomCategory(e.target.value)}
-                                placeholder="Enter custom category (e.g. Pet Records, Warranty)"
-                                list="custom-category-suggestions"
-                                style={{ background: 'rgba(129, 140, 248, 0.05)', borderColor: 'var(--primary)' }}
+                                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)' }}
                             />
-                            <datalist id="custom-category-suggestions">
-                                {existingCustomCategories.map((cat: string, idx: number) => (
-                                    <option key={idx} value={cat} />
-                                ))}
-                            </datalist>
                         </div>
                     )}
 

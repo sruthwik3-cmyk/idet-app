@@ -41,8 +41,6 @@ interface AppContextType {
         active: number;
         expiringSoon: number;
         expired: number;
-        healthScore: number;
-        insights: string[];
     };
     loading: boolean;
     notification: { message: string, type: 'success' | 'info' | 'error' } | null;
@@ -310,31 +308,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const calculateHealthScore = () => {
-        if (documents.length === 0) return { score: 100, insights: ["Welcome! Add your first document."] };
-        let totalDeduction = 0;
-        const insights: string[] = [];
-        documents.forEach(doc => {
-            const exp = new Date(doc.expiryDate);
-            const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-            if (diffDays < 0) {
-                totalDeduction += 25;
-                if (insights.length < 3) insights.push(`Critical: "${doc.name}" has expired.`);
-            } else if (diffDays <= 7) {
-                totalDeduction += 15;
-                if (insights.length < 3) insights.push(`Urgent: "${doc.name}" expires in ${diffDays} days.`);
-            } else if (diffDays <= 30) {
-                totalDeduction += 5;
-                if (insights.length < 3 && !insights.some(i => i.includes(doc.name))) insights.push(`Plan to update "${doc.name}" soon.`);
-            }
-        });
-        const score = Math.max(0, 100 - totalDeduction);
-        if (score === 100 && documents.length > 0) insights.push("Excellent! All documents are secure.");
-        else if (score > 80) insights.push("Vault is healthy.");
-        return { score, insights };
-    };
-
-    const vaultHealth = calculateHealthScore();
     const stats = {
         total: documents.length,
         active: documents.filter(d => new Date(d.expiryDate) >= today).length,
@@ -342,9 +315,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const diffDays = Math.ceil((new Date(d.expiryDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
             return diffDays >= 0 && diffDays <= 7;
         }).length,
-        expired: documents.filter(d => new Date(d.expiryDate) < today).length,
-        healthScore: vaultHealth.score,
-        insights: vaultHealth.insights
+        expired: documents.filter(d => new Date(d.expiryDate) < today).length
     };
 
     return (

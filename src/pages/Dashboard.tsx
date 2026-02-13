@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { LayoutDashboard, Bell, Search, Pencil, Trash2, Download, ExternalLink, Sparkles, Zap, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Bell, Search, Pencil, Trash2, Download, Zap, ShieldCheck } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
-import HealthVisualizer from '../components/HealthVisualizer';
 
 const Dashboard: React.FC = () => {
     const { stats, documents, deleteDocument, loading } = useApp();
@@ -160,64 +159,7 @@ const Dashboard: React.FC = () => {
                 <StatCard title="Expired" value={stats.expired} icon={Zap} color="#f87171" gradient="linear-gradient(135deg, #f87171 0%, #fca5a5 100%)" />
             </div>
 
-            {/* AI Insights Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
-                <HealthVisualizer />
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
-                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-primary)' }}>
-                            <Zap size={24} color="var(--primary)" /> AI Renewal Hub
-                        </h3>
-                    </div>
-
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {documents.filter(d => {
-                            const exp = new Date(d.expiryDate);
-                            const diff = Math.ceil((exp.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                            return diff <= 30;
-                        }).length > 0 ? (
-                            documents
-                                .filter(d => {
-                                    const exp = new Date(d.expiryDate);
-                                    const diff = Math.ceil((exp.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                                    return diff <= 30;
-                                })
-                                .slice(0, 3)
-                                .map(doc => (
-                                    <div key={`renewal-${doc.id}`} style={{
-                                        padding: '1.25rem',
-                                        background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(244, 63, 94, 0.05) 100%)',
-                                        borderRadius: '16px',
-                                        border: '1px solid rgba(255,255,255,0.05)',
-                                        position: 'relative'
-                                    }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div>
-                                                <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>{doc.name}</h4>
-                                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>AI Suggestion: Start renewal now.</p>
-                                            </div>
-                                            <button
-                                                className="btn-primary-glass"
-                                                style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', background: 'var(--primary)', borderRadius: '8px' }}
-                                                onClick={() => window.open(`https://www.google.com/search?q=how+to+renew+${doc.name}`, '_blank')}
-                                            >
-                                                Renew <ExternalLink size={12} style={{ marginLeft: '4px' }} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))
-                        ) : (
-                            <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px dashed var(--border)' }}>
-                                <Sparkles size={32} color="var(--primary)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>All secure! No immediate renewals needed.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
 
             <div className="card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
