@@ -295,12 +295,66 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const savedDoc: Document = { ...docData, id: data.id, alerts: newAlerts };
             setDocuments(prev => [...prev, savedDoc]);
 
-            // Sound + Gmail ONLY fire through checkAndSendAlerts
-            // which enforces the 30-day and 7-day rules
-            console.log('[AddDoc] Document saved. Running alert check (30/7 day rules)...');
+            // Calculate days to expiry for the NEW document
+            const now = new Date();
+            const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+            const expiry = new Date(docData.expiryDate);
+            const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
+            const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
-            // Use setTimeout to ensure the new document is in state before checking
-            setTimeout(() => checkAndSendAlerts(), 500);
+            console.log(`[AddDoc] "${docData.name}" saved. ${diffDays} days until expiry.`);
+
+            // 30-Day Rule: ≤30 and >7 days → Sound + Gmail
+            if (diffDays <= 30 && diffDays > 7) {
+                console.log(`[AddDoc] 🔔 Within 30-day window. Triggering sound + Gmail alert.`);
+                playAlertSound();
+
+                if (userProfile?.email) {
+                    try {
+                        const res = await sendExpiryAlert(userProfile.email, docData.name, diffDays, docData.expiryDate, docData.priority);
+                        if (res?.success) {
+                            const nextAlerts = { ...newAlerts, emailSent30: true };
+                            await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', data.id);
+                            setDocuments(prev => prev.map(d => d.id === data.id ? { ...d, alerts: nextAlerts } : d));
+                            showNotification(`✅ 30-day alert sent for "${docData.name}"`, 'success');
+                        } else {
+                            showNotification(`❌ Failed to send alert for "${docData.name}"`, 'error');
+                        }
+                    } catch (err) {
+                        console.error('[AddDoc] Email error:', err);
+                        showNotification(`❌ Email error for "${docData.name}"`, 'error');
+                    }
+                }
+            }
+
+            // 7-Day Rule: ≤7 and ≥0 days → Sound + Gmail (urgent)
+            if (diffDays <= 7 && diffDays >= 0) {
+                console.log(`[AddDoc] 🚨 Within 7-day window! Triggering urgent sound + Gmail alert.`);
+                playAlertSound();
+
+                if (userProfile?.email) {
+                    try {
+                        const res = await sendExpiryAlert(userProfile.email, docData.name, diffDays, docData.expiryDate, docData.priority);
+                        if (res?.success) {
+                            const nextAlerts = { ...newAlerts, emailSent7: true };
+                            await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', data.id);
+                            setDocuments(prev => prev.map(d => d.id === data.id ? { ...d, alerts: nextAlerts } : d));
+                            showNotification(`✅ Urgent 7-day alert sent for "${docData.name}"`, 'success');
+                        } else {
+                            showNotification(`❌ Failed to send urgent alert for "${docData.name}"`, 'error');
+                        }
+                    } catch (err) {
+                        console.error('[AddDoc] Email error:', err);
+                        showNotification(`❌ Email error for "${docData.name}"`, 'error');
+                    }
+                }
+            }
+
+            // >30 days: No sound, no Gmail. Calendar opens in AddDocument.tsx
+            if (diffDays > 30) {
+                console.log(`[AddDoc] >30 days out. No sound/Gmail. Calendar will auto-open.`);
+                showNotification(`✅ "${docData.name}" saved! Calendar event opening.`, 'success');
+            }
 
             return savedDoc;
         }

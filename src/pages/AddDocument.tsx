@@ -107,6 +107,7 @@ const AddDocument: React.FC = () => {
                                 style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
                             >
                                 <option value="Personal" style={{ color: 'black' }}>Personal</option>
+                                <option value="Financial" style={{ color: 'black' }}>Financial</option>
                                 <option value="Medical" style={{ color: 'black' }}>Medical</option>
                                 <option value="Legal" style={{ color: 'black' }}>Legal</option>
                                 <option value="Education" style={{ color: 'black' }}>Education</option>
