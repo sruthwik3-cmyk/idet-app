@@ -12,7 +12,7 @@ import {
     addMonths,
     subMonths
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, LucideIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon } from 'lucide-react';
 
 const getCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
