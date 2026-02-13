@@ -214,7 +214,7 @@ const AddDocument: React.FC = () => {
                         <div className="input-group" style={{ animation: 'revealIn 0.8s 0.5s var(--spring) both' }}>
                             <label style={{ color: 'var(--primary)', marginBottom: '1rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>Priority Protocol</label>
                             <div style={{ display: 'flex', gap: '1.25rem' }}>
-                                {priorities.map((p, idx) => (
+                                {priorities.map((p) => (
                                     <button
                                         key={p}
                                         type="button"
