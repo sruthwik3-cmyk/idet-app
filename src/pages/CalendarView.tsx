@@ -16,12 +16,15 @@ import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon } from 'lucide-r
 
 const getCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
-        'ID': '#60a5fa',
-        'License': '#34d399',
         'Passport': '#c084fc',
-        'Insurance': '#f87171',
-        'Lease': '#fbbf24',
-        'Certificate': '#2dd4bf',
+        'Aadhaar Card': '#60a5fa',
+        'PAN Card': '#60a5fa',
+        'Life Insurance': '#34d399',
+        'Driving License': '#a855f7',
+        'Health Insurance Policy': '#f87171',
+        'Vehicle Insurance (Car/Bike)': '#fbbf24',
+        'Driving License Renewal': '#818cf8',
+        'Debit/Credit Card': '#2dd4bf',
         'Other': '#94a3b8'
     };
     return colors[cat] || '#e879f9'; // Pink for Custom

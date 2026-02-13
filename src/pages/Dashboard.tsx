@@ -10,7 +10,13 @@ import {
     Calendar as CalendarIcon,
     User,
     Clock,
-    AlertTriangle
+    AlertTriangle,
+    CreditCard,
+    FileText,
+    Car,
+    Heart,
+    ShieldCheck,
+    Briefcase
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
@@ -185,8 +191,43 @@ const Dashboard: React.FC = () => {
                             const isExpired = diffDays < 0;
                             const isCritical = doc.priority === 'Critical' || isExpired;
 
+                            const getDocIcon = (category: string) => {
+                                const cat = category.toLowerCase();
+                                if (cat.includes('passport')) return <ShieldCheck size={22} />;
+                                if (cat.includes('aadhaar') || cat.includes('pan') || cat.includes('card')) return <CreditCard size={22} />;
+                                if (cat.includes('insurance') && cat.includes('health')) return <Heart size={22} />;
+                                if (cat.includes('insurance') && (cat.includes('vehicle') || cat.includes('car') || cat.includes('bike'))) return <Car size={22} />;
+                                if (cat.includes('insurance')) return <ShieldCheck size={22} />;
+                                if (cat.includes('license')) return <Briefcase size={22} />;
+                                return <FileText size={22} />;
+                            };
+
+                            const getIconColor = (category: string) => {
+                                const cat = category.toLowerCase();
+                                if (cat.includes('passport')) return '#c084fc';
+                                if (cat.includes('aadhaar') || cat.includes('pan') || cat.includes('card')) return '#60a5fa';
+                                if (cat.includes('health')) return '#f87171';
+                                if (cat.includes('vehicle')) return '#fbbf24';
+                                if (cat.includes('insurance')) return '#34d399';
+                                return '#94a3b8';
+                            };
+
                             return (
                                 <div key={doc.id} className={`doc-item ${isCritical ? 'critical' : ''}`}>
+                                    <div style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '12px',
+                                        background: `${getIconColor(doc.category)}15`,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: getIconColor(doc.category),
+                                        border: `1px solid ${getIconColor(doc.category)}33`,
+                                        marginRight: '1.25rem'
+                                    }}>
+                                        {getDocIcon(doc.category)}
+                                    </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.6rem' }}>
                                             <span style={{ fontWeight: 800, color: 'white', fontSize: '1.1rem' }}>{doc.name}</span>

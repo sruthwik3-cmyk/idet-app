@@ -21,7 +21,19 @@ const AddDocument: React.FC = () => {
         customCategory: ''
     });
 
-    const categories = ['ID', 'License', 'Passport', 'Insurance', 'Lease', 'Certificate', 'Other', 'Custom'];
+    const categories = [
+        'Passport',
+        'Aadhaar Card',
+        'PAN Card',
+        'Life Insurance',
+        'Driving License',
+        'Health Insurance Policy',
+        'Vehicle Insurance (Car/Bike)',
+        'Driving License Renewal',
+        'Debit/Credit Card',
+        'Other',
+        'Custom'
+    ];
     const priorities: ('Critical' | 'Important' | 'Optional')[] = ['Optional', 'Important', 'Critical'];
 
     const handleFormSubmit = async (e: React.FormEvent) => {
