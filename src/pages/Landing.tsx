@@ -37,9 +37,9 @@ const Landing: React.FC = () => {
 
     return (
         <div style={{
-            background: '#040405',
+            background: 'var(--background)',
             minHeight: '100vh',
-            color: 'white',
+            color: 'var(--text-primary)',
             overflowX: 'hidden',
             fontFamily: "'Outfit', 'Inter', sans-serif"
         }}>
@@ -63,7 +63,7 @@ const Landing: React.FC = () => {
                 right: '-10%',
                 width: '70vw',
                 height: '70vw',
-                background: 'radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%)',
+                background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)',
                 filter: 'blur(120px)',
                 zIndex: 0,
                 pointerEvents: 'none',
@@ -100,17 +100,17 @@ const Landing: React.FC = () => {
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                     <div style={{
-                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
                         padding: '10px',
                         borderRadius: '12px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: '0 8px 16px -4px rgba(99, 102, 241, 0.3)'
+                        boxShadow: '0 8px 16px -4px var(--primary-glow)'
                     }}>
                         <Shield size={24} color="white" />
                     </div>
-                    <span style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.04em', background: 'linear-gradient(to bottom, #fff, #999)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    <span style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.04em', background: 'linear-gradient(to bottom, #fff, var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                         IDET
                     </span>
                 </div>
@@ -125,16 +125,16 @@ const Landing: React.FC = () => {
                         onClick={() => navigate('/login')}
                         className="btn-primary-glass"
                         style={{
-                            background: '#10b981',
+                            background: 'var(--primary)',
                             color: 'white',
-                            border: 'none',
+                            border: '1px solid rgba(255,255,255,0.1)',
                             padding: '0.75rem 1.5rem',
-                            borderRadius: '10px',
+                            borderRadius: '12px',
                             fontWeight: 700,
                             fontSize: '0.9rem',
                             cursor: 'pointer',
-                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            boxShadow: '0 0 20px rgba(16, 185, 129, 0.2)',
+                            transition: 'var(--transition)',
+                            boxShadow: '0 0 20px var(--primary-glow)',
                             position: 'relative',
                             overflow: 'hidden'
                         }}
@@ -176,17 +176,18 @@ const Landing: React.FC = () => {
 
                     <h1 style={{
                         fontSize: 'clamp(3rem, 10vw, 5.5rem)',
-                        fontWeight: 900,
+                        fontWeight: 950,
                         lineHeight: 0.95,
                         letterSpacing: '-0.06em',
                         marginBottom: '2rem',
-                        background: 'linear-gradient(to bottom, #ffffff 30%, rgba(255, 255, 255, 0.5) 100%)',
+                        background: 'linear-gradient(to bottom, #ffffff 30%, var(--primary) 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
                     }}>
                         Important Document <br />
-                        <span style={{ color: '#10b981', textShadow: '0 0 40px rgba(16, 185, 129, 0.2)' }}>Expiry Tracker.</span>
+                        <span style={{ color: 'var(--primary)', textShadow: '0 0 40px var(--primary-glow)' }}>Expiry Tracker.</span>
                     </h1>
 
                     <p style={{
@@ -204,21 +205,12 @@ const Landing: React.FC = () => {
                     <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                         <button
                             onClick={() => navigate('/login')}
-                            className="btn-main-pulse"
+                            className="btn-primary-full btn-pulse"
                             style={{
-                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                color: 'white',
-                                border: 'none',
+                                width: 'auto',
                                 padding: '1.25rem 3rem',
-                                borderRadius: '14px',
-                                fontWeight: 800,
-                                fontSize: '1.2rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '1rem',
-                                transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                                boxShadow: '0 20px 40px -10px rgba(16, 185, 129, 0.4)'
+                                borderRadius: '16px',
+                                fontSize: '1.2rem'
                             }}
                         >
                             Get Started Free <ArrowRight size={24} />
@@ -238,8 +230,8 @@ const Landing: React.FC = () => {
                     margin: '0 auto'
                 }}>
                     <div style={{ textAlign: 'center', marginBottom: '6rem' }} className="reveal">
-                        <h2 style={{ fontSize: '1rem', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.4em', marginBottom: '1rem' }}>The System</h2>
-                        <h3 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.04em' }}>Engineered for Perfection</h3>
+                        <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.4em', marginBottom: '1rem' }}>The System</h2>
+                        <h3 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--text-primary)' }}>Engineered for Perfection</h3>
                     </div>
 
                     <div style={{
@@ -248,19 +240,19 @@ const Landing: React.FC = () => {
                         gap: '2.5rem'
                     }}>
                         <FeatureCard
-                            icon={<Bell color="#f59e0b" size={32} />}
+                            icon={<Bell color="var(--warning)" size={32} />}
                             title="Active Gmail Integration"
                             description="Deep integration with Gmail to ensure your alerts land directly in your primary inbox, keeping you informed across all devices."
                             delay="0s"
                         />
                         <FeatureCard
-                            icon={<Clock color="#10b981" size={32} />}
+                            icon={<Clock color="var(--success)" size={32} />}
                             title="Critical Audio Sync"
                             description="Custom audio-visual feedback loops that synchronize with your high-priority document statuses for zero-friction management."
                             delay="0.1s"
                         />
                         <FeatureCard
-                            icon={<Calendar color="#6366f1" size={32} />}
+                            icon={<Calendar color="var(--primary)" size={32} />}
                             title="Engineered Calendar Fix"
                             description="Instant generation of ICS payloads allowing for seamless one-click synchronization with your global cloud calendar."
                             delay="0.2s"

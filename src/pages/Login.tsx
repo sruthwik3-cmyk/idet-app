@@ -90,7 +90,7 @@ const Login: React.FC = () => {
             width: '100vw',
             padding: '2rem 1rem',
             position: 'relative',
-            background: '#09090b',
+            background: 'var(--background)',
             overflowX: 'hidden',
             overflowY: 'auto'
         }}>
@@ -101,7 +101,7 @@ const Login: React.FC = () => {
                 left: '-10%',
                 width: '600px',
                 height: '600px',
-                background: 'radial-gradient(circle, rgba(129, 140, 248, 0.15) 0%, transparent 70%)',
+                background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)',
                 zIndex: 0,
                 filter: 'blur(60px)',
             }}></div>
@@ -123,10 +123,10 @@ const Login: React.FC = () => {
                 padding: '0',
                 position: 'relative',
                 zIndex: 10,
-                border: '1px solid rgba(255,255,255,0.1)',
-                background: 'rgba(24, 24, 27, 0.6)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                border: '1px solid var(--border)',
+                background: 'var(--card-bg)',
+                backdropFilter: 'var(--glass)',
+                boxShadow: 'var(--shadow-lg)'
             }}>
                 <div style={{ padding: '3rem 2.5rem' }}>
                     {/* Header Section */}
@@ -140,7 +140,7 @@ const Login: React.FC = () => {
                             alignItems: 'center',
                             justifyContent: 'center',
                             margin: '0 auto 1.5rem',
-                            boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)'
+                            boxShadow: '0 10px 15px -3px var(--primary-glow)'
                         }}>
                             <Shield size={32} color="white" />
                         </div>
@@ -174,15 +174,15 @@ const Login: React.FC = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '0.75rem',
-                                padding: '0.875rem',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                background: 'rgba(255,255,255,0.05)',
+                                padding: '1rem',
+                                borderRadius: '12px',
+                                border: '1px solid var(--border)',
+                                background: 'rgba(255,255,255,0.03)',
                                 color: 'white',
                                 fontSize: '0.95rem',
                                 fontWeight: 500,
                                 cursor: 'pointer',
-                                transition: 'all 0.2s',
+                                transition: 'var(--transition)',
                             }}
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
@@ -239,20 +239,12 @@ const Login: React.FC = () => {
 
                         <button
                             type="submit"
-                            className="btn-primary-full"
+                            className="btn-primary-full btn-pulse"
                             disabled={loading}
                             style={{
                                 marginTop: '1rem',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                gap: '0.5rem',
                                 padding: '1rem',
-                                fontSize: '1rem',
-                                background: loading ? 'rgba(129, 140, 248, 0.5)' : 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
-                                boxShadow: '0 4px 12px rgba(129, 140, 248, 0.4)',
-                                border: 'none',
-                                cursor: loading ? 'not-allowed' : 'pointer'
+                                fontSize: '1rem'
                             }}
                         >
                             {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')} <ArrowRight size={18} />
