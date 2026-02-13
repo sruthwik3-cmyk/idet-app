@@ -291,7 +291,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             notes: docData.notes,
             alerts_json: newAlerts
         }).select().single();
-        if (data && !error) {
+
+        if (error) {
+            console.error('[AddDoc] Supabase Insert Error:', error);
+            showNotification(`❌ Storage Error: ${error.message}`, 'error');
+            return null;
+        }
+
+        if (data) {
             const savedDoc: Document = { ...docData, id: data.id, alerts: newAlerts };
             setDocuments(prev => [...prev, savedDoc]);
 
@@ -366,8 +373,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         await supabase.from('documents').delete().eq('id', id);
     };
 
-    const updateDocument = async (id: string, updates: Partial<Document>) => {
-        setDocuments(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
+    const updateDocument = async (id: string, updates: Partial<Document>): Promise<boolean> => {
         const dbUpdates: any = {};
         if (updates.name) dbUpdates.name = updates.name;
         if (updates.category) dbUpdates.category = updates.category;
@@ -375,8 +381,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (updates.priority) dbUpdates.priority = updates.priority;
         if (updates.notes) dbUpdates.notes = updates.notes;
         if (updates.alerts) dbUpdates.alerts_json = updates.alerts;
-        await supabase.from('documents').update(dbUpdates).eq('id', id);
+
+        const { error } = await supabase.from('documents').update(dbUpdates).eq('id', id);
+
+        if (error) {
+            console.error('[UpdateDoc] Supabase Update Error:', error);
+            showNotification(`❌ Update Failed: ${error.message}`, 'error');
+            return false;
+        }
+
+        setDocuments(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
         checkAndSendAlerts();
+        return true;
     };
 
     const updateUserProfile = async (profile: UserProfile) => {

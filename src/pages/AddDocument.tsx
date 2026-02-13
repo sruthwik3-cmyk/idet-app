@@ -3,6 +3,7 @@ import { useApp, Document } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle, Shield, ArrowLeft, Calendar as CalendarIcon, Info } from 'lucide-react';
 import { format, parse, isValid } from 'date-fns';
+import { generateCalendarUrl } from '../utils/calendarUtils';
 
 const AddDocument: React.FC = () => {
     const { addDocument, updateDocument } = useApp();
@@ -87,15 +88,26 @@ const AddDocument: React.FC = () => {
         };
 
         try {
+            let resultDoc = null;
             if (editingDoc) {
-                await updateDocument(editingDoc.id, submissionData);
+                const success = await updateDocument(editingDoc.id, submissionData);
+                if (success) resultDoc = { ...submissionData, id: editingDoc.id };
             } else {
-                await addDocument(submissionData);
+                resultDoc = await addDocument(submissionData);
             }
-            navigate('/dashboard');
+
+            if (resultDoc) {
+                // AUTOMATIC GOOGLE CALENDAR OPEN
+                // This works for ALL cases (whether it's <30 or >30 days)
+                const calUrl = generateCalendarUrl(submissionData.name, submissionData.expiryDate, submissionData.priority);
+                window.open(calUrl, '_blank');
+
+                navigate('/dashboard');
+            } else {
+                setIsSubmitting(false);
+            }
         } catch (err) {
             console.error(err);
-        } finally {
             setIsSubmitting(false);
         }
     };
