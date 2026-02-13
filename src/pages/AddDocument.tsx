@@ -25,7 +25,6 @@ const AddDocument: React.FC = () => {
         expiryDate: editDoc?.expiryDate || '',
         priority: (editDoc?.priority as 'Low' | 'Medium' | 'High' | 'Critical') || 'Medium',
         notes: editDoc?.notes || '',
-        cost: editDoc?.cost || 0,
         userGroup: (editDoc?.userGroup as 'Self' | 'Family' | 'Organization') || 'Self'
     });
 
@@ -207,21 +206,6 @@ const AddDocument: React.FC = () => {
                                 <option value="Medium" style={{ color: 'black' }}>Medium</option>
                                 <option value="Low" style={{ color: 'black' }}>Low</option>
                             </select>
-                        </div>
-                    </div>
-
-                    <div className="input-group">
-                        <label>Renewal Cost (Optional)</label>
-                        <div style={{ position: 'relative' }}>
-                            <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>$</span>
-                            <input
-                                type="number"
-                                className="input-field"
-                                value={formData.cost || ''}
-                                onChange={(e) => setFormData({ ...formData, cost: parseFloat(e.target.value) || 0 })}
-                                placeholder="0.00"
-                                style={{ paddingLeft: '2rem', background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)' }}
-                            />
                         </div>
                     </div>
 

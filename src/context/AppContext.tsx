@@ -11,7 +11,6 @@ export interface Document {
     category: string;
     expiryDate: string; // YYYY-MM-DD
     priority: 'Low' | 'Medium' | 'High' | 'Critical';
-    cost?: number;
     notes?: string;
     userGroup: 'Self' | 'Family' | 'Organization';
     alerts: {
@@ -43,7 +42,6 @@ interface AppContextType {
         expiringSoon: number;
         expired: number;
         healthScore: number;
-        totalCost: number;
         insights: string[];
     };
     loading: boolean;
@@ -119,7 +117,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                             category: newRecord.category,
                             expiryDate: newRecord.expiry_date,
                             priority: newRecord.priority,
-                            cost: newRecord.cost,
                             notes: newRecord.notes,
                             userGroup: 'Self',
                             alerts: newRecord.alerts_json || { emailSent30: false, emailSent7: false, scheduledAt: '', calendarEventId: '' }
@@ -131,7 +128,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                             category: newRecord.category,
                             expiryDate: newRecord.expiry_date,
                             priority: newRecord.priority,
-                            cost: newRecord.cost,
                             notes: newRecord.notes,
                             alerts: newRecord.alerts_json
                         } : doc);
@@ -228,7 +224,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     category: d.category,
                     expiryDate: d.expiry_date,
                     priority: d.priority,
-                    cost: d.cost,
                     notes: d.notes,
                     userGroup: 'Self',
                     alerts: d.alerts_json || { emailSent30: false, emailSent7: false, scheduledAt: '', calendarEventId: '' }
@@ -253,13 +248,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             category: docData.category,
             expiry_date: docData.expiryDate,
             priority: docData.priority,
-            cost: docData.cost,
             notes: docData.notes,
             alerts_json: newAlerts
         }).select().single();
         if (data && !error) {
             setDocuments(prev => [...prev, { ...docData, id: data.id, alerts: newAlerts }]);
             checkAndSendAlerts();
+            playAlertSound(); // TRIGGER SOUND UPON ADDING DOCUMENT
         }
     };
 
@@ -275,7 +270,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (updates.category) dbUpdates.category = updates.category;
         if (updates.expiryDate) dbUpdates.expiry_date = updates.expiryDate;
         if (updates.priority) dbUpdates.priority = updates.priority;
-        if (updates.cost !== undefined) dbUpdates.cost = updates.cost;
         if (updates.notes) dbUpdates.notes = updates.notes;
         if (updates.alerts) dbUpdates.alerts_json = updates.alerts;
         await supabase.from('documents').update(dbUpdates).eq('id', id);
@@ -325,7 +319,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     const vaultHealth = calculateHealthScore();
-    const totalCost = documents.reduce((sum, doc) => sum + (doc.cost || 0), 0);
     const stats = {
         total: documents.length,
         active: documents.filter(d => new Date(d.expiryDate) >= today).length,
@@ -335,7 +328,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }).length,
         expired: documents.filter(d => new Date(d.expiryDate) < today).length,
         healthScore: vaultHealth.score,
-        totalCost,
         insights: vaultHealth.insights
     };
 
