@@ -7,6 +7,7 @@ import { SkeletonDashboard } from '../components/SkeletonCards';
 // Actually, I'll implement a custom visual indicator for the user to see WHICH doc is triggering.
 
 const Dashboard: React.FC = () => {
+    // Force Refresh Trigger: 2026-02-12
     const { stats, documents, deleteDocument, loading } = useApp();
     const navigate = useNavigate();
     const location = useLocation();

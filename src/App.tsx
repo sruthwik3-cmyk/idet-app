@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 // Pages
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import Landing from './pages/Landing';
 import SetupProfile from './pages/SetupProfile';
 import AddDocument from './pages/AddDocument';
 import Alerts from './pages/Alerts';
@@ -23,7 +24,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (!userProfile) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     // If profile exists but is missing essential info, force setup
@@ -35,9 +36,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function AppRoutes() {
+    const { userProfile } = useApp();
+
     return (
         <Routes>
-            <Route path="/" element={<Login />} />
+            <Route path="/" element={userProfile ? <Navigate to="/dashboard" replace /> : <Landing />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
 
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
