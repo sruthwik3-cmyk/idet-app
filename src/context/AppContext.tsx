@@ -10,7 +10,7 @@ export interface Document {
     name: string;
     category: string;
     expiryDate: string; // YYYY-MM-DD
-    priority: 'Low' | 'Medium' | 'High' | 'Critical';
+    priority: 'Critical' | 'Important' | 'Optional';
     notes?: string;
     userGroup: 'Self' | 'Family' | 'Organization';
     alerts: {

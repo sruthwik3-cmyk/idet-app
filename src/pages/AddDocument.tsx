@@ -18,7 +18,7 @@ const AddDocument: React.FC = () => {
         name: editDoc?.name || '',
         category: 'Personal',
         expiryDate: editDoc?.expiryDate || '',
-        priority: (editDoc?.priority as 'Low' | 'Medium' | 'High' | 'Critical') || 'Medium',
+        priority: (editDoc?.priority as 'Critical' | 'Important' | 'Optional') || 'Important',
         notes: editDoc?.notes || '',
         userGroup: (editDoc?.userGroup as 'Self' | 'Family' | 'Organization') || 'Self'
     });
@@ -125,9 +125,8 @@ const AddDocument: React.FC = () => {
                                 style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
                             >
                                 <option value="Critical" style={{ color: 'black' }}>Critical</option>
-                                <option value="High" style={{ color: 'black' }}>High</option>
-                                <option value="Medium" style={{ color: 'black' }}>Medium</option>
-                                <option value="Low" style={{ color: 'black' }}>Low</option>
+                                <option value="Important" style={{ color: 'black' }}>Important</option>
+                                <option value="Optional" style={{ color: 'black' }}>Optional</option>
                             </select>
                         </div>
                     </div>
