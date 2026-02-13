@@ -170,15 +170,16 @@ const AddDocument: React.FC = () => {
                             </div>
 
                             <div className="input-group" style={{ animation: 'revealIn 0.8s 0.4s var(--spring) both' }}>
-                                <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>Expiry (DD-MM-YYYY)</label>
+                                <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>Vital Expiry (DD-MM-YYYY)</label>
                                 <div style={{ position: 'relative' }}>
                                     <input
                                         type="text"
                                         className="input-field"
                                         required
+                                        autoComplete="off"
                                         value={dateInput}
                                         onChange={handleDateChange}
-                                        placeholder="31-12-2030"
+                                        placeholder="26-01-2030"
                                         style={{ padding: '1.5rem 1.5rem 1.5rem 3.8rem', fontSize: '1.2rem', letterSpacing: '0.08em', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139, 92, 246, 0.1)' }}
                                     />
                                     <CalendarIcon
