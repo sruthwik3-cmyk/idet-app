@@ -12,15 +12,17 @@ import {
     addMonths,
     subMonths
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, LucideIcon } from 'lucide-react';
 
 const getCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
-        'Personal': '#60a5fa',
-        'Medical': '#f87171',
-        'Legal': '#fbbf24',
-        'Education': '#a78bfa',
-        'Vehicle': '#fb923c',
+        'ID': '#60a5fa',
+        'License': '#34d399',
+        'Passport': '#c084fc',
+        'Insurance': '#f87171',
+        'Lease': '#fbbf24',
+        'Certificate': '#2dd4bf',
+        'Other': '#94a3b8'
     };
     return colors[cat] || '#e879f9'; // Pink for Custom
 };
@@ -48,33 +50,6 @@ const CalendarView: React.FC = () => {
         return documents.filter(doc => isSameDay(new Date(doc.expiryDate), date));
     };
 
-    const dayStyle = (day: Date, isSelected: boolean) => {
-        const isCurrentMonth = isSameMonth(day, monthStart);
-        // const docs = getDocumentsForDay(day); // Removed unused variable
-        // const hasDocs = docs.length > 0; // Removed unused variable
-
-        let bg = isCurrentMonth ? 'rgba(255, 255, 255, 0.03)' : 'transparent';
-        let color = isCurrentMonth ? 'var(--text-primary)' : 'var(--text-secondary)';
-        let border = '1px solid rgba(255, 255, 255, 0.05)';
-
-        if (isSelected) {
-            bg = 'rgba(129, 140, 248, 0.15)';
-            border = '1px solid var(--primary)';
-        }
-
-        return {
-            backgroundColor: bg,
-            color: color,
-            border: border,
-            minHeight: '100px',
-            padding: '0.5rem',
-            cursor: 'pointer',
-            position: 'relative' as const,
-            borderRadius: '8px',
-            transition: 'all 0.2s'
-        };
-    };
-
     const handleDayClick = (day: Date) => {
         const docs = getDocumentsForDay(day);
         if (docs.length > 0) {
@@ -87,118 +62,211 @@ const CalendarView: React.FC = () => {
     };
 
     return (
-        <div className="animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div className="page-header">
-                <h1 className="page-title">Calendar View</h1>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: 'var(--radius)' }}>
-                    <button onClick={prevMonth} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+        <div className="animate-fade-in calendar-wrapper" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div className="page-header" style={{ marginBottom: 0 }}>
+                <div>
+                    <h1 className="page-title">Temporal Monitoring</h1>
+                    <p style={{ color: 'var(--text-dim)', margin: '0.5rem 0 0', fontSize: '1rem' }}>
+                        Visualizing document expiry vectors across the time-stream.
+                    </p>
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1.5rem',
+                    background: 'rgba(255,255,255,0.03)',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    backdropFilter: 'blur(10px)'
+                }}>
+                    <button onClick={prevMonth} className="nav-btn">
                         <ChevronLeft size={20} />
                     </button>
-                    <h2 style={{ margin: 0, fontSize: '1.25rem', width: '150px', textAlign: 'center', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {format(currentMonth, 'MMMM yyyy')}
+                    <h2 style={{ margin: 0, fontSize: '1.2rem', width: '160px', textAlign: 'center', fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
+                        {format(currentMonth, 'MMMM yyyy').toUpperCase()}
                     </h2>
-                    <button onClick={nextMonth} style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                    <button onClick={nextMonth} className="nav-btn">
                         <ChevronRight size={20} />
                     </button>
                 </div>
             </div>
 
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'auto', padding: '0.75rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(100px, 1fr))', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} style={{ textAlign: 'center', fontWeight: 600, padding: '0.5rem', color: 'var(--text-secondary)' }}>
+            <div className="card glass-panel calendar-card" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+                    {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
+                        <div key={day} style={{ textAlign: 'center', fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-dim)', letterSpacing: '0.1em' }}>
                             {day}
                         </div>
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(100px, 1fr))', gap: '0.5rem', flex: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.75rem', flex: 1 }}>
                     {calendarDays.map((day, idx) => {
                         const docs = getDocumentsForDay(day);
+                        const isCurrentMonth = isSameMonth(day, monthStart);
+                        const isToday = isSameDay(day, new Date());
                         const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
 
                         return (
                             <div
                                 key={idx}
-                                style={dayStyle(day, isSelected)}
+                                className={`calendar-day ${!isCurrentMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
                                 onClick={() => handleDayClick(day)}
+                                style={{
+                                    background: isCurrentMonth ? 'rgba(255,255,255,0.02)' : 'transparent',
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    borderRadius: '14px',
+                                    padding: '1rem',
+                                    minHeight: '110px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s var(--spring)',
+                                    opacity: isCurrentMonth ? 1 : 0.3,
+                                    position: 'relative',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.5rem'
+                                }}
                             >
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span style={{ fontWeight: isSameDay(day, new Date()) ? 700 : 400, color: isSameDay(day, new Date()) ? 'var(--primary)' : 'inherit' }}>
-                                        {format(day, 'd')}
-                                    </span>
-                                    {docs.length > 0 && (
-                                        <span className="badge badge-warning" style={{ fontSize: '0.6rem', padding: '0.1rem 0.3rem' }}>
-                                            {docs.length}
-                                        </span>
-                                    )}
-                                </div>
-                                <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                    {docs.map(doc => {
-                                        // Define category colors
-                                        const getCategoryColor = (cat: string) => {
-                                            const colors: Record<string, string> = {
-                                                'Personal': '#60a5fa', // Blue
-                                                'Medical': '#f87171', // Red
-                                                'Legal': '#fbbf24', // Amber
-                                                'Education': '#a78bfa', // Purple
-                                                'Vehicle': '#fb923c', // Orange
-                                            };
-                                            return colors[cat] || '#e879f9'; // Pink for Custom
-                                        };
+                                <span style={{
+                                    fontSize: '1rem',
+                                    fontWeight: isToday ? 900 : 500,
+                                    color: isToday ? 'var(--primary)' : 'white',
+                                    textAlign: 'right'
+                                }}>
+                                    {format(day, 'd')}
+                                </span>
 
-                                        const catColor = getCategoryColor(doc.category);
-
-                                        return (
-                                            <div key={doc.id} style={{
-                                                fontSize: '0.7rem',
-                                                backgroundColor: `${catColor}33`, // 20% opacity
-                                                color: catColor,
-                                                border: `1px solid ${catColor}66`, // 40% opacity
-                                                padding: '0.1rem 0.25rem',
-                                                borderRadius: '4px',
-                                                whiteSpace: 'nowrap',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis'
-                                            }}>
-                                                {doc.name}
-                                            </div>
-                                        );
-                                    })}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: 'auto' }}>
+                                    {docs.map(doc => (
+                                        <div
+                                            key={doc.id}
+                                            style={{
+                                                width: '8px',
+                                                height: '8px',
+                                                borderRadius: '50%',
+                                                backgroundColor: getCategoryColor(doc.category),
+                                                boxShadow: `0 0 8px ${getCategoryColor(doc.category)}`
+                                            }}
+                                            title={doc.name}
+                                        />
+                                    ))}
                                 </div>
+
+                                {docs.length > 0 && (
+                                    <div style={{
+                                        fontSize: '0.65rem',
+                                        fontWeight: 800,
+                                        color: 'var(--text-dim)',
+                                        marginTop: '2px'
+                                    }}>
+                                        {docs.length} ASSET{docs.length > 1 ? 'S' : ''}
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
                 </div>
             </div>
 
-            {/* Modal for Event Details */}
+            {/* Event Overlay */}
             {selectedDocs.length > 0 && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={() => setSelectedDate(null)}>
-                    <div className="card" style={{ width: '100%', maxWidth: '450px', maxHeight: '85vh', overflowY: 'auto', border: '1px solid var(--primary)', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Expiry Events <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 400 }}>({format(selectedDate!, 'MMM d, yyyy')})</span></h3>
-                            <button onClick={() => setSelectedDate(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><X size={20} /></button>
+                <div className="modal-overlay" onClick={() => setSelectedDate(null)} style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(10, 0, 40, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    zIndex: 1000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    animation: 'fadeIn 0.3s ease'
+                }}>
+                    <div className="card glass-panel" style={{
+                        width: '100%', maxWidth: '500px',
+                        padding: '2.5rem',
+                        border: '1px solid var(--primary-glow)',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                        animation: 'fadeInUp 0.4s var(--bounce)'
+                    }} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Events Detected</h3>
+                                <p style={{ margin: '0.2rem 0 0', color: 'var(--text-dim)', fontSize: '0.9rem' }}>{format(selectedDate!, 'MMMM do, yyyy')}</p>
+                            </div>
+                            <button onClick={() => setSelectedDate(null)} className="nav-btn"><X size={20} /></button>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {selectedDocs.map(doc => (
-                                <div key={doc.id} style={{ padding: '1rem', border: `1px solid ${getCategoryColor(doc.category)}44`, borderRadius: 'var(--radius)', backgroundColor: 'rgba(255,255,255,0.03)' }}>
-                                    <h4 style={{ margin: '0 0 0.5rem 0', color: getCategoryColor(doc.category) }}>{doc.name}</h4>
-                                    <div style={{ fontSize: '0.875rem', display: 'grid', gap: '0.5rem', color: 'var(--text-secondary)' }}>
-                                        <div><strong style={{ color: 'var(--text-primary)' }}>Category:</strong> {doc.category}</div>
-                                        <div><strong style={{ color: 'var(--text-primary)' }}>Priority:</strong> {doc.priority}</div>
-                                        {doc.notes && <div><strong style={{ color: 'var(--text-primary)' }}>Notes:</strong> {doc.notes}</div>}
-                                        <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed var(--border)' }}>
-                                            <div className="badge badge-success" style={{ background: 'rgba(52, 211, 153, 0.1)', color: '#34d399' }}>Google Calendar Event: {doc.alerts.calendarEventId}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                            {selectedDocs.map(doc => {
+                                const color = getCategoryColor(doc.category);
+                                return (
+                                    <div key={doc.id} style={{
+                                        padding: '1.5rem',
+                                        borderRadius: '16px',
+                                        background: 'rgba(255,255,255,0.03)',
+                                        border: `1px solid ${color}33`,
+                                        display: 'flex',
+                                        gap: '1rem',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div style={{
+                                            width: '44px', height: '44px',
+                                            borderRadius: '12px',
+                                            background: `${color}22`,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            color: color,
+                                            boxShadow: `0 0 15px ${color}22`
+                                        }}>
+                                            <CalendarIcon size={22} />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>{doc.name}</h4>
+                                            <p style={{ margin: '0.2rem 0 0', color: 'var(--text-dim)', fontSize: '0.8rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                                {doc.category} • {doc.priority}
+                                            </p>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
             )}
+
+            <style>{`
+                .nav-btn {
+                    background: transparent;
+                    border: none;
+                    color: white;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 0.5rem;
+                    border-radius: 8px;
+                    transition: all 0.2s;
+                }
+                .nav-btn:hover {
+                    background: rgba(255,255,255,0.1);
+                    transform: scale(1.1);
+                }
+                .calendar-day:hover {
+                    background: rgba(255,255,255,0.08) !important;
+                    transform: translateY(-4px);
+                    border-color: rgba(255,255,255,0.2) !important;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                }
+                .calendar-day.today {
+                    border-color: var(--primary) !important;
+                    background: rgba(124, 58, 237, 0.05) !important;
+                }
+                .calendar-day.selected {
+                    border-color: var(--primary) !important;
+                    background: rgba(124, 58, 237, 0.1) !important;
+                }
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            `}</style>
         </div>
     );
 };

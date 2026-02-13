@@ -1,6 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Mail, Calendar, CheckCircle } from 'lucide-react';
+import { Mail, Calendar, CheckCircle, Bell, History } from 'lucide-react';
 
 const Alerts: React.FC = () => {
     const { documents } = useApp();
@@ -11,64 +11,87 @@ const Alerts: React.FC = () => {
     );
 
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in alerts-wrapper">
             <div className="page-header">
-                <h1 className="page-title">Alerts & History</h1>
+                <div>
+                    <h1 className="page-title">Alerts & History</h1>
+                    <p style={{ color: 'var(--text-dim)', margin: '0.5rem 0 0', fontSize: '1rem' }}>
+                        Track your document security lifecycle and notification history.
+                    </p>
+                </div>
+                <div style={{ padding: '0.75rem 1.5rem', background: 'var(--primary-soft)', borderRadius: '12px', border: '1px solid var(--primary-glow)', color: '#c084fc', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Bell size={18} /> {alertDocs.length} ACTIVE TRAILS
+                </div>
             </div>
 
-            <div className="card">
+            <div className="card glass-panel" style={{ padding: '2.5rem' }}>
                 {alertDocs.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '3rem' }}>
-                        <Mail size={48} color="var(--text-secondary)" style={{ marginBottom: '1rem', opacity: 0.3 }} />
-                        <p style={{ color: 'var(--text-secondary)' }}>No alerts have been sent yet.</p>
-                        <small style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>Alerts are automatically triggered 30 and 7 days before expiry.</small>
+                    <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            background: 'rgba(255,255,255,0.03)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 1.5rem',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            animation: 'float 4s ease-in-out infinite'
+                        }}>
+                            <Mail size={40} color="var(--text-dim)" style={{ opacity: 0.3 }} />
+                        </div>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>No Alerts Recorded</h3>
+                        <p style={{ color: 'var(--text-dim)', maxWidth: '400px', margin: '0 auto' }}>
+                            Your alert history is currently empty. Notifications are triggered automatically 30 and 7 days before a document expires.
+                        </p>
                     </div>
                 ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {alertDocs.map((doc) => (
-                            <div key={doc.id} style={{
+                            <div key={doc.id} className="alert-history-item" style={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
-                                padding: '1.25rem',
-                                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                background: 'rgba(255,255,255,0.01)',
-                                borderRadius: 'var(--radius)',
-                                marginBottom: '0.5rem'
+                                padding: '1.5rem',
+                                background: 'rgba(255,255,255,0.02)',
+                                border: '1px solid rgba(255,255,255,0.06)',
+                                borderRadius: '16px',
+                                transition: 'all 0.3s var(--spring)'
                             }}>
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                                        <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{doc.name}</h3>
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
-                                            Exp: {doc.expiryDate}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                                        <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>{doc.name}</h3>
+                                        <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>
+                                            EXP: {new Date(doc.expiryDate).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.85rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: doc.alerts.calendarEventId ? 'var(--primary)' : 'var(--text-secondary)' }}>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', fontSize: '0.85rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: doc.alerts.calendarEventId ? 'var(--primary)' : 'var(--text-dim)', fontWeight: 600 }}>
                                             <Calendar size={14} />
-                                            <span>Calendar: {doc.alerts.calendarEventId ? 'Synced' : 'Not Sync'}</span>
+                                            <span>Calendar: {doc.alerts.calendarEventId ? 'SYNCED' : 'PENDING'}</span>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: doc.alerts.emailSent30 ? 'var(--success)' : 'var(--text-secondary)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: doc.alerts.emailSent30 ? 'var(--success)' : 'var(--text-dim)', fontWeight: 600 }}>
                                             <Mail size={14} />
-                                            <span>30d Alert: {doc.alerts.emailSent30 ? 'Sent' : 'Pending'}</span>
+                                            <span>30d Alert: {doc.alerts.emailSent30 ? 'SENT' : 'SCHEDULED'}</span>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: doc.alerts.emailSent7 ? 'var(--success)' : 'var(--text-secondary)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: doc.alerts.emailSent7 ? 'var(--success)' : 'var(--text-dim)', fontWeight: 600 }}>
                                             <Mail size={14} />
-                                            <span>7d Alert: {doc.alerts.emailSent7 ? 'Sent' : 'Pending'}</span>
+                                            <span>7d Alert: {doc.alerts.emailSent7 ? 'SENT' : 'SCHEDULED'}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem' }}>
                                     {(doc.alerts.emailSent30 || doc.alerts.emailSent7) ? (
-                                        <span className="badge badge-success" style={{ padding: '4px 12px' }}>
-                                            <CheckCircle size={12} style={{ marginRight: '4px' }} /> Active
-                                        </span>
+                                        <div className="badge badge-success" style={{ padding: '6px 16px', borderRadius: '12px' }}>
+                                            <CheckCircle size={14} style={{ marginRight: '6px' }} /> COMPLETED
+                                        </div>
                                     ) : (
-                                        <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', padding: '4px 12px' }}>
-                                            Scheduled
-                                        </span>
+                                        <div className="badge" style={{ background: 'rgba(124, 58, 237, 0.1)', color: '#c084fc', border: '1px solid rgba(124, 58, 237, 0.2)', padding: '6px 16px', borderRadius: '12px' }}>
+                                            <History size={14} style={{ marginRight: '6px' }} /> ACTIVE
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -76,6 +99,15 @@ const Alerts: React.FC = () => {
                     </div>
                 )}
             </div>
+            <style>{`
+                .alerts-wrapper { padding-bottom: 3rem; }
+                .alert-history-item:hover {
+                    background: rgba(255,255,255,0.04);
+                    border-color: rgba(124, 58, 237, 0.2);
+                    transform: translateX(6px);
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+                }
+            `}</style>
         </div>
     );
 };

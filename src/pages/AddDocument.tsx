@@ -1,188 +1,220 @@
-import React, { useState, useEffect } from 'react';
-import { useApp } from '../context/AppContext';
+import React, { useState } from 'react';
+import { useApp, Document } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle } from 'lucide-react';
-import { generateCalendarUrl } from '../utils/calendarUtils';
+import { CheckCircle, Shield, ArrowLeft, Zap } from 'lucide-react';
 
 const AddDocument: React.FC = () => {
-    const { addDocument, updateDocument, showNotification } = useApp();
+    const { addDocument, updateDocument } = useApp();
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Check if we are in Edit Mode
-    const editDoc = location.state?.document;
-    const isEditMode = !!editDoc;
-
+    // Check if we are editing an existing document
+    const editingDoc = location.state?.document as Document | undefined;
 
     const [formData, setFormData] = useState({
-        name: editDoc?.name || '',
-        category: 'Personal',
-        expiryDate: editDoc?.expiryDate || '',
-        priority: (editDoc?.priority as 'Critical' | 'Important' | 'Optional') || 'Important',
-        notes: editDoc?.notes || '',
-        userGroup: (editDoc?.userGroup as 'Self' | 'Family' | 'Organization') || 'Self'
+        name: editingDoc?.name || '',
+        category: editingDoc?.category || 'ID',
+        expiryDate: editingDoc?.expiryDate || '',
+        priority: editingDoc?.priority || 'Important',
+        notes: editingDoc?.notes || '',
+        userGroup: editingDoc?.userGroup || 'Self',
+        customCategory: ''
     });
 
-    const [customCategory, setCustomCategory] = useState('');
-
-    // Check for Voice Command Data
-    const voiceData = location.state?.voiceData;
-
-
-    // Initialize category logic for Edit Mode or Voice Mode
-    useEffect(() => {
-        if (editDoc) {
-            const standardCategories = ['Personal', 'Financial', 'Medical', 'Legal', 'Education', 'Vehicle'];
-            if (standardCategories.includes(editDoc.category)) {
-                setFormData(prev => ({ ...prev, category: editDoc.category }));
-            } else {
-                setFormData(prev => ({ ...prev, category: 'Custom' }));
-                setCustomCategory(editDoc.category);
-            }
-        } else if (voiceData) {
-            // Auto-fill from Voice Command
-            setFormData(prev => ({
-                ...prev,
-                name: voiceData.name,
-                category: voiceData.category,
-                expiryDate: voiceData.expiryDate
-            }));
-            if (voiceData.category === 'Custom') {
-                setCustomCategory(voiceData.customCategory);
-            }
-        }
-    }, [editDoc, voiceData]);
+    const categories = ['ID', 'License', 'Passport', 'Insurance', 'Lease', 'Certificate', 'Other', 'Custom'];
+    const priorities: ('Critical' | 'Important' | 'Optional')[] = ['Optional', 'Important', 'Critical'];
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const finalCategory = formData.category === 'Custom' ? customCategory : formData.category;
-        const docPayload = { ...formData, category: finalCategory };
 
-        if (isEditMode) {
-            await updateDocument(editDoc.id, docPayload);
-            showNotification(`✅ "${formData.name}" updated successfully!`, 'success');
+        const finalCategory = formData.category === 'Custom' ? formData.customCategory : formData.category;
+
+        const submissionData = {
+            name: formData.name,
+            category: finalCategory,
+            expiryDate: formData.expiryDate,
+            priority: formData.priority as 'Critical' | 'Important' | 'Optional',
+            notes: formData.notes,
+            userGroup: formData.userGroup as 'Self' | 'Family' | 'Organization'
+        };
+
+        if (editingDoc) {
+            await updateDocument(editingDoc.id, submissionData);
         } else {
-            const savedDoc = await addDocument(docPayload);
-
-            // AUTO-OPEN GOOGLE CALENDAR after saving
-            if (savedDoc) {
-                console.log('[AddDoc] Opening Google Calendar for', savedDoc.name);
-                const calUrl = generateCalendarUrl(savedDoc.name, savedDoc.expiryDate, savedDoc.priority);
-                window.open(calUrl, '_blank');
-                showNotification(`✅ "${savedDoc.name}" saved! Calendar opened. Check Gmail for confirmation.`, 'success');
-            }
+            await addDocument(submissionData);
         }
+
         navigate('/dashboard');
     };
 
-
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in add-doc-wrapper">
             <div className="page-header">
-                <h1 className="page-title">{isEditMode ? 'Edit Document' : 'Add New Document'}</h1>
+                <div>
+                    <h1 className="page-title">{editingDoc ? 'Refine Document' : 'Secure New Document'}</h1>
+                    <p style={{ color: 'var(--text-dim)', margin: '0.5rem 0 0', fontSize: '1rem' }}>
+                        {editingDoc ? 'Update the details for your existing security asset.' : 'Add your sensitive documents to the IDET vault for monitoring.'}
+                    </p>
+                </div>
+                <button
+                    className="btn-secondary"
+                    onClick={() => navigate(-1)}
+                    style={{ padding: '0.75rem 1.25rem', borderRadius: '14px', gap: '0.6rem' }}
+                >
+                    <ArrowLeft size={18} /> BACK
+                </button>
             </div>
 
-            <div className="card" style={{ maxWidth: '600px', margin: '0 auto', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <form onSubmit={handleFormSubmit}>
-                    <div className="input-group">
-                        <label>Document Name</label>
-                        <input
-                            type="text"
-                            className="input-field"
-                            required
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            placeholder="e.g. Passport, Insurance Policy"
-                            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)' }}
-                        />
-                    </div>
-
-                    <div className="grid-cols-2" style={{ gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '3rem', alignItems: 'start' }}>
+                <div className="card glass-panel" style={{ padding: '3rem' }}>
+                    <form onSubmit={handleFormSubmit}>
                         <div className="input-group">
-                            <label>Category</label>
-                            <select
-                                className="input-field"
-                                value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
-                            >
-                                <option value="Personal" style={{ color: 'black' }}>Personal</option>
-                                <option value="Financial" style={{ color: 'black' }}>Financial</option>
-                                <option value="Medical" style={{ color: 'black' }}>Medical</option>
-                                <option value="Legal" style={{ color: 'black' }}>Legal</option>
-                                <option value="Education" style={{ color: 'black' }}>Education</option>
-                                <option value="Vehicle" style={{ color: 'black' }}>Vehicle</option>
-                                <option value="Custom" style={{ color: 'black', fontWeight: 'bold' }}>+ Custom Type</option>
-                            </select>
-                        </div>
-
-                        <div className="input-group">
-                            <label>Priority</label>
-                            <select
-                                className="input-field"
-                                value={formData.priority}
-                                onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
-                            >
-                                <option value="Critical" style={{ color: 'black' }}>Critical</option>
-                                <option value="Important" style={{ color: 'black' }}>Important</option>
-                                <option value="Optional" style={{ color: 'black' }}>Optional</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {formData.category === 'Custom' && (
-                        <div className="input-group animate-fade-in">
-                            <label>Custom Category Name</label>
+                            <label>Document Name</label>
                             <input
                                 type="text"
                                 className="input-field"
                                 required
-                                value={customCategory}
-                                onChange={(e) => setCustomCategory(e.target.value)}
-                                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)' }}
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                placeholder="e.g. Passport, Driver License"
                             />
                         </div>
-                    )}
 
-                    <div className="input-group">
-                        <label>Expiry Date</label>
-                        <input
-                            type="date"
-                            className="input-field"
-                            required
-                            value={formData.expiryDate}
-                            onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)', colorScheme: 'dark' }}
-                        />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
-                            <small style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <CheckCircle size={12} color="var(--success)" />
-                                Alerts scheduled for 7 days before expiry
-                            </small>
-                            {formData.expiryDate && (
-                                <small style={{ color: 'var(--primary)', fontWeight: 'bold' }}>
-                                    {new Date(formData.expiryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                </small>
-                            )}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                            <div className="input-group">
+                                <label>Category</label>
+                                <select
+                                    className="input-field"
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                >
+                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="input-group">
+                                <label>Expiry Date</label>
+                                <input
+                                    type="date"
+                                    className="input-field"
+                                    required
+                                    value={formData.expiryDate}
+                                    onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="input-group">
-                        <label>Notes (Optional)</label>
-                        <textarea
-                            className="input-field"
-                            rows={3}
-                            value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)' }}
-                        />
-                    </div>
+                        {formData.category === 'Custom' && (
+                            <div className="input-group animate-fade-in">
+                                <label>Custom Category Name</label>
+                                <input
+                                    type="text"
+                                    className="input-field"
+                                    required
+                                    value={formData.customCategory}
+                                    onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                                    placeholder="Enter your custom category"
+                                />
+                            </div>
+                        )}
 
-                    <button type="submit" className="btn-primary-full" style={{ marginTop: '1rem' }}>
-                        {isEditMode ? 'Update Document' : 'Save Document & Schedule Alerts'}
-                    </button>
-                </form>
+                        <div className="input-group">
+                            <label>Priority Protocol</label>
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                {priorities.map(p => (
+                                    <button
+                                        key={p}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, priority: p })}
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.75rem',
+                                            borderRadius: '12px',
+                                            border: '1px solid',
+                                            borderColor: formData.priority === p ? 'var(--primary)' : 'rgba(255,255,255,0.08)',
+                                            background: formData.priority === p ? 'var(--primary-soft)' : 'rgba(255,255,255,0.03)',
+                                            color: formData.priority === p ? '#c084fc' : 'var(--text-dim)',
+                                            fontWeight: 700,
+                                            fontSize: '0.8rem',
+                                            transition: 'all 0.3s var(--spring)',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {p.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="input-group">
+                            <label>Security Notes (Optional)</label>
+                            <textarea
+                                className="input-field"
+                                value={formData.notes}
+                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                placeholder="Add additional details or security context..."
+                                rows={4}
+                            />
+                        </div>
+
+                        <button type="submit" className="btn-primary-full" style={{ marginTop: '1rem', height: '56px', fontSize: '1.1rem' }}>
+                            {editingDoc ? 'REINFORCE DOCUMENT' : 'SECURE IN VAULT'}
+                        </button>
+                    </form>
+                </div>
+
+                <div className="card" style={{ padding: '2.5rem', background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, transparent 100%)' }}>
+                    <div style={{
+                        width: '60px',
+                        height: '60px',
+                        background: 'var(--primary-soft)',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '1.5rem',
+                        color: '#c084fc',
+                        border: '1px solid var(--primary-glow)',
+                        boxShadow: '0 0 15px var(--primary-soft)'
+                    }}>
+                        <Shield size={32} />
+                    </div>
+                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.02em' }}>Vault Security Protocol</h3>
+                    <p style={{ color: 'var(--text-dim)', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '2rem' }}>
+                        IDET uses high-grade encryption and real-time monitoring to ensure your documents never slip through the cracks.
+                    </p>
+
+                    <ul style={{ padding: 0, margin: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {[
+                            '30-Day Early Warning System',
+                            '7-Day Critical Alert Cycle',
+                            'Google Calendar Synchronization',
+                            'Instant Expiry Notifications',
+                            'Secure Cloud Storage'
+                        ].map((text, i) => (
+                            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                                <div style={{ color: 'var(--success)' }}><CheckCircle size={18} /></div>
+                                {text}
+                            </li>
+                        ))}
+                    </ul>
+
+                    <div style={{
+                        marginTop: '3rem',
+                        padding: '1.5rem',
+                        background: 'rgba(251, 191, 36, 0.05)',
+                        border: '1px solid rgba(251, 191, 36, 0.2)',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        gap: '1rem',
+                        alignItems: 'flex-start'
+                    }}>
+                        <Zap size={20} color="#fbbf24" style={{ marginTop: '2px' }} />
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#fbbf24', fontWeight: 600, lineHeight: 1.5 }}>
+                            IDET will automatically notify your registered email when any document enters a critical expiry window.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     );
