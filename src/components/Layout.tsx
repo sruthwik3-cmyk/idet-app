@@ -64,12 +64,8 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
 
                 <nav className="sidebar-nav">
                     <button
-                        className="btn-primary-full"
+                        className="btn-primary-full btn-pulse"
                         onClick={() => navigate('/add-document')}
-                        style={{
-                            boxShadow: '0 4px 12px rgba(129, 140, 248, 0.3)',
-                            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)'
-                        }}
                     >
                         <PlusCircle size={20} /> <span style={{ fontWeight: 600 }}>New Document</span>
                     </button>

@@ -81,38 +81,34 @@ const Dashboard: React.FC = () => {
     };
 
     const StatCard = ({ title, value, icon: Icon, color, gradient }: any) => (
-        <div className="card" style={{
-            background: 'var(--card-bg)',
-            border: '1px solid rgba(255,255,255,0.05)',
-            position: 'relative',
-            overflow: 'hidden'
-        }}>
+        <div className="card">
             <div style={{
                 position: 'absolute',
                 top: 0,
                 right: 0,
-                width: '60px',
-                height: '60px',
+                width: '80px',
+                height: '80px',
                 background: gradient,
-                filter: 'blur(40px)',
-                opacity: 0.2
+                filter: 'blur(50px)',
+                opacity: 0.3
             }}></div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
                 <div>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{title}</p>
-                    <h3 style={{ margin: '0.5rem 0 0', fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</h3>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>{title}</p>
+                    <h3 style={{ margin: '0.5rem 0 0', fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{value}</h3>
                 </div>
                 <div style={{
-                    padding: '0.75rem',
-                    borderRadius: '12px',
-                    background: 'rgba(255,255,255,0.05)',
+                    padding: '1rem',
+                    borderRadius: '16px',
+                    background: 'rgba(255,255,255,0.03)',
                     color: color,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)'
                 }}>
-                    <Icon size={24} />
+                    <Icon size={28} />
                 </div>
             </div>
         </div>
@@ -200,7 +196,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid-cols-2">
-                <div className="card" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                         <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Your Documents</h3>
                         <div style={{ position: 'relative' }}>
@@ -360,33 +356,31 @@ const Dashboard: React.FC = () => {
                     )}
                 </div>
 
-                <div className="card" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="card">
                     <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Quick Actions</h3>
                     <div className="grid-cols-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
                         <div
                             className="card"
                             onClick={() => navigate('/calendar')}
                             style={{
-                                padding: '1.5rem',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '1rem',
                                 cursor: 'pointer',
-                                background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-                                border: '1px solid rgba(255,255,255,0.05)',
-                                transition: 'all 0.3s ease'
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                transition: 'var(--transition)'
                             }}
                         >
                             <div style={{
                                 padding: '12px',
-                                borderRadius: '12px',
-                                background: 'rgba(129, 140, 248, 0.15)',
-                                color: '#818cf8',
+                                borderRadius: '14px',
+                                background: 'rgba(124, 58, 237, 0.1)',
+                                color: 'var(--primary)',
                                 marginBottom: '0.5rem'
                             }}>
-                                <Clock size={24} />
+                                <Clock size={28} />
                             </div>
                             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Calendar</span>
                         </div>
@@ -395,26 +389,24 @@ const Dashboard: React.FC = () => {
                             className="card"
                             onClick={() => navigate('/alerts')}
                             style={{
-                                padding: '1.5rem',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '1rem',
                                 cursor: 'pointer',
-                                background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-                                border: '1px solid rgba(255,255,255,0.05)',
-                                transition: 'all 0.3s ease'
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                transition: 'var(--transition)'
                             }}
                         >
                             <div style={{
                                 padding: '12px',
-                                borderRadius: '12px',
-                                background: 'rgba(251, 191, 36, 0.15)',
-                                color: '#fbbf24',
+                                borderRadius: '14px',
+                                background: 'rgba(245, 158, 11, 0.1)',
+                                color: 'var(--warning)',
                                 marginBottom: '0.5rem'
                             }}>
-                                <AlertTriangle size={24} />
+                                <AlertTriangle size={28} />
                             </div>
                             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Alerts</span>
                         </div>
@@ -423,26 +415,24 @@ const Dashboard: React.FC = () => {
                             className="card"
                             onClick={() => navigate('/profile')}
                             style={{
-                                padding: '1.5rem',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '1rem',
                                 cursor: 'pointer',
-                                background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-                                border: '1px solid rgba(255,255,255,0.05)',
-                                transition: 'all 0.3s ease'
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                transition: 'var(--transition)'
                             }}
                         >
                             <div style={{
                                 padding: '12px',
-                                borderRadius: '12px',
-                                background: 'rgba(52, 211, 153, 0.15)',
-                                color: '#34d399',
+                                borderRadius: '14px',
+                                background: 'rgba(16, 185, 129, 0.1)',
+                                color: 'var(--success)',
                                 marginBottom: '0.5rem'
                             }}>
-                                <FileText size={24} />
+                                <FileText size={28} />
                             </div>
                             <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Profile</span>
                         </div>
