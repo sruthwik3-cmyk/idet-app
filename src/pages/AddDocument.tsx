@@ -168,9 +168,14 @@ const AddDocument: React.FC = () => {
                             />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
-                            <div className="input-group" style={{ animation: 'revealIn 0.8s 0.3s var(--spring) both' }}>
-                                <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>Category</label>
+                        <div style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '2rem',
+                            animation: 'revealIn 0.8s 0.3s var(--spring) both'
+                        }}>
+                            <div className="input-group" style={{ flex: '1 1 250px' }}>
+                                <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800, whiteSpace: 'nowrap' }}>Category</label>
                                 <select
                                     className="input-field"
                                     value={formData.category}
@@ -181,8 +186,8 @@ const AddDocument: React.FC = () => {
                                 </select>
                             </div>
 
-                            <div className="input-group" style={{ animation: 'revealIn 0.8s 0.4s var(--spring) both' }}>
-                                <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>Vital Expiry (DD-MM-YYYY)</label>
+                            <div className="input-group" style={{ flex: '1 1 250px' }}>
+                                <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800, whiteSpace: 'nowrap' }}>Vital Expiry (DD-MM-YYYY)</label>
                                 <div style={{ position: 'relative' }}>
                                     <input
                                         type="text"
@@ -275,14 +280,15 @@ const AddDocument: React.FC = () => {
                                 height: '72px',
                                 fontSize: '1.4rem',
                                 fontWeight: 900,
-                                letterSpacing: '0.1em',
+                                letterSpacing: '0.15em',
                                 filter: isSubmitting ? 'grayscale(1)' : 'none',
                                 opacity: isSubmitting ? 0.7 : 1,
                                 textShadow: '0 2px 10px rgba(0,0,0,0.5)',
-                                borderRadius: '24px'
+                                borderRadius: '24px',
+                                transition: 'all 0.4s var(--spring)'
                             }}
                         >
-                            {isSubmitting ? 'ENCRYPTING...' : editingDoc ? 'UPDATE SECURITY ASSET' : 'INITIALIZE VAULT ENTRY'}
+                            {isSubmitting ? 'ENCRYPTING...' : editingDoc ? 'UPDATE AND SYNC' : 'SAVE AND UPLOAD'}
                         </button>
                     </form>
                 </div>
