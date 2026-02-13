@@ -33,24 +33,49 @@ export const unlockAudioContext = async () => {
 };
 
 /**
+ * Stops any currently playing alert sound immediately.
+ */
+export const stopAlertSound = () => {
+    if ((window as any).alertSoundInterval) {
+        clearInterval((window as any).alertSoundInterval);
+        (window as any).alertSoundInterval = null;
+    }
+};
+
+/**
  * Plays a pleasant musical melody (Alert Song).
  * Loops for approx 15 seconds.
+ * Returns true if sound started, false otherwise.
  */
-export const playAlertSound = () => {
+export const playAlertSound = (): boolean => {
     console.log("[Sound] playAlertSound() called");
+
+    // Always try to unlock first
     const ctx = getAudioContext();
     if (!ctx) {
-        console.warn("AudioContext not supported");
-        return;
+        console.warn("[Sound] AudioContext not supported on this browser");
+        return false;
     }
 
-    // Ensure context is running (attempt resume if likely blocked, though unlockAudioContext should have handled it)
+    // Resume if suspended
     if (ctx.state === 'suspended') {
-        ctx.resume().catch(e => console.error("Auto-resume failed:", e));
+        console.log("[Sound] AudioContext is suspended, attempting resume...");
+        ctx.resume().then(() => {
+            console.log("[Sound] AudioContext resumed, replaying...");
+            _playMelody(ctx);
+        }).catch(e => console.error("[Sound] Auto-resume failed:", e));
+        return false;
     }
 
+    // Stop any previous sound before starting a new one
+    stopAlertSound();
+
+    _playMelody(ctx);
+    return true;
+};
+
+function _playMelody(ctx: AudioContext) {
     // Extended Melody: "Success" Arpeggio + Descending Run
-    // C5, E5, G5, C6, G5, E5, C5, D5, F5, A5, D6...
     const melody = [
         { note: 523.25, duration: 0.15, time: 0 },    // C5
         { note: 659.25, duration: 0.15, time: 0.15 }, // E5
@@ -67,36 +92,36 @@ export const playAlertSound = () => {
     ];
 
     const playTune = () => {
-        const now = ctx.currentTime;
-        melody.forEach(({ note, duration, time }) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
+        try {
+            const now = ctx.currentTime;
+            melody.forEach(({ note, duration, time }) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
 
-            osc.type = 'sine'; // Sine for smoother "beep" tone, or triangle for 8-bit game feel. Sine is cleaner.
-            osc.frequency.setValueAtTime(note, now + time);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(note, now + time);
 
-            // Envelope
-            gain.gain.setValueAtTime(0, now + time);
-            gain.gain.linearRampToValueAtTime(0.2, now + time + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + time + duration);
+                // Envelope
+                gain.gain.setValueAtTime(0, now + time);
+                gain.gain.linearRampToValueAtTime(0.25, now + time + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + time + duration);
 
-            osc.connect(gain);
-            gain.connect(ctx.destination);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
 
-            osc.start(now + time);
-            osc.stop(now + time + duration + 0.1);
-        });
+                osc.start(now + time);
+                osc.stop(now + time + duration + 0.1);
+            });
+            console.log("[Sound] Melody playing");
+        } catch (e) {
+            console.error("[Sound] Error playing tune:", e);
+        }
     };
-
-    // Prevent multiple overlapping loops
-    if ((window as any).alertSoundInterval) {
-        return;
-    }
 
     // Play immediately
     playTune();
 
-    // Loop duration approx 2.5s -> repeat 5 times to cover ~12.5-15s
+    // Loop: repeat 5 times (~15 seconds total)
     let loopCount = 0;
     const maxLoops = 5;
 
@@ -104,20 +129,19 @@ export const playAlertSound = () => {
         loopCount++;
         if (loopCount >= maxLoops) {
             clearInterval(intervalId);
-            (window as any).alertSoundInterval = null; // Reset flag
+            (window as any).alertSoundInterval = null;
             return;
         }
         playTune();
     }, 2800);
 
-    // Store interval ID globally (or on module scope if acceptable, but window is safer for hot module reload/debug)
     (window as any).alertSoundInterval = intervalId;
 
-    // Failsafe stop
+    // Failsafe stop after 15 seconds
     setTimeout(() => {
         if ((window as any).alertSoundInterval === intervalId) {
             clearInterval(intervalId);
             (window as any).alertSoundInterval = null;
         }
     }, 15000);
-};
+}

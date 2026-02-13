@@ -157,55 +157,62 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [documents, loading, userProfile]);
 
     const checkAndSendAlerts = async () => {
-        if (!userProfile?.email || documents.length === 0) return;
+        console.log(`[AlertCheck] Starting check. Email: ${userProfile?.email}, Docs: ${documents.length}`);
+        if (!userProfile?.email || documents.length === 0) {
+            console.log('[AlertCheck] Skipping: No email or no documents');
+            return;
+        }
 
-        // Calculate today once at start of loop
         const now = new Date();
         const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        console.log(`[AlertCheck] Today UTC: ${new Date(todayUTC).toISOString()}`);
 
         for (const doc of documents) {
             const expiry = new Date(doc.expiryDate);
             const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
-
-            // diffDays should be exactly integer due to UTC normalization
             const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+            console.log(`[AlertCheck] "${doc.name}" → ${diffDays} days left | emailSent30: ${doc.alerts?.emailSent30} | emailSent7: ${doc.alerts?.emailSent7}`);
 
             // 30-Day Alert block
             if (diffDays <= 30 && diffDays > 7 && !doc.alerts?.emailSent30) {
-                console.log(`[Alert] Triggering 30-day alerts for ${doc.name}`);
+                console.log(`[Alert] 🔔 TRIGGERING 30-day alerts for "${doc.name}" (${diffDays} days left)`);
 
-                // TRIGGER EVERYTHING SIMULTANEOUSLY
+                // TRIGGER SOUND + NOTIFICATION IMMEDIATELY
                 playAlertSound();
-                if (Notification.permission === 'granted') {
+                if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification(`📅 Document Duty: ${doc.name}`, {
                         body: `Expires in ${diffDays} days.`,
                         icon: '/pwa-192x192.png'
                     });
                 }
 
-                // Start email dispatch without blocking sound/notification
-                const emailPromise = sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-
-                // Process result asynchronously
-                emailPromise.then(res => {
+                // Send Gmail alert in parallel
+                try {
+                    const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                    console.log(`[Alert] Email result for "${doc.name}":`, res);
                     if (res?.success) {
                         const nextAlerts = { ...doc.alerts, emailSent30: true };
-                        supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id)
-                            .then(() => {
-                                setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
-                                showNotification(`30-day email reminder sent for ${doc.name}`, 'success');
-                            });
+                        await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id);
+                        setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
+                        showNotification(`✅ 30-day email reminder sent for ${doc.name}`, 'success');
+                    } else {
+                        console.error(`[Alert] Email FAILED for "${doc.name}":`, res);
+                        showNotification(`❌ Failed to send 30-day alert for ${doc.name}`, 'error');
                     }
-                });
+                } catch (err) {
+                    console.error(`[Alert] Email ERROR for "${doc.name}":`, err);
+                    showNotification(`❌ Error sending alert for ${doc.name}`, 'error');
+                }
             }
 
             // 7-Day Alert block
             if (diffDays <= 7 && diffDays >= 0 && !doc.alerts?.emailSent7) {
-                console.log(`[Alert] Triggering 7-day alerts for ${doc.name}`);
+                console.log(`[Alert] 🚨 TRIGGERING 7-day alerts for "${doc.name}" (${diffDays} days left)`);
 
-                // TRIGGER EVERYTHING SIMULTANEOUSLY
+                // TRIGGER SOUND + NOTIFICATION IMMEDIATELY
                 playAlertSound();
-                if (Notification.permission === 'granted') {
+                if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification(`🚨 URGENT: ${doc.name}`, {
                         body: `Only ${diffDays} days left!`,
                         icon: '/pwa-192x192.png',
@@ -213,22 +220,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     });
                 }
 
-                // Start email dispatch without blocking sound/notification
-                const emailPromise = sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-
-                // Process result asynchronously
-                emailPromise.then(res => {
+                // Send Gmail alert in parallel
+                try {
+                    const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                    console.log(`[Alert] Email result for "${doc.name}":`, res);
                     if (res?.success) {
                         const nextAlerts = { ...doc.alerts, emailSent7: true };
-                        supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id)
-                            .then(() => {
-                                setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
-                                showNotification(`Urgent 7-day email sent for ${doc.name}`, 'success');
-                            });
+                        await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id);
+                        setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
+                        showNotification(`✅ Urgent 7-day email sent for ${doc.name}`, 'success');
+                    } else {
+                        console.error(`[Alert] Email FAILED for "${doc.name}":`, res);
+                        showNotification(`❌ Failed to send 7-day alert for ${doc.name}`, 'error');
                     }
-                });
+                } catch (err) {
+                    console.error(`[Alert] Email ERROR for "${doc.name}":`, err);
+                    showNotification(`❌ Error sending alert for ${doc.name}`, 'error');
+                }
             }
         }
+        console.log('[AlertCheck] Check complete');
     };
 
     const fetchUserData = async (userId: string, authEmail?: string | null) => {

@@ -53,28 +53,45 @@ const Profile: React.FC = () => {
     };
 
     const handleTestAlert = async (days: number) => {
-        if (!userProfile?.email) return;
+        if (!userProfile?.email) {
+            showNotification('No email configured. Please set your email first.', 'error');
+            return;
+        }
         setIsTesting(true);
+        console.log(`[TestAlert] Starting ${days}-day test alert to ${userProfile.email}`);
 
         // Simulate a date 'days' from now
         const testDate = new Date();
         testDate.setDate(testDate.getDate() + days);
 
-        // TRIGGER IMMEDIATELY IN PARALLEL
+        // TRIGGER SOUND IMMEDIATELY
         playAlertSound();
-        const notificationMsg = `${days}-day alert sent to Gmail!`;
-        const emailPromise = sendExpiryAlert(userProfile.email, `Test ${days}-Day Document`, days, testDate.toISOString(), days <= 7 ? 'Critical' : 'Important');
+        showNotification(`🔔 Sound alert playing! Sending ${days}-day test email...`, 'info');
 
-        emailPromise.then(res => {
+        // Send email
+        try {
+            const res = await sendExpiryAlert(
+                userProfile.email,
+                `Test ${days}-Day Document`,
+                days,
+                testDate.toISOString(),
+                days <= 7 ? 'Critical' : 'Important'
+            );
+            console.log(`[TestAlert] Email response:`, res);
+
             if (res?.success) {
-                showNotification(notificationMsg, 'success');
+                showNotification(`✅ ${days}-day test alert sent to ${userProfile.email}!`, 'success');
             } else {
-                const errorRes = res as any;
-                const errorMsg = errorRes?.error?.message || errorRes?.error?.details || 'Failed to send test.';
-                showNotification(`Error: ${errorMsg}`, 'error');
+                const errorMsg = (res as any)?.error?.message || (res as any)?.error?.details || JSON.stringify(res);
+                console.error(`[TestAlert] Email failed:`, errorMsg);
+                showNotification(`❌ Email failed: ${errorMsg}`, 'error');
             }
+        } catch (err: any) {
+            console.error(`[TestAlert] Exception:`, err);
+            showNotification(`❌ Error: ${err.message || 'Network error'}`, 'error');
+        } finally {
             setIsTesting(false);
-        });
+        }
     };
 
     const handleSync = () => {
