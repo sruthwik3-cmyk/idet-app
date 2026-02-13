@@ -5,6 +5,7 @@ import { Shield, Bell, Clock, Calendar, ArrowRight, CheckCircle2, Siren, Chevron
 const Landing: React.FC = () => {
     const navigate = useNavigate();
     const [scrolled, setScrolled] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -115,7 +116,7 @@ const Landing: React.FC = () => {
                     </span>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }} className="nav-links">
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }} className="nav-desktop">
                     <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={navLinkStyle} onMouseEnter={handleHover} onMouseLeave={handleUnhover}>Home</button>
                     <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} style={navLinkStyle} onMouseEnter={handleHover} onMouseLeave={handleUnhover}>About</button>
                     <button onClick={() => document.getElementById('help')?.scrollIntoView({ behavior: 'smooth' })} style={navLinkStyle} onMouseEnter={handleHover} onMouseLeave={handleUnhover}>Help</button>
@@ -142,6 +143,48 @@ const Landing: React.FC = () => {
                         Get Started
                     </button>
                 </div>
+
+                {/* Mobile Menu Toggle */}
+                <button
+                    className="nav-mobile-toggle"
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    style={{
+                        display: 'none',
+                        background: 'none',
+                        border: 'none',
+                        color: 'white',
+                        cursor: 'pointer',
+                        padding: '0.5rem'
+                    }}
+                >
+                    <div style={{ width: '24px', height: '2px', background: 'white', marginBottom: '6px', transition: '0.3s', transform: isMenuOpen ? 'rotate(45deg) translate(5px, 6px)' : 'none' }}></div>
+                    <div style={{ width: '24px', height: '2px', background: 'white', marginBottom: '6px', opacity: isMenuOpen ? 0 : 1, transition: '0.3s' }}></div>
+                    <div style={{ width: '24px', height: '2px', background: 'white', transition: '0.3s', transform: isMenuOpen ? 'rotate(-45deg) translate(5px, -6px)' : 'none' }}></div>
+                </button>
+
+                {/* Mobile Navigation Menu */}
+                {isMenuOpen && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        width: '100%',
+                        background: 'rgba(9, 9, 11, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        padding: '2rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1.5rem',
+                        borderBottom: '1px solid var(--border)',
+                        zIndex: 1000
+                    }}>
+                        <button onClick={() => { setIsMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.1rem', textAlign: 'left' }}>Home</button>
+                        <button onClick={() => { setIsMenuOpen(false); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.1rem', textAlign: 'left' }}>About</button>
+                        <button onClick={() => { setIsMenuOpen(false); document.getElementById('help')?.scrollIntoView({ behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.1rem', textAlign: 'left' }}>Help</button>
+                        <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.1rem', textAlign: 'left' }}>Login</button>
+                        <button onClick={() => navigate('/login')} className="btn-primary-full" style={{ padding: '1rem' }}>Get Started</button>
+                    </div>
+                )}
             </nav>
 
             {/* Hero Section */}
@@ -389,10 +432,13 @@ const Landing: React.FC = () => {
                     to { opacity: 1; transform: translateY(0); filter: blur(0); }
                 }
 
-                .btn-primary-glass:hover {
-                    box-shadow: 0 0 30px rgba(16, 185, 129, 0.4) !important;
-                    transform: translateY(-2px);
-                    background: #059669 !important;
+                @media (max-width: 768px) {
+                    .nav-desktop { display: none !important; }
+                    .nav-mobile-toggle { display: block !important; }
+                    .reveal h1 { font-size: 2.5rem !important; }
+                    .reveal p { font-size: 1rem !important; }
+                    .feature-card { padding: 2rem 1.5rem !important; }
+                    h3 { font-size: 2rem !important; }
                 }
 
                 * {

@@ -104,8 +104,8 @@ const CalendarView: React.FC = () => {
                 </div>
             </div>
 
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', padding: '1rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'auto', padding: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(100px, 1fr))', gap: '0.5rem', marginBottom: '0.5rem' }}>
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                         <div key={day} style={{ textAlign: 'center', fontWeight: 600, padding: '0.5rem', color: 'var(--text-secondary)' }}>
                             {day}
@@ -113,7 +113,7 @@ const CalendarView: React.FC = () => {
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', flex: 1, overflowY: 'auto' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(100px, 1fr))', gap: '0.5rem', flex: 1 }}>
                     {calendarDays.map((day, idx) => {
                         const docs = getDocumentsForDay(day);
                         const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
@@ -176,8 +176,8 @@ const CalendarView: React.FC = () => {
 
             {/* Modal for Event Details */}
             {selectedDocs.length > 0 && (
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setSelectedDate(null)}>
-                    <div className="card" style={{ width: '400px', maxHeight: '80vh', overflowY: 'auto', border: '1px solid var(--primary)', boxShadow: '0 0 50px rgba(129, 140, 248, 0.2)' }} onClick={e => e.stopPropagation()}>
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={() => setSelectedDate(null)}>
+                    <div className="card" style={{ width: '100%', maxWidth: '450px', maxHeight: '85vh', overflowY: 'auto', border: '1px solid var(--primary)', boxShadow: 'var(--shadow-lg)' }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Expiry Events <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 400 }}>({format(selectedDate!, 'MMM d, yyyy')})</span></h3>
                             <button onClick={() => setSelectedDate(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><X size={20} /></button>

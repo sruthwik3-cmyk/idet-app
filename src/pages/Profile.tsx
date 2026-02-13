@@ -115,7 +115,7 @@ const Profile: React.FC = () => {
                 <h1 className="page-title">Profile & Settings</h1>
             </div>
 
-            <div className="grid-cols-2" style={{ gridTemplateColumns: 'minmax(350px, 1fr) 1fr' }}>
+            <div className="grid-cols-2">
                 {/* Profile Card */}
                 <div className="card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
@@ -237,7 +237,7 @@ const Profile: React.FC = () => {
                         </div>
 
                         {/* Split Row for DOB and Group */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="grid-mobile-stack" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
                             <div className="input-group">
                                 <label style={{ color: 'var(--text-secondary)' }}>Date of Birth</label>
                                 {isEditing ? (

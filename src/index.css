@@ -495,9 +495,10 @@ body {
 @media (max-width: 768px) {
   .app-container {
     flex-direction: column;
+    height: 100vh;
     height: 100dvh;
-    /* Dynamic viewport height for mobile */
     background: var(--background);
+    overflow: hidden;
   }
 
   .sidebar {
@@ -556,10 +557,14 @@ body {
   .nav-item {
     white-space: nowrap;
     margin-bottom: 0;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
     border: 1px solid var(--border);
-    background-color: white;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .nav-item.active {
@@ -590,6 +595,13 @@ body {
   }
 
   .sidebar-footer {
+    display: flex;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+    margin-top: 0.5rem;
+  }
+
+  .sidebar-footer .user-info p {
     display: none;
   }
 

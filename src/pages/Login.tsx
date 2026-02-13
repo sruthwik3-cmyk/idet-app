@@ -118,8 +118,9 @@ const Login: React.FC = () => {
 
             {/* Main Card Container */}
             <div className="card" style={{
-                width: '100%',
+                width: '95%',
                 maxWidth: '480px',
+                margin: '1rem',
                 padding: '0',
                 position: 'relative',
                 zIndex: 10,
