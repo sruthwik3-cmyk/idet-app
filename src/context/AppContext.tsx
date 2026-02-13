@@ -178,8 +178,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             if (diffDays <= 30 && diffDays > 7 && !doc.alerts?.emailSent30) {
                 console.log(`[Alert] 🔔 TRIGGERING 30-day alerts for "${doc.name}" (${diffDays} days left)`);
 
-                // TRIGGER SOUND + NOTIFICATION IMMEDIATELY
-                playAlertSound();
+                // FORCE SILENCE FOR > 30
+                if (diffDays > 30) {
+                    console.log(`[Alert] SILENCING sound for ${doc.name} as it is > 30 days.`);
+                } else {
+                    playAlertSound();
+                }
                 if ('Notification' in window && Notification.permission === 'granted') {
                     new Notification(`📅 Document Duty: ${doc.name}`, {
                         body: `Expires in ${diffDays} days.`,
@@ -313,8 +317,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
             // 30-Day Rule: ≤30 and >7 days → Sound + Gmail
             if (diffDays <= 30 && diffDays > 7) {
-                console.log(`[AddDoc] 🔔 Within 30-day window. Triggering sound + Gmail alert.`);
-                playAlertSound();
+                console.log(`[AddDoc] 🔔 Within 30-day window. Scheduling Gmail alert.`);
+                // REMOVED playAlertSound() to prevent double triggers with checkAndSendAlerts
 
                 if (userProfile?.email) {
                     try {
@@ -336,8 +340,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
             // 7-Day Rule: ≤7 and ≥0 days → Sound + Gmail (urgent)
             if (diffDays <= 7 && diffDays >= 0) {
-                console.log(`[AddDoc] 🚨 Within 7-day window! Triggering urgent sound + Gmail alert.`);
-                playAlertSound();
+                console.log(`[AddDoc] 🚨 Within 7-day window! Scheduling urgent Gmail alert.`);
+                // REMOVED playAlertSound() to prevent double triggers with checkAndSendAlerts
 
                 if (userProfile?.email) {
                     try {
