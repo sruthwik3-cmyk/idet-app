@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { v4 as uuidv4 } from 'uuid';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabaseClient';
-import { initEmailService, sendExpiryAlert, sendConfirmationEmail } from '../utils/emailService';
+import { initEmailService, sendExpiryAlert } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 
 export interface Document {
@@ -295,26 +295,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const savedDoc: Document = { ...docData, id: data.id, alerts: newAlerts };
             setDocuments(prev => [...prev, savedDoc]);
 
-            // 1. PLAY SOUND immediately
-            console.log('[AddDoc] Playing alert sound');
-            playAlertSound();
+            // Sound + Gmail ONLY fire through checkAndSendAlerts
+            // which enforces the 30-day and 7-day rules
+            console.log('[AddDoc] Document saved. Running alert check (30/7 day rules)...');
 
-            // 2. SEND CONFIRMATION EMAIL
-            if (userProfile?.email) {
-                console.log(`[AddDoc] Sending confirmation email to ${userProfile.email}`);
-                sendConfirmationEmail(userProfile.email, docData.name, docData.category, docData.expiryDate)
-                    .then(res => {
-                        if (res?.success) {
-                            showNotification(`✅ Confirmation email sent for ${docData.name}`, 'success');
-                        } else {
-                            console.error('[AddDoc] Confirmation email failed:', res);
-                        }
-                    })
-                    .catch(err => console.error('[AddDoc] Email error:', err));
-            }
-
-            // 3. Also check for upcoming alerts
-            checkAndSendAlerts();
+            // Use setTimeout to ensure the new document is in state before checking
+            setTimeout(() => checkAndSendAlerts(), 500);
 
             return savedDoc;
         }
