@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { LayoutDashboard, Calendar as CalendarIcon, Bell, User, Plus, Search, Filter, Pencil, Trash2, Download, ExternalLink, Sparkles, Zap, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, Bell, Search, Pencil, Trash2, Download, ExternalLink, Sparkles, Zap, ShieldCheck, DollarSign } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
 import HealthVisualizer from '../components/HealthVisualizer';
