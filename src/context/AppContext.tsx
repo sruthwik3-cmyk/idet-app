@@ -170,48 +170,63 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             // diffDays should be exactly integer due to UTC normalization
             const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
-            let updatedAlerts = { ...doc.alerts };
-            let needsUpdate = false;
-
             // 30-Day Alert block
             if (diffDays <= 30 && diffDays > 7 && !doc.alerts?.emailSent30) {
-                // TRIGGER SIMULTANEOUSLY
+                console.log(`[Alert] Triggering 30-day alerts for ${doc.name}`);
+
+                // TRIGGER EVERYTHING SIMULTANEOUSLY
                 playAlertSound();
                 if (Notification.permission === 'granted') {
-                    new Notification(`📅 Document Duty: ${doc.name}`, { body: `Expires in ${diffDays} days.`, icon: '/pwa-192x192.png' });
+                    new Notification(`📅 Document Duty: ${doc.name}`, {
+                        body: `Expires in ${diffDays} days.`,
+                        icon: '/pwa-192x192.png'
+                    });
                 }
 
-                // Fire and await email
-                const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                if (res?.success) {
-                    updatedAlerts.emailSent30 = true;
-                    needsUpdate = true;
-                    showNotification(`30-day email reminder sent for ${doc.name}`, 'success');
-                }
+                // Start email dispatch without blocking sound/notification
+                const emailPromise = sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+
+                // Process result asynchronously
+                emailPromise.then(res => {
+                    if (res?.success) {
+                        const nextAlerts = { ...doc.alerts, emailSent30: true };
+                        supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id)
+                            .then(() => {
+                                setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
+                                showNotification(`30-day email reminder sent for ${doc.name}`, 'success');
+                            });
+                    }
+                });
             }
 
             // 7-Day Alert block
             if (diffDays <= 7 && diffDays >= 0 && !doc.alerts?.emailSent7) {
-                // TRIGGER SIMULTANEOUSLY
+                console.log(`[Alert] Triggering 7-day alerts for ${doc.name}`);
+
+                // TRIGGER EVERYTHING SIMULTANEOUSLY
                 playAlertSound();
                 if (Notification.permission === 'granted') {
-                    new Notification(`🚨 URGENT: ${doc.name}`, { body: `Only ${diffDays} days left!`, icon: '/pwa-192x192.png', requireInteraction: true });
+                    new Notification(`🚨 URGENT: ${doc.name}`, {
+                        body: `Only ${diffDays} days left!`,
+                        icon: '/pwa-192x192.png',
+                        requireInteraction: true
+                    });
                 }
 
-                // Fire and await email
-                const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                if (res?.success) {
-                    updatedAlerts.emailSent7 = true;
-                    needsUpdate = true;
-                    showNotification(`Urgent 7-day email sent for ${doc.name}`, 'success');
-                }
-            }
+                // Start email dispatch without blocking sound/notification
+                const emailPromise = sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
 
-            if (needsUpdate) {
-                // Sync with DB
-                await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
-                // Update local state to prevent re-trigger
-                setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
+                // Process result asynchronously
+                emailPromise.then(res => {
+                    if (res?.success) {
+                        const nextAlerts = { ...doc.alerts, emailSent7: true };
+                        supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id)
+                            .then(() => {
+                                setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
+                                showNotification(`Urgent 7-day email sent for ${doc.name}`, 'success');
+                            });
+                    }
+                });
             }
         }
     };

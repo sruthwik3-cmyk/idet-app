@@ -60,19 +60,21 @@ const Profile: React.FC = () => {
         const testDate = new Date();
         testDate.setDate(testDate.getDate() + days);
 
-        const res = await sendExpiryAlert(userProfile.email, `Test ${days}-Day Document`, days, testDate.toISOString(), days <= 7 ? 'Critical' : 'Important');
+        // TRIGGER IMMEDIATELY IN PARALLEL
+        playAlertSound();
+        const notificationMsg = `${days}-day alert sent to Gmail!`;
+        const emailPromise = sendExpiryAlert(userProfile.email, `Test ${days}-Day Document`, days, testDate.toISOString(), days <= 7 ? 'Critical' : 'Important');
 
-        console.log(`Test ${days}-Day Alert Response:`, res);
-
-        if (res?.success) {
-            playAlertSound();
-            showNotification(`${days}-day alert sent to Gmail!`, 'success');
-        } else {
-            const errorRes = res as any;
-            const errorMsg = errorRes?.error?.message || errorRes?.error?.details || 'Failed to send test.';
-            showNotification(`Error: ${errorMsg}`, 'error');
-        }
-        setIsTesting(false);
+        emailPromise.then(res => {
+            if (res?.success) {
+                showNotification(notificationMsg, 'success');
+            } else {
+                const errorRes = res as any;
+                const errorMsg = errorRes?.error?.message || errorRes?.error?.details || 'Failed to send test.';
+                showNotification(`Error: ${errorMsg}`, 'error');
+            }
+            setIsTesting(false);
+        });
     };
 
     const handleSync = () => {
