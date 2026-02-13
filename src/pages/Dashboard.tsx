@@ -4,6 +4,7 @@ import { LayoutDashboard, Calendar as CalendarIcon, Bell, User, Plus, Search, Fi
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
 import HealthVisualizer from '../components/HealthVisualizer';
+import FinancialInsights from '../components/FinancialInsights';
 
 const Dashboard: React.FC = () => {
     const { stats, documents, deleteDocument, loading } = useApp();
@@ -157,13 +158,16 @@ const Dashboard: React.FC = () => {
                 <StatCard title="Total" value={stats.total} icon={LayoutDashboard} color="#818cf8" gradient="linear-gradient(135deg, #818cf8 0%, #c084fc 100%)" />
                 <StatCard title="Active" value={stats.active} icon={ShieldCheck} color="#34d399" gradient="linear-gradient(135deg, #34d399 0%, #6ee7b7 100%)" />
                 <StatCard title="Expiring" value={stats.expiringSoon} icon={Bell} color="#fbbf24" gradient="linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%)" />
-                <StatCard title="Expired" value={stats.expired} icon={Zap} color="#f87171" gradient="linear-gradient(135deg, #f87171 0%, #fca5a5 100%)" />
+                <StatCard title="Yearly Cost" value={`$${stats.totalCost}`} icon={DollarSign} color="#10b981" gradient="linear-gradient(135deg, #10b981 0%, #34d399 100%)" />
             </div>
 
-            {/* AI Vault Health Section */}
+            {/* AI Insights Section */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
                 <HealthVisualizer />
+                <FinancialInsights />
+            </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
                 <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-primary)' }}>

@@ -10,7 +10,8 @@ export interface Document {
     name: string;
     category: string;
     expiryDate: string; // YYYY-MM-DD
-    priority: 'Critical' | 'Important' | 'Optional';
+    priority: 'Low' | 'Medium' | 'High' | 'Critical';
+    cost?: number;
     notes?: string;
     userGroup: 'Self' | 'Family' | 'Organization';
     alerts: {
@@ -42,6 +43,7 @@ interface AppContextType {
         expiringSoon: number;
         expired: number;
         healthScore: number;
+        totalCost: number;
         insights: string[];
     };
     loading: boolean;
@@ -66,7 +68,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     useEffect(() => {
         let realtimeSubscription: RealtimeChannel | null = null;
 
-        // Check active session
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user) {
                 fetchUserData(session.user.id, session.user.email);
@@ -76,7 +77,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             }
         });
 
-        // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session?.user) {
                 fetchUserData(session.user.id, session.user.email);
@@ -89,17 +89,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             }
         });
 
-        // Live Time Polling (Check every minute for day changes)
-        // This ensures "Expires in X days" updates at midnight without refresh
         const timeInterval = setInterval(() => {
-            const currentToday = new Date();
-            currentToday.setHours(0, 0, 0, 0);
-
-            // Compare with the 'today' used in component scope (we need to store it in state to trigger re-render)
-            // For now, we'll force a re-evaluation of alerts/stats by updating a dummy state or just rely on 'checkAndSendAlerts'
-            // A simple way is to re-run checkAndSendAlerts if we cross midnight
             checkAndSendAlerts();
-        }, 60000); // Check every minute
+        }, 60000);
 
         const setupRealtimeSubscription = (userId: string) => {
             if (realtimeSubscription) supabase.removeChannel(realtimeSubscription);
@@ -109,7 +101,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 .on('postgres_changes',
                     { event: '*', schema: 'public', table: 'documents', filter: `user_id=eq.${userId}` },
                     (payload) => {
-
                         handleRealtimeUpdate(payload);
                     }
                 )
@@ -118,45 +109,34 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         const handleRealtimeUpdate = (payload: any) => {
             const { eventType, new: newRecord, old: oldRecord } = payload;
-
             setDocuments(prevDocs => {
                 switch (eventType) {
                     case 'INSERT':
-                        // Check if already exists to avoid duplication (if added by this client)
                         if (prevDocs.some(d => d.id === newRecord.id)) return prevDocs;
-
-                        // Map new record to Document type
-                        const newDoc: Document = {
+                        return [...prevDocs, {
                             id: newRecord.id,
                             name: newRecord.name,
                             category: newRecord.category,
                             expiryDate: newRecord.expiry_date,
                             priority: newRecord.priority,
+                            cost: newRecord.cost,
                             notes: newRecord.notes,
-                            userGroup: 'Self', // Default
+                            userGroup: 'Self',
                             alerts: newRecord.alerts_json || { emailSent30: false, emailSent7: false, scheduledAt: '', calendarEventId: '' }
-                        };
-                        return [...prevDocs, newDoc];
-
+                        }];
                     case 'UPDATE':
-                        return prevDocs.map(doc => {
-                            if (doc.id === newRecord.id) {
-                                return {
-                                    ...doc,
-                                    name: newRecord.name,
-                                    category: newRecord.category,
-                                    expiryDate: newRecord.expiry_date,
-                                    priority: newRecord.priority,
-                                    notes: newRecord.notes,
-                                    alerts: newRecord.alerts_json
-                                };
-                            }
-                            return doc;
-                        });
-
+                        return prevDocs.map(doc => doc.id === newRecord.id ? {
+                            ...doc,
+                            name: newRecord.name,
+                            category: newRecord.category,
+                            expiryDate: newRecord.expiry_date,
+                            priority: newRecord.priority,
+                            cost: newRecord.cost,
+                            notes: newRecord.notes,
+                            alerts: newRecord.alerts_json
+                        } : doc);
                     case 'DELETE':
                         return prevDocs.filter(doc => doc.id !== oldRecord.id);
-
                     default:
                         return prevDocs;
                 }
@@ -170,18 +150,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         };
     }, []);
 
-    // Request Browser Notification Permission on Mount
     useEffect(() => {
         if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    console.log("Browser Notifications enabled!");
-                }
-            });
+            Notification.requestPermission();
         }
     }, []);
 
-    // Alert Checker Logic
     useEffect(() => {
         if (!loading && documents.length > 0 && userProfile) {
             checkAndSendAlerts();
@@ -189,148 +163,76 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [documents, loading, userProfile]);
 
     const checkAndSendAlerts = async () => {
-        console.log("=== EMAIL ALERT CHECK STARTED ===");
-        console.log("User email:", userProfile?.email);
-        console.log("Documents count:", documents.length);
-
         for (const doc of documents) {
             const expiry = new Date(doc.expiryDate);
             const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
-
             const today = new Date();
             const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-
-            const diffMs = expiryUTC - todayUTC;
-            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-            console.log(`[Email Check] Doc: "${doc.name}", DaysLeft: ${diffDays}, emailSent30: ${doc.alerts?.emailSent30}, emailSent7: ${doc.alerts?.emailSent7}`);
+            const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
             let updatedAlerts = { ...doc.alerts };
             let needsUpdate = false;
 
-            // 30 Day Reminder - Send when document is 30 days or less from expiry (but more than 7)
-            // The emailSent30 flag ensures it only sends ONCE per document
             if (diffDays <= 30 && diffDays > 7 && !doc.alerts?.emailSent30 && userProfile?.email) {
-                console.log(`[30-Day Alert] SENDING for "${doc.name}", daysLeft: ${diffDays}`);
-                try {
-                    const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                    console.log(`[30-Day Alert] Response:`, res);
-                    if (res?.success) {
-                        updatedAlerts.emailSent30 = true;
-                        needsUpdate = true;
-                        playAlertSound(); // TRIGGER SOUND HERE
-
-                        if (Notification.permission === 'granted') {
-                            new Notification(`📅 Document Duty: ${doc.name}`, {
-                                body: `This document expires in ${diffDays} days. Action required!`,
-                                icon: '/pwa-192x192.png'
-                            });
-                        }
-
-                        if (res.isSimulation) {
-                            showNotification(`[30d Alert Simulation] Reminder triggered for ${doc.name}`, 'info');
-                        } else {
-                            showNotification(`[30d Alert] Email reminder sent for ${doc.name}`, 'success');
-                        }
-                    } else {
-                        console.error(`[30-Day Alert] FAILED for "${doc.name}":`, res?.error);
-                        showNotification(`[30d Alert] Failed to send email for ${doc.name}: ${(res as any)?.error?.message || 'Unknown error'}`, 'error');
+                const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                if (res?.success) {
+                    updatedAlerts.emailSent30 = true;
+                    needsUpdate = true;
+                    playAlertSound();
+                    if (Notification.permission === 'granted') {
+                        new Notification(`📅 Document Duty: ${doc.name}`, { body: `Expires in ${diffDays} days.`, icon: '/pwa-192x192.png' });
                     }
-                } catch (err) {
-                    console.error(`[30-Day Alert] EXCEPTION for "${doc.name}":`, err);
-                    showNotification(`[30d Alert] Error sending email for ${doc.name}`, 'error');
+                    showNotification(res.isSimulation ? `Reminder triggered for ${doc.name}` : `Email sent for ${doc.name}`, 'success');
                 }
             }
 
-            // 7 Day Reminder - Send when document is 7 days or less from expiry
-            // The emailSent7 flag ensures it only sends ONCE per document
             if (diffDays <= 7 && diffDays >= 0 && !doc.alerts?.emailSent7 && userProfile?.email) {
-                console.log(`[7-Day Alert] SENDING for "${doc.name}", daysLeft: ${diffDays}`);
-                try {
-                    const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                    console.log(`[7-Day Alert] Response:`, res);
-                    if (res?.success) {
-                        updatedAlerts.emailSent7 = true;
-                        needsUpdate = true;
-                        playAlertSound(); // TRIGGER SOUND HERE
-
-                        if (Notification.permission === 'granted') {
-                            new Notification(`🚨 URGENT: ${doc.name} Expiring!`, {
-                                body: `Only ${diffDays} days left! Renew immediately to avoid issues.`,
-                                icon: '/pwa-192x192.png',
-                                requireInteraction: true
-                            });
-                        }
-
-                        if (res.isSimulation) {
-                            showNotification(`[7d Alert Simulation] Reminder triggered for ${doc.name}`, 'info');
-                        } else {
-                            showNotification(`[7d Alert] Email reminder sent for ${doc.name}`, 'success');
-                        }
-                    } else {
-                        console.error(`[7-Day Alert] FAILED for "${doc.name}":`, res?.error);
-                        showNotification(`[7d Alert] Failed to send email for ${doc.name}: ${(res as any)?.error?.message || 'Unknown error'}`, 'error');
+                const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                if (res?.success) {
+                    updatedAlerts.emailSent7 = true;
+                    needsUpdate = true;
+                    playAlertSound();
+                    if (Notification.permission === 'granted') {
+                        new Notification(`🚨 URGENT: ${doc.name}`, { body: `Only ${diffDays} days left!`, icon: '/pwa-192x192.png', requireInteraction: true });
                     }
-                } catch (err) {
-                    console.error(`[7-Day Alert] EXCEPTION for "${doc.name}":`, err);
-                    showNotification(`[7d Alert] Error sending email for ${doc.name}`, 'error');
+                    showNotification(res.isSimulation ? `Urgent reminder for ${doc.name}` : `Urgent email sent for ${doc.name}`, 'success');
                 }
             }
 
             if (needsUpdate) {
-                console.log(`[Alert Update] Saving alert flags for "${doc.name}"`);
-                await supabase.from('documents')
-                    .update({ alerts_json: updatedAlerts })
-                    .eq('id', doc.id);
-
+                await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
                 setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
             }
         }
-        console.log("=== EMAIL ALERT CHECK COMPLETE ===");
     };
 
     const fetchUserData = async (userId: string, authEmail?: string | null) => {
         setLoading(true);
         try {
-            // Fetch Profile
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .single();
-
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
             if (profile) {
-                // Use profile email, fallback to Google auth email
-                const resolvedEmail = (profile.email as string) || authEmail || undefined;
-                console.log('[Profile] Loaded email:', resolvedEmail, '(profile:', profile.email, ', auth:', authEmail, ')');
-
                 setUserProfile({
                     fullName: profile.full_name as string,
-                    email: resolvedEmail as string,
+                    email: (profile.email as string) || authEmail || '',
                     phone: profile.phone as string,
                     dob: profile.dob as string,
                     userGroup: profile.user_group as 'Self' | 'Family' | 'Organization'
                 });
             }
 
-            // Fetch Documents
-            const { data: docs } = await supabase
-                .from('documents')
-                .select('*')
-                .order('expiry_date', { ascending: true });
-
+            const { data: docs } = await supabase.from('documents').select('*').order('expiry_date', { ascending: true });
             if (docs) {
-                const mappedDocs: Document[] = docs.map((d: any) => ({
+                setDocuments(docs.map((d: any) => ({
                     id: d.id,
                     name: d.name,
                     category: d.category,
                     expiryDate: d.expiry_date,
                     priority: d.priority,
+                    cost: d.cost,
                     notes: d.notes,
-                    userGroup: 'Self', // Default or fetch if needed
+                    userGroup: 'Self',
                     alerts: d.alerts_json || { emailSent30: false, emailSent7: false, scheduledAt: '', calendarEventId: '' }
-                }));
-                setDocuments(mappedDocs);
+                })));
             }
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -339,83 +241,50 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     };
 
-    useEffect(() => {
-        initEmailService();
-    }, []);
+    useEffect(() => { initEmailService(); }, []);
 
     const addDocument = async (docData: Omit<Document, 'id' | 'alerts'>) => {
         const user = (await supabase.auth.getUser()).data.user;
         if (!user) return;
-
-        const newAlerts = {
-            emailSent30: false,
-            emailSent7: false,
-            scheduledAt: new Date().toISOString(),
-            calendarEventId: `cal-${uuidv4().slice(0, 8)}`,
-        };
-
-        const tempId = uuidv4();
-        const newDocConfig: Document = { ...docData, id: tempId, alerts: newAlerts };
-        setDocuments((prev: Document[]) => [...prev, newDocConfig]);
-
+        const newAlerts = { emailSent30: false, emailSent7: false, scheduledAt: new Date().toISOString(), calendarEventId: `cal-${uuidv4().slice(0, 8)}` };
         const { data, error } = await supabase.from('documents').insert({
             user_id: user.id,
             name: docData.name,
             category: docData.category,
             expiry_date: docData.expiryDate,
             priority: docData.priority,
+            cost: docData.cost,
             notes: docData.notes,
             alerts_json: newAlerts
         }).select().single();
-
-        if (error) {
-            console.error('Error adding document:', error);
-            return;
-        }
-
-        if (data) {
-            setDocuments((prev: Document[]) => prev.map((d: Document) => d.id === tempId ? { ...d, id: data.id } : d));
-
-            // Check if initial alert is needed (e.g. if added with date already near)
+        if (data && !error) {
+            setDocuments(prev => [...prev, { ...docData, id: data.id, alerts: newAlerts }]);
             checkAndSendAlerts();
         }
     };
 
     const deleteDocument = async (id: string) => {
         setDocuments(prev => prev.filter(d => d.id !== id));
-        const { error } = await supabase.from('documents').delete().eq('id', id);
-        if (error) console.error('Error deleting document:', error);
+        await supabase.from('documents').delete().eq('id', id);
     };
 
     const updateDocument = async (id: string, updates: Partial<Document>) => {
-        // Optimistically update local state
         setDocuments(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
-
-        // Prepare Supabase update object (map camelCase to snake_case)
         const dbUpdates: any = {};
         if (updates.name) dbUpdates.name = updates.name;
         if (updates.category) dbUpdates.category = updates.category;
         if (updates.expiryDate) dbUpdates.expiry_date = updates.expiryDate;
         if (updates.priority) dbUpdates.priority = updates.priority;
+        if (updates.cost !== undefined) dbUpdates.cost = updates.cost;
         if (updates.notes) dbUpdates.notes = updates.notes;
         if (updates.alerts) dbUpdates.alerts_json = updates.alerts;
-
-        const { error } = await supabase.from('documents').update(dbUpdates).eq('id', id);
-
-        if (error) {
-            console.error('Error updating document:', error);
-            // Revert on error (could be improved with a fetchUserData, but simple revert for now is complex without previous state. 
-            // In a real app we might refetch or use React Query. For now, we log error.)
-            showNotification('Failed to update document', 'error');
-        } else {
-            checkAndSendAlerts(); // Re-check alerts in case date changed
-        }
+        await supabase.from('documents').update(dbUpdates).eq('id', id);
+        checkAndSendAlerts();
     };
 
     const updateUserProfile = async (profile: UserProfile) => {
         const user = (await supabase.auth.getUser()).data.user;
         if (!user) return;
-
         setUserProfile(profile);
         await supabase.from('profiles').upsert({
             id: user.id,
@@ -432,54 +301,41 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     today.setHours(0, 0, 0, 0);
 
     const calculateHealthScore = () => {
-        if (documents.length === 0) return { score: 100, insights: ["Welcome! Add your first document to start tracking."] };
-
+        if (documents.length === 0) return { score: 100, insights: ["Welcome! Add your first document."] };
         let totalDeduction = 0;
         const insights: string[] = [];
-
         documents.forEach(doc => {
             const exp = new Date(doc.expiryDate);
-            const diffTime = exp.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+            const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
             if (diffDays < 0) {
-                totalDeduction += 25; // Expired docs are critical
-                if (insights.length < 3) insights.push(`Critical: Your "${doc.name}" has expired. Renew immediately.`);
+                totalDeduction += 25;
+                if (insights.length < 3) insights.push(`Critical: "${doc.name}" has expired.`);
             } else if (diffDays <= 7) {
-                totalDeduction += 15; // Expiring in a week
+                totalDeduction += 15;
                 if (insights.length < 3) insights.push(`Urgent: "${doc.name}" expires in ${diffDays} days.`);
             } else if (diffDays <= 30) {
-                totalDeduction += 5; // Expiring in a month
-                if (insights.length < 3 && !insights.some(i => i.includes(doc.name))) {
-                    insights.push(`Proactive: Plan to update "${doc.name}" soon.`);
-                }
+                totalDeduction += 5;
+                if (insights.length < 3 && !insights.some(i => i.includes(doc.name))) insights.push(`Plan to update "${doc.name}" soon.`);
             }
         });
-
         const score = Math.max(0, 100 - totalDeduction);
-
-        if (score === 100 && documents.length > 0) {
-            insights.push("Excellent! All documents are current and secure.");
-        } else if (score > 80) {
-            insights.push("Vault is healthy. Keep up the regular checks.");
-        }
-
+        if (score === 100 && documents.length > 0) insights.push("Excellent! All documents are secure.");
+        else if (score > 80) insights.push("Vault is healthy.");
         return { score, insights };
     };
 
     const vaultHealth = calculateHealthScore();
-
+    const totalCost = documents.reduce((sum, doc) => sum + (doc.cost || 0), 0);
     const stats = {
         total: documents.length,
         active: documents.filter(d => new Date(d.expiryDate) >= today).length,
         expiringSoon: documents.filter(d => {
-            const exp = new Date(d.expiryDate);
-            const diffTime = exp.getTime() - today.getTime();
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffDays = Math.ceil((new Date(d.expiryDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
             return diffDays >= 0 && diffDays <= 7;
         }).length,
         expired: documents.filter(d => new Date(d.expiryDate) < today).length,
         healthScore: vaultHealth.score,
+        totalCost,
         insights: vaultHealth.insights
     };
 
@@ -492,8 +348,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
 export const useApp = () => {
     const context = useContext(AppContext);
-    if (context === undefined) {
-        throw new Error('useApp must be used within an AppProvider');
-    }
+    if (context === undefined) throw new Error('useApp must be used within an AppProvider');
     return context;
 };
