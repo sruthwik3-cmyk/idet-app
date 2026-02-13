@@ -3,22 +3,20 @@ import { useApp } from '../context/AppContext';
 import {
     LayoutDashboard,
     Calendar as CalendarIcon,
-    Plus,
-    Shield,
-    Bell,
     Search,
-    Filter,
     Pencil,
     Trash2,
-    ExternalLink,
-    Share2,
     Zap,
     CreditCard,
     FileText,
     Car,
     Heart,
     ShieldCheck,
-    Briefcase
+    Briefcase,
+    Download,
+    Clock,
+    AlertTriangle,
+    User
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate, useLocation } from 'react-router-dom';
