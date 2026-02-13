@@ -5,6 +5,17 @@ import { Shield, Bell, Clock, Calendar, ArrowRight, CheckCircle2, Siren } from '
 const Landing: React.FC = () => {
     const navigate = useNavigate();
 
+    const navLinkStyle = {
+        background: 'none',
+        border: 'none',
+        color: 'rgba(255, 255, 255, 0.7)',
+        fontSize: '0.95rem',
+        fontWeight: 500,
+        cursor: 'pointer',
+        transition: 'color 0.2s',
+        padding: '0.5rem 0'
+    };
+
     return (
         <div className="animate-fade-in" style={{
             background: '#09090b',
@@ -64,18 +75,29 @@ const Landing: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
                     <button
-                        onClick={() => navigate('/login')}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            fontSize: '0.95rem',
-                            fontWeight: 500,
-                            cursor: 'pointer',
-                            transition: 'color 0.2s'
+                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        style={navLinkStyle}
+                    >
+                        Home
+                    </button>
+                    <button
+                        onClick={() => {
+                            const features = document.getElementById('features');
+                            features?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.color = 'white'}
-                        onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                        style={navLinkStyle}
+                    >
+                        About
+                    </button>
+                    <button
+                        onClick={() => window.open('mailto:support@idet.app')}
+                        style={navLinkStyle}
+                    >
+                        Help
+                    </button>
+                    <button
+                        onClick={() => navigate('/login')}
+                        style={navLinkStyle}
                     >
                         Login
                     </button>
@@ -142,8 +164,8 @@ const Landing: React.FC = () => {
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent'
                     }}>
-                        Manage Documents <br />
-                        <span style={{ color: '#10b981' }}>With Impact.</span>
+                        Never Miss a <br />
+                        <span style={{ color: '#10b981' }}>Document Renewal.</span>
                     </h1>
 
                     <p style={{
@@ -153,8 +175,8 @@ const Landing: React.FC = () => {
                         maxWidth: '650px',
                         margin: '0 auto 3rem'
                     }}>
-                        Professional document tracking with automated Gmail alerts,
-                        perfectly synchronized sound notifications, and seamless calendar integration.
+                        The ultimate tracker for your critical documents. Get automated Gmail alerts,
+                        synchronized audio reminders, and effortless calendar integration.
                     </p>
 
                     <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -183,7 +205,7 @@ const Landing: React.FC = () => {
                 </div>
 
                 {/* Features Grid */}
-                <div style={{
+                <div id="features" style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '2rem',
@@ -214,7 +236,7 @@ const Landing: React.FC = () => {
                     paddingBottom: '8rem'
                 }}>
                     <p style={{ color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.2em', marginBottom: '3rem' }}>
-                        Designed for Professional Organization
+                        Trusted Document Expiry Management
                     </p>
                     <div style={{
                         display: 'flex',
@@ -224,14 +246,37 @@ const Landing: React.FC = () => {
                         flexWrap: 'wrap'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <CheckCircle2 size={20} color="#10b981" /> <span>Secure Auth</span>
+                            <CheckCircle2 size={20} color="#10b981" /> <span>Sync Support</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <CheckCircle2 size={20} color="#10b981" /> <span>Cloud Sync</span>
+                            <CheckCircle2 size={20} color="#10b981" /> <span>Privacy First</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <CheckCircle2 size={20} color="#10b981" /> <span>Category Focused</span>
                         </div>
+                    </div>
+                </div>
+
+                {/* FAQ / Help Section */}
+                <div id="help" style={{
+                    paddingBottom: '8rem',
+                    maxWidth: '800px',
+                    margin: '0 auto'
+                }}>
+                    <h2 style={{ fontSize: '2rem', fontWeight: 800, textAlign: 'center', marginBottom: '3.5rem' }}>Frequently Asked Questions</h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        <FAQItem
+                            question="How do the alerts work?"
+                            answer="IDET automatically monitors your documents and sends professional Gmail notifications exactly 30 days and 7 days before they expire. You also get a synchronized sound alert when browsing."
+                        />
+                        <FAQItem
+                            question="Can I sync with my calendar?"
+                            answer="Yes! Every document has a one-click 'Add to Calendar' button that creates an event in your Google Calendar with the expiry date."
+                        />
+                        <FAQItem
+                            question="Is my data secure?"
+                            answer="We use Supabase for high-grade encryption and Google OAuth for secure login. Your document data is private and only accessible by you."
+                        />
                     </div>
                 </div>
             </main>
@@ -301,6 +346,18 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
         </div>
         <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: 'white' }}>{title}</h3>
         <p style={{ color: 'rgba(255, 255, 255, 0.5)', lineHeight: 1.6, fontSize: '0.95rem' }}>{description}</p>
+    </div>
+);
+
+const FAQItem = ({ question, answer }: { question: string, answer: string }) => (
+    <div style={{
+        padding: '1.5rem',
+        background: 'rgba(255, 255, 255, 0.02)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: '16px'
+    }}>
+        <h4 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem', color: '#10b981' }}>{question}</h4>
+        <p style={{ color: 'rgba(255, 255, 255, 0.5)', lineHeight: 1.6, fontSize: '0.95rem', margin: 0 }}>{answer}</p>
     </div>
 );
 
