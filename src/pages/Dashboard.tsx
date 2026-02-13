@@ -223,7 +223,7 @@ const Dashboard: React.FC = () => {
                 <StatCard title="Expired" value={stats.expired} icon={AlertTriangle} color="#f87171" bg="rgba(248, 113, 113, 0.1)" />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2rem' }}>
                 {/* Left Column: Documents */}
                 <div className="card" style={{ padding: '2rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -321,7 +321,7 @@ const Dashboard: React.FC = () => {
                         }) : (
                             <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-secondary)' }}>
                                 <LayoutDashboard size={48} style={{ opacity: 0.1, marginBottom: '1rem' }} />
-                                <p>No documents found matching your criteria.</p>
+                                <p>No documents found.</p>
                             </div>
                         )}
                     </div>
@@ -330,24 +330,24 @@ const Dashboard: React.FC = () => {
                 {/* Right Column: Quick Actions */}
                 <div>
                     <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.25rem' }}>Quick Actions</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
                         <div className="quick-action-card" onClick={() => navigate('/calendar')}>
                             <div className="quick-action-icon" style={{ color: '#818cf8' }}>
                                 <CalendarIcon size={24} />
                             </div>
-                            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Calendar</span>
+                            <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Calendar</span>
                         </div>
                         <div className="quick-action-card" onClick={() => navigate('/alerts')}>
                             <div className="quick-action-icon" style={{ color: '#fbbf24' }}>
                                 <AlertTriangle size={24} />
                             </div>
-                            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Alerts</span>
+                            <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Alerts</span>
                         </div>
                         <div className="quick-action-card" onClick={() => navigate('/profile')}>
                             <div className="quick-action-icon" style={{ color: '#34d399' }}>
                                 <User size={24} />
                             </div>
-                            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Profile</span>
+                            <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Profile</span>
                         </div>
                     </div>
                 </div>
