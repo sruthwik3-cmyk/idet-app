@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
+import { generateCalendarUrl } from '../utils/calendarUtils';
 
 const AddDocument: React.FC = () => {
-    const { addDocument, updateDocument } = useApp();
+    const { addDocument, updateDocument, showNotification } = useApp();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -59,8 +60,17 @@ const AddDocument: React.FC = () => {
 
         if (isEditMode) {
             await updateDocument(editDoc.id, docPayload);
+            showNotification(`✅ "${formData.name}" updated successfully!`, 'success');
         } else {
-            await addDocument(docPayload);
+            const savedDoc = await addDocument(docPayload);
+
+            // AUTO-OPEN GOOGLE CALENDAR after saving
+            if (savedDoc) {
+                console.log('[AddDoc] Opening Google Calendar for', savedDoc.name);
+                const calUrl = generateCalendarUrl(savedDoc.name, savedDoc.expiryDate, savedDoc.priority);
+                window.open(calUrl, '_blank');
+                showNotification(`✅ "${savedDoc.name}" saved! Calendar opened. Check Gmail for confirmation.`, 'success');
+            }
         }
         navigate('/dashboard');
     };

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { v4 as uuidv4 } from 'uuid';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabaseClient';
-import { initEmailService, sendExpiryAlert } from '../utils/emailService';
+import { initEmailService, sendExpiryAlert, sendConfirmationEmail } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 
 export interface Document {
@@ -32,7 +32,7 @@ export interface UserProfile {
 interface AppContextType {
     documents: Document[];
     userProfile: UserProfile | null;
-    addDocument: (doc: Omit<Document, 'id' | 'alerts'>) => void;
+    addDocument: (doc: Omit<Document, 'id' | 'alerts'>) => Promise<Document | null>;
     updateDocument: (id: string, updates: Partial<Document>) => void;
     updateUserProfile: (profile: UserProfile) => void;
     deleteDocument: (id: string) => void;
@@ -278,9 +278,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     useEffect(() => { initEmailService(); }, []);
 
-    const addDocument = async (docData: Omit<Document, 'id' | 'alerts'>) => {
+    const addDocument = async (docData: Omit<Document, 'id' | 'alerts'>): Promise<Document | null> => {
         const user = (await supabase.auth.getUser()).data.user;
-        if (!user) return;
+        if (!user) return null;
         const newAlerts = { emailSent30: false, emailSent7: false, scheduledAt: new Date().toISOString(), calendarEventId: `cal-${uuidv4().slice(0, 8)}` };
         const { data, error } = await supabase.from('documents').insert({
             user_id: user.id,
@@ -292,10 +292,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             alerts_json: newAlerts
         }).select().single();
         if (data && !error) {
-            setDocuments(prev => [...prev, { ...docData, id: data.id, alerts: newAlerts }]);
+            const savedDoc: Document = { ...docData, id: data.id, alerts: newAlerts };
+            setDocuments(prev => [...prev, savedDoc]);
+
+            // 1. PLAY SOUND immediately
+            console.log('[AddDoc] Playing alert sound');
+            playAlertSound();
+
+            // 2. SEND CONFIRMATION EMAIL
+            if (userProfile?.email) {
+                console.log(`[AddDoc] Sending confirmation email to ${userProfile.email}`);
+                sendConfirmationEmail(userProfile.email, docData.name, docData.category, docData.expiryDate)
+                    .then(res => {
+                        if (res?.success) {
+                            showNotification(`✅ Confirmation email sent for ${docData.name}`, 'success');
+                        } else {
+                            console.error('[AddDoc] Confirmation email failed:', res);
+                        }
+                    })
+                    .catch(err => console.error('[AddDoc] Email error:', err));
+            }
+
+            // 3. Also check for upcoming alerts
             checkAndSendAlerts();
-            playAlertSound(); // TRIGGER SOUND UPON ADDING DOCUMENT
+
+            return savedDoc;
         }
+        return null;
     };
 
     const deleteDocument = async (id: string) => {
