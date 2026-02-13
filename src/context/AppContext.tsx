@@ -41,6 +41,8 @@ interface AppContextType {
         active: number;
         expiringSoon: number;
         expired: number;
+        healthScore: number;
+        insights: string[];
     };
     loading: boolean;
     notification: { message: string, type: 'success' | 'info' | 'error' } | null;
@@ -429,6 +431,44 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const calculateHealthScore = () => {
+        if (documents.length === 0) return { score: 100, insights: ["Welcome! Add your first document to start tracking."] };
+
+        let totalDeduction = 0;
+        const insights: string[] = [];
+
+        documents.forEach(doc => {
+            const exp = new Date(doc.expiryDate);
+            const diffTime = exp.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays < 0) {
+                totalDeduction += 25; // Expired docs are critical
+                if (insights.length < 3) insights.push(`Critical: Your "${doc.name}" has expired. Renew immediately.`);
+            } else if (diffDays <= 7) {
+                totalDeduction += 15; // Expiring in a week
+                if (insights.length < 3) insights.push(`Urgent: "${doc.name}" expires in ${diffDays} days.`);
+            } else if (diffDays <= 30) {
+                totalDeduction += 5; // Expiring in a month
+                if (insights.length < 3 && !insights.some(i => i.includes(doc.name))) {
+                    insights.push(`Proactive: Plan to update "${doc.name}" soon.`);
+                }
+            }
+        });
+
+        const score = Math.max(0, 100 - totalDeduction);
+
+        if (score === 100 && documents.length > 0) {
+            insights.push("Excellent! All documents are current and secure.");
+        } else if (score > 80) {
+            insights.push("Vault is healthy. Keep up the regular checks.");
+        }
+
+        return { score, insights };
+    };
+
+    const vaultHealth = calculateHealthScore();
+
     const stats = {
         total: documents.length,
         active: documents.filter(d => new Date(d.expiryDate) >= today).length,
@@ -439,6 +479,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             return diffDays >= 0 && diffDays <= 7;
         }).length,
         expired: documents.filter(d => new Date(d.expiryDate) < today).length,
+        healthScore: vaultHealth.score,
+        insights: vaultHealth.insights
     };
 
     return (

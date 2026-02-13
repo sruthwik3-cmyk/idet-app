@@ -1,30 +1,24 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download } from 'lucide-react';
+import { LayoutDashboard, Calendar as CalendarIcon, Bell, User, Plus, Search, Filter, Pencil, Trash2, Download, ExternalLink, Sparkles, Zap, ShieldCheck } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
-// Wait, I see useApp has notification. Let's use that or just console logs if UI not ready.
-// Actually, I'll implement a custom visual indicator for the user to see WHICH doc is triggering.
+import HealthVisualizer from '../components/HealthVisualizer';
 
 const Dashboard: React.FC = () => {
-    // Force Refresh Trigger: 2026-02-12
     const { stats, documents, deleteDocument, loading } = useApp();
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Initialize search from Voice Command if present
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
-
 
     if (loading) {
         return <SkeletonDashboard />;
     }
 
-    // Get unique categories for filters
     const categories = ['All', 'Critical', ...Array.from(new Set(documents.map(d => d.category)))];
 
-    // Show documents that match search and filter
     const filteredDocs = documents
         .filter(doc => {
             const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -39,13 +33,11 @@ const Dashboard: React.FC = () => {
             return matchesSearch && matchesCategory;
         })
         .sort((a, b) => {
-            // Critical items always on top
             if (a.priority === 'Critical' && b.priority !== 'Critical') return -1;
             if (a.priority !== 'Critical' && b.priority === 'Critical') return 1;
-            // Then by date
             return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
         })
-        .slice(0, 10); // Show up to 10 recent/upcoming docs
+        .slice(0, 10);
 
     const handleDelete = async (id: string, name: string) => {
         if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
@@ -124,28 +116,25 @@ const Dashboard: React.FC = () => {
                 }
                 .high-alert {
                     animation: pulse-red 2s infinite;
-                    background: linear-gradient(90deg, rgba(248, 113, 113, 0.05) 0%, rgba(0,0,0,0) 100%);
+                    background: linear-gradient(90deg, rgba(248, 113, 113, 0.05) 0%, rgba(0, 0, 0, 0) 100%);
                 }
                 .filter-chip {
-                    padding: 0.25rem 0.75rem;
-                    border-radius: 20px;
-                    font-size: 0.8rem;
+                    padding: 0.4rem 1rem;
+                    border-radius: 999px;
+                    font-size: 0.85rem;
                     cursor: pointer;
-                    background: rgba(255,255,255,0.05);
-                    border: 1px solid rgba(255,255,255,0.1);
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid var(--border);
                     color: var(--text-secondary);
-                    transition: all 0.2s;
-                    user-select: none;
+                    transition: var(--transition);
                 }
                 .filter-chip.active {
                     background: var(--primary);
                     color: white;
                     border-color: var(--primary);
                 }
-                .filter-chip:hover:not(.active) {
-                    background: rgba(255,255,255,0.1);
-                }
             `}</style>
+
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Dashboard</h1>
@@ -165,278 +154,125 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid-cols-4" style={{ marginBottom: '2rem' }}>
-                <StatCard
-                    title="Total Documents"
-                    value={stats.total}
-                    icon={FileText}
-                    color="#818cf8"
-                    gradient="linear-gradient(135deg, #818cf8 0%, #c084fc 100%)"
-                />
-                <StatCard
-                    title="Active"
-                    value={stats.active}
-                    icon={Clock}
-                    color="#34d399"
-                    gradient="linear-gradient(135deg, #34d399 0%, #6ee7b7 100%)"
-                />
-                <StatCard
-                    title="Expiring Soon"
-                    value={stats.expiringSoon}
-                    icon={AlertTriangle}
-                    color="#fbbf24"
-                    gradient="linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%)"
-                />
-                <StatCard
-                    title="Expired"
-                    value={stats.expired}
-                    icon={AlertTriangle}
-                    color="#f87171"
-                    gradient="linear-gradient(135deg, #f87171 0%, #fca5a5 100%)"
-                />
+                <StatCard title="Total" value={stats.total} icon={LayoutDashboard} color="#818cf8" gradient="linear-gradient(135deg, #818cf8 0%, #c084fc 100%)" />
+                <StatCard title="Active" value={stats.active} icon={ShieldCheck} color="#34d399" gradient="linear-gradient(135deg, #34d399 0%, #6ee7b7 100%)" />
+                <StatCard title="Expiring" value={stats.expiringSoon} icon={Bell} color="#fbbf24" gradient="linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%)" />
+                <StatCard title="Expired" value={stats.expired} icon={Zap} color="#f87171" gradient="linear-gradient(135deg, #f87171 0%, #fca5a5 100%)" />
             </div>
 
-            <div className="grid-cols-2">
-                <div className="card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Your Documents</h3>
-                        <div style={{ position: 'relative' }}>
-                            <input
-                                type="text"
-                                placeholder="Search documents..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                style={{
-                                    background: 'rgba(0, 0, 0, 0.2)',
-                                    border: '1px solid var(--border)',
-                                    borderRadius: '50px',
-                                    padding: '0.5rem 1rem',
-                                    paddingLeft: '2.5rem',
-                                    color: 'white',
-                                    fontSize: '0.875rem',
-                                    outline: 'none',
-                                    width: '200px',
-                                    transition: 'all 0.2s'
-                                }}
-                            />
-                            <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                            </div>
-                        </div>
+            {/* AI Vault Health Section */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
+                <HealthVisualizer />
+
+                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-primary)' }}>
+                            <Zap size={24} color="var(--primary)" /> AI Renewal Hub
+                        </h3>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                        {categories.map(cat => (
-                            <div
-                                key={cat}
-                                className={`filter-chip ${selectedCategory === cat ? 'active' : ''}`}
-                                onClick={() => setSelectedCategory(cat)}
-                            >
-                                {cat}
-                            </div>
-                        ))}
-                    </div>
-
-                    {filteredDocs.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                            {filteredDocs.map(doc => {
-                                // Also update visual display loop to match strict logic for consistency if needed, 
-                                // but existing Math.ceil is usually fine. 
-                                // Let's try to match the strict logic for the visual label too.
-                                const expiryDate = new Date(doc.expiryDate);
-                                const todayDate = new Date();
-                                const expiryUTC = Date.UTC(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
-                                const todayUTC = Date.UTC(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
-                                const strictDaysLeft = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
-
-                                const isCritical = doc.priority === 'Critical';
-
-                                return (
-                                    <div key={doc.id} style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '1rem',
-                                        backgroundColor: 'rgba(255,255,255,0.03)',
-                                        borderRadius: 'var(--radius)',
-                                        border: isCritical ? '1px solid #f87171' : '1px solid rgba(255,255,255,0.05)',
-                                        transition: 'all 0.2s'
-                                    }} className={`doc-item ${isCritical ? 'high-alert' : ''}`}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {documents.filter(d => {
+                            const exp = new Date(d.expiryDate);
+                            const diff = Math.ceil((exp.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                            return diff <= 30;
+                        }).length > 0 ? (
+                            documents
+                                .filter(d => {
+                                    const exp = new Date(d.expiryDate);
+                                    const diff = Math.ceil((exp.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                    return diff <= 30;
+                                })
+                                .slice(0, 3)
+                                .map(doc => (
+                                    <div key={`renewal-${doc.id}`} style={{
+                                        padding: '1.25rem',
+                                        background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(244, 63, 94, 0.05) 100%)',
+                                        borderRadius: '16px',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        position: 'relative'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div>
-                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    {doc.name}
-                                                    {isCritical && (
-                                                        <span className="badge" style={{
-                                                            background: '#f87171',
-                                                            color: 'white',
-                                                            fontSize: '0.7rem',
-                                                            fontWeight: 'bold',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '4px',
-                                                            animation: 'none' // Override pulse for the badge text itself
-                                                        }}>
-                                                            <Siren size={12} /> CRITICAL
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                                                    <span style={{ color: strictDaysLeft <= 30 ? '#f87171' : '#34d399', fontWeight: strictDaysLeft <= 30 ? 'bold' : 'normal' }}>
-                                                        {strictDaysLeft < 0 ? `Expired ${Math.abs(strictDaysLeft)} days ago` : `Expires in ${strictDaysLeft} days`}
-                                                        <span style={{ opacity: 0.6, fontWeight: 'normal', marginLeft: '4px', color: 'var(--text-secondary)' }}>
-                                                            ({new Date(doc.expiryDate).toLocaleDateString('en-GB')})
-                                                        </span>
-                                                    </span>
-                                                    <span>•</span>
-                                                    {(() => {
-                                                        const getCategoryColor = (cat: string) => {
-                                                            const colors: Record<string, string> = {
-                                                                'Personal': '#60a5fa',
-                                                                'Financial': '#34d399',
-                                                                'Medical': '#f87171',
-                                                                'Legal': '#fbbf24',
-                                                                'Education': '#a78bfa',
-                                                                'Vehicle': '#fb923c',
-                                                            };
-                                                            return colors[cat] || '#e879f9';
-                                                        };
-                                                        const catColor = getCategoryColor(doc.category);
-                                                        return (
-                                                            <span style={{
-                                                                fontSize: '0.75rem',
-                                                                padding: '2px 8px',
-                                                                borderRadius: '4px',
-                                                                backgroundColor: `${catColor}33`,
-                                                                color: catColor,
-                                                                border: `1px solid ${catColor}66`
-                                                            }}>
-                                                                {doc.category}
-                                                            </span>
-                                                        );
-                                                    })()}
-                                                </div>
+                                                <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>{doc.name}</h4>
+                                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>AI Suggestion: Start renewal now.</p>
                                             </div>
-                                        </div>
-
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                                                {doc.alerts.emailSent30 && <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>30d Alert</span>}
-                                                {doc.alerts.emailSent7 && <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>7d Alert</span>}
-                                                <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(96, 165, 250, 0.1)', color: '#60a5fa', border: '1px solid rgba(96, 165, 250, 0.2)' }}>Cal Event</span>
-                                            </div>
-
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleEdit(doc); }}
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', transition: 'background 0.2s' }}
-                                                    className="action-btn"
-                                                    title="Edit Document"
-                                                >
-                                                    <Pencil size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleDelete(doc.id, doc.name); }}
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', padding: '4px', borderRadius: '4px', transition: 'background 0.2s' }}
-                                                    className="action-btn"
-                                                    title="Delete Document"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
+                                            <button
+                                                className="btn-primary-glass"
+                                                style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', background: 'var(--primary)', borderRadius: '8px' }}
+                                                onClick={() => window.open(`https://www.google.com/search?q=how+to+renew+${doc.name}`, '_blank')}
+                                            >
+                                                Renew <ExternalLink size={12} style={{ marginLeft: '4px' }} />
+                                            </button>
                                         </div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius)' }}>
-                            <CheckCircle size={48} style={{ marginBottom: '1rem', opacity: 0.2 }} />
-                            <p>No documents found.</p>
-                        </div>
-                    )}
+                                ))
+                        ) : (
+                            <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px dashed var(--border)' }}>
+                                <Sparkles size={32} color="var(--primary)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>All secure! No immediate renewals needed.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                    <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Recent Documents</h3>
+                    <div style={{ position: 'relative' }}>
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                                background: 'rgba(0, 0, 0, 0.2)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '50px',
+                                padding: '0.5rem 1rem',
+                                paddingLeft: '2.5rem',
+                                color: 'white',
+                                width: '240px'
+                            }}
+                        />
+                        <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+                    </div>
                 </div>
 
-                <div className="card">
-                    <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Quick Actions</h3>
-                    <div className="grid-cols-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-                        <div
-                            className="card"
-                            onClick={() => navigate('/calendar')}
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '1rem',
-                                cursor: 'pointer',
-                                background: 'rgba(255, 255, 255, 0.02)',
-                                transition: 'var(--transition)'
-                            }}
-                        >
-                            <div style={{
-                                padding: '12px',
-                                borderRadius: '14px',
-                                background: 'rgba(124, 58, 237, 0.1)',
-                                color: 'var(--primary)',
-                                marginBottom: '0.5rem'
-                            }}>
-                                <Clock size={28} />
-                            </div>
-                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Calendar</span>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+                    {categories.map(cat => (
+                        <div key={cat} className={`filter-chip ${selectedCategory === cat ? 'active' : ''}`} onClick={() => setSelectedCategory(cat)}>
+                            {cat}
                         </div>
+                    ))}
+                </div>
 
-                        <div
-                            className="card"
-                            onClick={() => navigate('/alerts')}
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '1rem',
-                                cursor: 'pointer',
-                                background: 'rgba(255, 255, 255, 0.02)',
-                                transition: 'var(--transition)'
-                            }}
-                        >
-                            <div style={{
-                                padding: '12px',
-                                borderRadius: '14px',
-                                background: 'rgba(245, 158, 11, 0.1)',
-                                color: 'var(--warning)',
-                                marginBottom: '0.5rem'
-                            }}>
-                                <AlertTriangle size={28} />
-                            </div>
-                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Alerts</span>
-                        </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {filteredDocs.map(doc => {
+                        const expiry = new Date(doc.expiryDate);
+                        const daysLeft = Math.ceil((expiry.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                        const isCritical = doc.priority === 'Critical';
 
-                        <div
-                            className="card"
-                            onClick={() => navigate('/profile')}
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '1rem',
-                                cursor: 'pointer',
-                                background: 'rgba(255, 255, 255, 0.02)',
-                                transition: 'var(--transition)'
-                            }}
-                        >
-                            <div style={{
-                                padding: '12px',
-                                borderRadius: '14px',
-                                background: 'rgba(16, 185, 129, 0.1)',
-                                color: 'var(--success)',
-                                marginBottom: '0.5rem'
-                            }}>
-                                <FileText size={28} />
+                        return (
+                            <div key={doc.id} className={`card ${isCritical ? 'high-alert' : ''}`} style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{doc.name}</div>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                                        <span style={{ color: daysLeft <= 7 ? 'var(--danger)' : daysLeft <= 30 ? 'var(--warning)' : 'var(--success)' }}>
+                                            {daysLeft < 0 ? 'Expired' : `Expires in ${daysLeft} days`}
+                                        </span>
+                                        <span style={{ margin: '0 0.5rem' }}>•</span>
+                                        {doc.category}
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button onClick={() => handleEdit(doc)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}><Pencil size={18} /></button>
+                                    <button onClick={() => handleDelete(doc.id, doc.name)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}><Trash2 size={18} /></button>
+                                </div>
                             </div>
-                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Profile</span>
-                        </div>
-                    </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>
