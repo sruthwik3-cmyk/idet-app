@@ -13,7 +13,7 @@ const AddDocument: React.FC = () => {
 
     const [formData, setFormData] = useState({
         name: editingDoc?.name || '',
-        category: editingDoc?.category || 'ID',
+        category: editingDoc?.category || 'Passport',
         expiryDate: editingDoc?.expiryDate || '',
         priority: editingDoc?.priority || 'Important',
         notes: editingDoc?.notes || '',
