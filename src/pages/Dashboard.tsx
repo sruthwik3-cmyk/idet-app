@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import {
     LayoutDashboard,
+    Calendar as CalendarIcon,
+    Plus,
+    Shield,
+    Bell,
     Search,
+    Filter,
     Pencil,
     Trash2,
-    Download,
+    ExternalLink,
+    Share2,
     Zap,
-    Calendar as CalendarIcon,
-    User,
-    Clock,
-    AlertTriangle,
     CreditCard,
     FileText,
     Car,
@@ -18,6 +20,7 @@ import {
     ShieldCheck,
     Briefcase
 } from 'lucide-react';
+import { format } from 'date-fns';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
 import { generateCalendarUrl } from '../utils/calendarUtils';
@@ -246,7 +249,9 @@ const Dashboard: React.FC = () => {
                                                 {isExpired ? `EXPIRED ${Math.abs(diffDays)}d AGO` : `EXPIRES IN ${diffDays}d`}
                                             </span>
                                             <span style={{ opacity: 0.3 }}>•</span>
-                                            <span style={{ fontWeight: 500 }}>{new Date(doc.expiryDate).toLocaleDateString()}</span>
+                                            <span style={{ fontWeight: 700, color: 'var(--text-dim)', letterSpacing: '0.05em' }}>
+                                                {format(new Date(doc.expiryDate), 'dd-MM-yyyy')}
+                                            </span>
                                             <span style={{ opacity: 0.3 }}>•</span>
                                             <span style={{
                                                 background: 'rgba(255, 255, 255, 0.06)',
