@@ -100,17 +100,65 @@ const UserSettings: React.FC = () => {
                     </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div className="grid-2">
                     <div className="input-group">
-                        <label>Name</label>
-                        <input disabled={!isEditing} className="input-field" value={formData.fullName} onChange={e => setFormData({ ...formData, fullName: e.target.value })} />
+                        <label>Full Name</label>
+                        <input
+                            disabled={!isEditing}
+                            className="input-field"
+                            value={formData.fullName}
+                            onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                            placeholder="Enter full name"
+                        />
                     </div>
                     <div className="input-group">
-                        <label>Phone</label>
-                        <input disabled={!isEditing} className="input-field" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} />
+                        <label>Phone Number</label>
+                        <input
+                            disabled={!isEditing}
+                            className="input-field"
+                            value={formData.phone}
+                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                            placeholder="+1 234 567 890"
+                        />
                     </div>
-                    {isEditing && <button onClick={handleSave} disabled={isSaving} className="btn-primary" style={{ width: '100%' }}>{isSaving ? 'Saving...' : 'Save Profile'}</button>}
                 </div>
+
+                <div className="grid-2">
+                    <div className="input-group">
+                        <label>Date of Birth</label>
+                        <input
+                            type="date"
+                            disabled={!isEditing}
+                            className="input-field"
+                            value={formData.dob}
+                            onChange={e => setFormData({ ...formData, dob: e.target.value })}
+                        />
+                    </div>
+                    <div className="input-group">
+                        <label>User Group</label>
+                        <select
+                            disabled={!isEditing}
+                            className="input-field"
+                            value={formData.userGroup}
+                            onChange={e => setFormData({ ...formData, userGroup: e.target.value as any })}
+                        >
+                            <option value="Self">Self</option>
+                            <option value="Family">Family</option>
+                            <option value="Organization">Organization</option>
+                        </select>
+                    </div>
+                </div>
+
+                {isEditing && (
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button onClick={handleSave} disabled={isSaving} className="btn-primary" style={{ flex: 1 }}>
+                            {isSaving ? 'Saving...' : 'Save Changes'}
+                        </button>
+                        <button onClick={() => setIsEditing(false)} className="btn-secondary" style={{ flex: 1 }}>
+                            Cancel
+                        </button>
+                    </div>
+                )}
 
                 <div style={{ marginTop: '2.5rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
                     <button onClick={handleLogout} className="btn-logout" style={{ width: '100%' }}><LogOut size={18} style={{ marginRight: '8px' }} />Logout</button>
