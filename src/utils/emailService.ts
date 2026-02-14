@@ -1,16 +1,10 @@
 import emailjs from '@emailjs/browser';
 import { generateCalendarUrl } from './calendarUtils';
 
-// Initialize EmailJS with Public Key (User will provide this)
-// We'll use a placeholder or env var, but for now hardcode user instructions
-const PUBLIC_KEY = "YOUR_EMAILJS_PUBLIC_KEY"; // User needs to set this
-const SERVICE_ID = "service_gmail";           // Standard service ID for Gmail
-const TEMPLATE_ID = "template_idet_alert";    // User needs to create this
-
-export const initEmailJS = (publicKey: string) => {
-    emailjs.init(publicKey);
-};
-
+/**
+ * Sends an email alert using EmailJS browser SDK.
+ * This bypasses Render's SMTP port restrictions.
+ */
 export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft: number, expiryDateStr: string, priority: string = 'Important') => {
     const calendarUrl = generateCalendarUrl(docName, expiryDateStr, priority);
     const formattedDate = new Date(expiryDateStr).toLocaleDateString();
@@ -25,30 +19,35 @@ export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft
     };
 
     try {
-        // We use the environment variables if available, otherwise fallback to specific instruction strings to debug
-        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_gmail';
-        const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_idet_alert';
+        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+        const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
         const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-        if (!publicKey) {
-            console.error("EmailJS Public Key missing!");
-            return { success: false, error: "Configuration Error: Missing EmailJS Public Key" };
+        if (!publicKey || !serviceId || !templateId) {
+            console.error("[EmailJS] Missing configuration:", { serviceId, templateId, publicKey });
+            return {
+                success: false,
+                error: "EmailJS not configured correctly. Please check Render Environment Variables."
+            };
         }
 
         const response = await emailjs.send(serviceId, templateId, templateParams, publicKey);
 
         if (response.status === 200) {
+            console.log("[EmailJS] Alert sent successfully for:", docName);
             return { success: true, messageId: "emailjs_" + Date.now() };
         } else {
-            return { success: false, error: "EmailJS Error: " + response.text };
+            return { success: false, error: `EmailJS Error: ${response.text}` };
         }
     } catch (error: any) {
-        console.error("EmailJS Send Error:", error);
-        return { success: false, error: error.message || "Unknown EmailJS Error" };
+        console.error("[EmailJS] Send Error:", error);
+        return { success: false, error: error.message || "Unknown EmailJS error" };
     }
 };
 
+/**
+ * Client-side connectivity test for EmailJS.
+ */
 export const testBackendConnectivity = async (email: string) => {
-    // This is now a client-side test
-    return sendExpiryAlert(email, "TEST DOCUMENT", 30, new Date().toISOString());
+    return sendExpiryAlert(email, "TEST_DOCUMENT", 30, new Date().toISOString());
 };
