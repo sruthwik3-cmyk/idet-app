@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download } from 'lucide-react';
+import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download, RefreshCw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
-// Wait, I see useApp has notification. Let's use that or just console logs if UI not ready.
-// Actually, I'll implement a custom visual indicator for the user to see WHICH doc is triggering.
 
 const Dashboard: React.FC = () => {
-    // Force Refresh Trigger: 2026-02-12
-    const { stats, documents, deleteDocument, loading } = useApp();
+    const { stats, documents, deleteDocument, loading, refreshAlerts } = useApp();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -155,6 +152,14 @@ const Dashboard: React.FC = () => {
                     <h1 className="page-title">Dashboard</h1>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button
+                        className="btn-secondary"
+                        onClick={refreshAlerts}
+                        title="Check for due alerts now"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
+                    >
+                        <RefreshCw size={16} /> Sync Alerts
+                    </button>
                     <button
                         className="btn-secondary"
                         onClick={handleExport}

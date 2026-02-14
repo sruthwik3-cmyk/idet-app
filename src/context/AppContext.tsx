@@ -39,6 +39,7 @@ interface AppContextType {
     loading: boolean;
     notification: { message: string, type: 'success' | 'info' | 'error' } | null;
     showNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
+    refreshAlerts: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -275,6 +276,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setDocuments(prev => prev.filter(d => d.id !== id));
     };
 
+    const refreshAlerts = async () => {
+        showNotification('Checking for alerts...', 'info');
+        await checkAndSendAlerts(documents, userProfile);
+        showNotification('Alert check complete', 'success');
+    };
+
     return (
         <AppContext.Provider value={{
             documents, userProfile, addDocument, updateDocument, updateUserProfile, deleteDocument,
@@ -287,7 +294,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 }).length,
                 expired: documents.filter(d => new Date(d.expiryDate) < new Date()).length
             },
-            loading, notification, showNotification
+            loading, notification, showNotification, refreshAlerts
         }}>
             {children}
         </AppContext.Provider>
