@@ -32,7 +32,13 @@ const UserSettings: React.FC = () => {
             try {
                 const res = await fetch('/api/health');
                 const data = await res.json();
-                setEmailStatus(data.emailService === 'configured' ? 'configured' : 'error');
+                // If it contains "connected", it's configured
+                const isOnline = data.gmailStatus && data.gmailStatus.includes('connected');
+                setEmailStatus(isOnline ? 'configured' : 'error');
+
+                if (!isOnline && data.gmailStatus) {
+                    console.error("[Health Check] Gmail Error:", data.gmailStatus);
+                }
             } catch { setEmailStatus('error'); }
         };
         check();
