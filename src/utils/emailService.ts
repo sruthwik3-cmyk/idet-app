@@ -89,10 +89,28 @@ Sent from IDET Document Manager
             body: JSON.stringify({ to: toEmail, subject, html: htmlBody, text: textBody }),
         });
         const data = await response.json();
-        return { success: response.ok, response: data };
-    } catch (error) {
-        console.error("[EmailService] Error:", error);
-        return { success: false, error };
+        if (!response.ok) {
+            console.error("[EmailService] Backend Error:", data.error, "-", data.details);
+            return { success: false, error: data.error, details: data.details, reason: data.reason };
+        }
+        return { success: true, response: data };
+    } catch (error: any) {
+        console.error("[EmailService] Fetch Error:", error);
+        return { success: false, error: "Network Error", details: error.message };
+    }
+};
+
+export const testBackendConnectivity = async (email: string) => {
+    try {
+        const response = await fetch('/api/test-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+        const data = await response.json();
+        return { success: response.ok, ...data };
+    } catch (error: any) {
+        return { success: false, error: error.message };
     }
 };
 

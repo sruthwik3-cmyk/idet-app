@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, RefreshCw, Bell, Send, Edit2, Save, X, Camera } from 'lucide-react';
-import { sendExpiryAlert } from '../utils/emailService';
+import { sendExpiryAlert, testBackendConnectivity } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 
 import { supabase } from '../utils/supabaseClient';
@@ -13,6 +13,7 @@ const Profile: React.FC = () => {
 
     const [isSyncing, setIsSyncing] = useState(false);
     const [isTesting, setIsTesting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [lastSynced, setLastSynced] = useState('Just now');
 
     // Edit Mode State
@@ -38,6 +39,7 @@ const Profile: React.FC = () => {
 
     const handleSaveProfile = async () => {
         if (!userProfile) return;
+        setIsSaving(true);
 
         try {
             await updateUserProfile({
@@ -46,14 +48,19 @@ const Profile: React.FC = () => {
             });
             setIsEditing(false);
             showNotification('Profile updated successfully!', 'success');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error updating profile:', error);
             showNotification('Failed to update profile.', 'error');
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const handleTestAlert = async (days: number) => {
-        if (!userProfile?.email) return;
+        if (!userProfile?.email) {
+            showNotification('Please save your email in profile first.', 'error');
+            return;
+        }
         setIsTesting(true);
 
         // Simulate a date 'days' from now
@@ -66,17 +73,38 @@ const Profile: React.FC = () => {
 
         if (res?.success) {
             playAlertSound();
-            showNotification(`${days}-day alert sent successfully!`, 'success');
+            showNotification(`${days}-day test alert sent to Gmail!`, 'success');
         } else {
-            const errorMsg = (res as any)?.error?.message || (res as any)?.error?.details || 'Failed to send test.';
+            const errorMsg = res.reason === 'Credentials Missing'
+                ? 'Gmail credentials not configured on server (GMAIL_APP_PASSWORD needed).'
+                : (res.details || 'Failed to send test.');
             showNotification(`Error: ${errorMsg}`, 'error');
         }
         setIsTesting(false);
     };
 
+    const handleVerifyConnection = async () => {
+        if (!userProfile?.email) {
+            showNotification('No email found to verify.', 'error');
+            return;
+        }
+        setIsSyncing(true);
+        try {
+            const res = await testBackendConnectivity(userProfile.email);
+            if (res.success) {
+                showNotification('✅ Connection Successful! Verified with Gmail.', 'success');
+            } else {
+                showNotification(`❌ Connection Failed: ${res.error}`, 'error');
+            }
+        } catch (err: any) {
+            showNotification(`❌ Connection Error: ${err.message}`, 'error');
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
     const handleSync = () => {
         setIsSyncing(true);
-        // Simulate network request (could be real sync if needed, but standard fetch is auto)
         setTimeout(() => {
             setIsSyncing(false);
             const now = new Date();
@@ -92,11 +120,11 @@ const Profile: React.FC = () => {
                 const res = await fetch('/api/health');
                 if (res.ok) {
                     const data = await res.json();
-                    setEmailStatus(data.emailService === 'configured' ? 'configured' : 'error');
+                    setEmailStatus(data.emailService.includes('configured') ? 'configured' : 'error');
                 } else {
                     setEmailStatus('error');
                 }
-            } catch (e) {
+            } catch (e: any) {
                 setEmailStatus('error');
             }
         };
@@ -179,10 +207,11 @@ const Profile: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={handleSaveProfile}
-                                    style={{ background: 'var(--primary)', border: 'none', cursor: 'pointer', color: 'white', padding: '0.5rem', borderRadius: '6px' }}
+                                    disabled={isSaving}
+                                    style={{ background: 'var(--primary)', border: 'none', cursor: 'pointer', color: 'white', padding: '0.5rem', borderRadius: '6px', opacity: isSaving ? 0.7 : 1 }}
                                     title="Save"
                                 >
-                                    <Save size={18} />
+                                    {isSaving ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
                                 </button>
                             </div>
                         )}
@@ -337,10 +366,18 @@ const Profile: React.FC = () => {
                                     {emailStatus === 'checking' && <span className="badge badge-neutral" style={{ padding: '2px 6px', fontSize: '10px' }}>CHECKING...</span>}
                                 </div>
                                 <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                    {emailStatus === 'error' ? 'Check Render Environment Variables (GMAIL_USER)' : 'Test automatic expiry emails'}
+                                    {emailStatus === 'error' ? 'Check Render Env (GMAIL_USER / GMAIL_APP_PASSWORD)' : 'Test automatic expiry emails'}
                                 </p>
                             </div>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <button
+                                    onClick={handleVerifyConnection}
+                                    disabled={isSyncing}
+                                    className="btn-secondary"
+                                    style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                                >
+                                    {isSyncing ? 'Verifying...' : 'Verify Gmail Connection'}
+                                </button>
                                 <button
                                     onClick={() => handleTestAlert(30)}
                                     disabled={isTesting}

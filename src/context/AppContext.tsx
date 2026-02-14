@@ -194,21 +194,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 }
 
                 // Send Gmail alert
-                try {
-                    const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                    console.log(`[Alert] Email result for "${doc.name}":`, res);
-                    if (res?.success) {
-                        const nextAlerts = { ...doc.alerts, emailSent30: true };
-                        await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id);
-                        setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
-                        showNotification(`✅ 30-day email alert sent for "${doc.name}"`, 'success');
-                    } else {
-                        console.error(`[Alert] Gmail failed for "${doc.name}":`, res.error);
-                        showNotification(`⚠️ Gmail alert failed for "${doc.name}". Check server config.`, 'error');
+                if (userProfile?.email) {
+                    try {
+                        const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                        console.log(`[Alert] Email result for "${doc.name}":`, res);
+                        if (res?.success) {
+                            const nextAlerts = { ...doc.alerts, emailSent30: true };
+                            await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id);
+                            setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
+                            showNotification(`✅ 30-day email alert sent for "${doc.name}"`, 'success');
+                        } else {
+                            const errorMsg = res.reason === 'Credentials Missing'
+                                ? 'Gmail configuration missing on server (App Password needed).'
+                                : `Gmail failed: ${res.details || 'Unknown Error'}`;
+                            console.error(`[Alert] Gmail failed for "${doc.name}":`, res.details);
+                            showNotification(`⚠️ ${errorMsg}`, 'error');
+                        }
+                    } catch (err) {
+                        console.error(`[Alert] Gmail Error for "${doc.name}":`, err);
+                        showNotification(`❌ Connection error sending 30-day alert for ${doc.name}`, 'error');
                     }
-                } catch (err) {
-                    console.error(`[Alert] Gmail Error for "${doc.name}":`, err);
-                    showNotification(`❌ Error sending 30-day alert for ${doc.name}`, 'error');
+                } else {
+                    console.warn(`[Alert] Cannot send email for "${doc.name}": No user email found in profile.`);
                 }
             }
 
@@ -233,21 +240,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 }
 
                 // Send Gmail alert
-                try {
-                    const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                    console.log(`[Alert] Email result for "${doc.name}":`, res);
-                    if (res?.success) {
-                        const nextAlerts = { ...doc.alerts, emailSent7: true };
-                        await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id);
-                        setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
-                        showNotification(`🚨 Urgent 7-day alert sent for "${doc.name}"`, 'success');
-                    } else {
-                        console.error(`[Alert] Gmail failed for "${doc.name}":`, res.error);
-                        showNotification(`⚠️ Urgent alert failed for "${doc.name}". Check server config.`, 'error');
+                if (userProfile?.email) {
+                    try {
+                        const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                        console.log(`[Alert] Email result for "${doc.name}":`, res);
+                        if (res?.success) {
+                            const nextAlerts = { ...doc.alerts, emailSent7: true };
+                            await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id);
+                            setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: nextAlerts } : d));
+                            showNotification(`🚨 Urgent 7-day alert sent for "${doc.name}"`, 'success');
+                        } else {
+                            const errorMsg = res.reason === 'Credentials Missing'
+                                ? 'Gmail configuration missing on server (App Password needed).'
+                                : `Urgent alert failed: ${res.details || 'Unknown Error'}`;
+                            console.error(`[Alert] Gmail failed for "${doc.name}":`, res.details);
+                            showNotification(`⚠️ ${errorMsg}`, 'error');
+                        }
+                    } catch (err) {
+                        console.error(`[Alert] Gmail Error for "${doc.name}":`, err);
+                        showNotification(`❌ Connection error sending 7-day alert for ${doc.name}`, 'error');
                     }
-                } catch (err) {
-                    console.error(`[Alert] Gmail Error for "${doc.name}":`, err);
-                    showNotification(`❌ Error sending 7-day alert for ${doc.name}`, 'error');
+                } else {
+                    console.warn(`[Alert] Cannot send urgent email for "${doc.name}": No user email found in profile.`);
                 }
             }
 
