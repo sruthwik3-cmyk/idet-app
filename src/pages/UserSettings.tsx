@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Bell, Edit2, X, Send, RefreshCw } from 'lucide-react';
+import { LogOut, Edit2, X, Send, RefreshCw } from 'lucide-react';
 import { testBackendConnectivity, sendExpiryAlert } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 import { supabase } from '../utils/supabaseClient';
