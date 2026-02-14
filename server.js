@@ -53,22 +53,21 @@ const getGmailClient = async () => {
 const createRawMessage = (to, subject, html, text) => {
     const from = process.env.GMAIL_USER;
     const body = html || text;
-
-    // RFC 822 format requires specific headers and boundaries for complex emails, 
-    // but for simple HTML/Text, this format works well.
     const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
 
-    // Use \r\n as per RFC 822
-    const messageParts = [
-        `From: "IDET Alerts" <${from}>`,
+    // Very strict RFC 822 format
+    const message = [
+        `From: ${from}`,
         `To: ${to}`,
-        `Content-Type: text/html; charset=utf-8`,
-        `MIME-Version: 1.0`,
         `Subject: ${utf8Subject}`,
+        `MIME-Version: 1.0`,
+        `Content-Type: text/html; charset=utf-8`,
+        `Content-Transfer-Encoding: 7bit`,
         '',
         body
-    ];
-    const message = messageParts.join('\r\n');
+    ].join('\r\n');
+
+    console.log(`[Gmail API] MIME message size: ${message.length} chars`);
 
     return Buffer.from(message)
         .toString('base64')
@@ -82,30 +81,37 @@ app.post('/api/send-email', async (req, res) => {
     const timestamp = new Date().toISOString();
     const { to, subject, html, text } = req.body;
 
-    console.log(`[${timestamp}] [Gmail API] Send Request to: ${to}`);
+    console.log(`[${timestamp}] [Gmail API] SEND ATTEMPT to: ${to}`);
+
+    if (!to) {
+        return res.status(400).json({ success: false, error: "Recipient 'to' is missing." });
+    }
 
     try {
         const gmail = await getGmailClient();
         const raw = createRawMessage(to, subject, html, text);
 
-        // Verification log (safe version)
-        console.log(`[Gmail API] Preparing to send via: ${process.env.GMAIL_USER}`);
+        console.log(`[Gmail API] Calling Google APIs... (User: ${process.env.GMAIL_USER})`);
 
         const response = await gmail.users.messages.send({
             userId: 'me',
             requestBody: { raw }
         });
 
-        console.log(`[${timestamp}] [Gmail API] SEND SUCCESS! ID: ${response.data.id}`);
+        console.log(`[${timestamp}] [Gmail API] SUCCESS! Message ID: ${response.data.id}`);
         res.json({ success: true, messageId: response.data.id });
     } catch (error) {
-        console.error(`[${timestamp}] [Gmail API] SEND FAILURE:`, error.message);
-        // Provide more detail if it's an auth error
-        const isAuthError = error.message.includes('401') || error.message.includes('invalid_grant');
+        console.error(`[${timestamp}] [Gmail API] ERROR DETAILS:`, {
+            message: error.message,
+            code: error.code,
+            errors: error.errors
+        });
+
+        const isAuthError = error.message.includes('401') || error.message.includes('invalid_grant') || error.message.includes('auth');
         res.status(500).json({
             success: false,
             error: error.message,
-            hint: isAuthError ? "Check if GMAIL_REFRESH_TOKEN is correct and not expired." : "Check logs for details."
+            hint: isAuthError ? "AUTH_REJECTED: Check if GMAIL_REFRESH_TOKEN is fully copied (starts with 1//...)" : "API_ERROR: Check Gmail API is enabled in Google Cloud."
         });
     }
 });

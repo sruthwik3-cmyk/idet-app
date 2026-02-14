@@ -22,6 +22,7 @@ export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft
     `;
 
     try {
+        console.log(`[Email] Sending request to backend for: ${docName}`);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
 
@@ -35,13 +36,19 @@ export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft
         clearTimeout(timeoutId);
 
         const data = await response.json();
-        if (!response.ok) return { success: false, error: data.error || 'Backend Error' };
+        console.log(`[Email] Backend response for "${docName}":`, data);
+
+        if (!response.ok) {
+            console.error(`[Email] Backend FAILED for "${docName}":`, data.error || 'Unknown error');
+            return { success: false, error: data.error || data.hint || 'Backend Error' };
+        }
         return { success: true, ...data };
     } catch (error: any) {
+        console.error(`[Email] Fetch error for "${docName}":`, error);
         if (error.name === 'AbortError') {
-            return { success: false, error: 'Email request timed out' };
+            return { success: false, error: 'Email request timed out (Backend slow)' };
         }
-        return { success: false, error: error.message || 'Network error' };
+        return { success: false, error: error.message || 'Network error (Check Render Logs)' };
     }
 };
 
