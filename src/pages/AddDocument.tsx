@@ -155,7 +155,7 @@ const AddDocument: React.FC = () => {
                         />
                     </div>
 
-                    <div className="grid-cols-2" style={{ gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="grid-cols-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                         <div className="input-group">
                             <label>Category</label>
                             <select
@@ -185,6 +185,20 @@ const AddDocument: React.FC = () => {
                                 <option value="Critical" style={{ color: 'black' }}>Critical</option>
                                 <option value="Important" style={{ color: 'black' }}>Important</option>
                                 <option value="Optional" style={{ color: 'black' }}>Optional</option>
+                            </select>
+                        </div>
+
+                        <div className="input-group">
+                            <label>User Group</label>
+                            <select
+                                className="input-field"
+                                value={formData.userGroup}
+                                onChange={(e) => setFormData({ ...formData, userGroup: e.target.value as any })}
+                                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                            >
+                                <option value="Self" style={{ color: 'black' }}>Self</option>
+                                <option value="Family" style={{ color: 'black' }}>Family</option>
+                                <option value="Organization" style={{ color: 'black' }}>Organization</option>
                             </select>
                         </div>
                     </div>

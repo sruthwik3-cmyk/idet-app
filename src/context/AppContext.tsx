@@ -95,7 +95,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     expiryDate: d.expiry_date,
                     priority: d.priority as any,
                     notes: d.notes,
-                    userGroup: 'Self',
+                    userGroup: d.user_group || 'Self',
                     alerts: d.alerts_json || { emailSent30: false, emailSent7: false, scheduledAt: '', calendarEventId: '' }
                 }));
                 setDocuments(mappedDocs as Document[]);
@@ -247,6 +247,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             expiry_date: docData.expiryDate,
             priority: docData.priority,
             notes: docData.notes,
+            user_group: docData.userGroup,
             alerts_json: newAlerts
         }).select().single();
         if (error) return null;

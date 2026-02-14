@@ -62,11 +62,13 @@ const getGmailClient = async () => {
 
 /**
  * Creates a raw RFC822 message for Gmail API.
+ * Uses base64 for body to handle UTF-8 symbols safely.
  */
 const createRawMessage = (from, to, subject, body) => {
     const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
     const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@idet-app.render.com>`;
     const date = new Date().toUTCString();
+    const base64Body = Buffer.from(body).toString('base64');
 
     const message = [
         `From: "IDET Alerts" <${from}>`,
@@ -76,13 +78,12 @@ const createRawMessage = (from, to, subject, body) => {
         `Message-ID: ${messageId}`,
         `MIME-Version: 1.0`,
         `Content-Type: text/html; charset=utf-8`,
-        `Content-Transfer-Encoding: 7bit`,
+        `Content-Transfer-Encoding: base64`,
         '',
-        body
+        base64Body
     ].join('\r\n');
 
-    return Buffer.from(message)
-        .toString('base64url'); // Base64url is required by Gmail API
+    return Buffer.from(message).toString('base64url');
 };
 
 // API Endpoint for sending emails using Gmail API (REST)
@@ -90,7 +91,7 @@ app.post('/api/send-email', async (req, res) => {
     const timestamp = new Date().toISOString();
     const { to, subject, html, text } = req.body;
 
-    console.log(`[${timestamp}] [Gmail API] ATTEMPT to: ${to}`);
+    console.log(`[${timestamp}] [Gmail API] SEND Attempt to: ${to}`);
 
     if (!to) return res.status(400).json({ success: false, error: "Recipient missing" });
 
@@ -98,8 +99,7 @@ app.post('/api/send-email', async (req, res) => {
         const { gmail, user } = await getGmailClient();
         const raw = createRawMessage(user, to, subject, html || text);
 
-        console.log(`[Gmail API] Sending message via Google REST API...`);
-
+        console.log(`[Gmail API] Dispatching message...`);
         const response = await gmail.users.messages.send({
             userId: 'me',
             requestBody: { raw }
@@ -108,13 +108,17 @@ app.post('/api/send-email', async (req, res) => {
         console.log(`[${timestamp}] [Gmail API] SUCCESS! ID: ${response.data.id}`);
         res.json({ success: true, messageId: response.data.id });
     } catch (error) {
-        console.error(`[${timestamp}] [Gmail API] ERROR:`, error.message);
-        console.error(`[DEBUG] Error Details:`, JSON.stringify(error.errors || error.response?.data || error));
+        console.error(`[${timestamp}] [Gmail API] SEND FAILURE:`, {
+            msg: error.message,
+            code: error.code,
+            details: error.response?.data
+        });
 
         res.status(500).json({
             success: false,
             error: error.message,
-            hint: error.message === 'invalid_client' ? 'Check Client ID/Secret for extra spaces or typos.' : 'Check Refresh Token.'
+            hint: error.message === 'invalid_client' ? 'Check your Client ID and Secret for typos.' : 'Check your Refresh Token.',
+            details: error.response?.data
         });
     }
 });
