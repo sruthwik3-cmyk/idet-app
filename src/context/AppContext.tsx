@@ -74,10 +74,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [userProfile]);
 
     const fetchUserData = async (userId: string, authEmail?: string | null) => {
+        console.log(`[Auth] fetchUserData started for ${userId} (${authEmail})`);
         setLoading(true);
         try {
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+
+            if (profileError && profileError.code !== 'PGRST116') {
+                console.error('[Auth] Profile fetch error:', profileError);
+            }
+
             if (profile) {
+                console.log('[Auth] Profile found:', profile.full_name);
                 setUserProfile({
                     fullName: profile.full_name,
                     email: profile.email || authEmail || '',
@@ -86,6 +97,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     userGroup: profile.user_group
                 });
             } else {
+                console.log('[Auth] Profile NOT found, setting shell profile');
                 // New user: Set a shell profile to allow navigation to setup-profile
                 setUserProfile({
                     fullName: '',
@@ -95,7 +107,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     userGroup: 'Self'
                 });
             }
-            const { data: docs } = await supabase.from('documents').select('*').order('expiry_date', { ascending: true });
+
+            const { data: docs, error: docsError } = await supabase
+                .from('documents')
+                .select('*')
+                .order('expiry_date', { ascending: true });
+
+            if (docsError) {
+                console.error('[Auth] Documents fetch error:', docsError);
+            }
+
             if (docs) {
                 const mappedDocs = docs.map((d: any) => ({
                     id: d.id,
@@ -134,14 +155,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     useEffect(() => {
+        console.log('[Auth] Main useEffect mounting');
+
+        let isInitial = true;
+
         supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session?.user) fetchUserData(session.user.id, session.user.email);
-            else setLoading(false);
+            console.log('[Auth] getSession result:', session ? 'User logged in' : 'No session');
+            if (session?.user) {
+                fetchUserData(session.user.id, session.user.email);
+            } else if (isInitial) {
+                setLoading(false);
+            }
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session?.user) fetchUserData(session.user.id, session.user.email);
-            else { setDocuments([]); setUserProfile(null); setLoading(false); }
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log(`[Auth] onAuthStateChange event: ${event}`, session ? 'User present' : 'No session');
+            isInitial = false;
+
+            if (session?.user) {
+                fetchUserData(session.user.id, session.user.email);
+            } else {
+                setDocuments([]);
+                setUserProfile(null);
+                setLoading(false);
+            }
         });
 
         // Check every 60 seconds
