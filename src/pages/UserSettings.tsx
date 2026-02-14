@@ -100,17 +100,17 @@ const UserSettings: React.FC = () => {
                     </button>
                 </div>
 
+                <div className="input-group">
+                    <label>Full Name</label>
+                    <input
+                        disabled={!isEditing}
+                        className="input-field"
+                        value={formData.fullName}
+                        onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                    />
+                </div>
+
                 <div className="grid-cols-2">
-                    <div className="input-group">
-                        <label>Full Name</label>
-                        <input
-                            disabled={!isEditing}
-                            className="input-field"
-                            value={formData.fullName}
-                            onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                            placeholder="Enter full name"
-                        />
-                    </div>
                     <div className="input-group">
                         <label>Phone Number</label>
                         <input
@@ -118,12 +118,8 @@ const UserSettings: React.FC = () => {
                             className="input-field"
                             value={formData.phone}
                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                            placeholder="+1 234 567 890"
                         />
                     </div>
-                </div>
-
-                <div className="grid-cols-2">
                     <div className="input-group">
                         <label>Date of Birth</label>
                         <input
@@ -134,23 +130,24 @@ const UserSettings: React.FC = () => {
                             onChange={e => setFormData({ ...formData, dob: e.target.value })}
                         />
                     </div>
-                    <div className="input-group">
-                        <label>User Group</label>
-                        <select
-                            disabled={!isEditing}
-                            className="input-field"
-                            value={formData.userGroup}
-                            onChange={e => setFormData({ ...formData, userGroup: e.target.value as any })}
-                        >
-                            <option value="Self">Self</option>
-                            <option value="Family">Family</option>
-                            <option value="Organization">Organization</option>
-                        </select>
-                    </div>
+                </div>
+
+                <div className="input-group">
+                    <label>User Group</label>
+                    <select
+                        disabled={!isEditing}
+                        className="input-field"
+                        value={formData.userGroup}
+                        onChange={e => setFormData({ ...formData, userGroup: e.target.value as any })}
+                    >
+                        <option value="Self">Self</option>
+                        <option value="Family">Family</option>
+                        <option value="Organization">Organization</option>
+                    </select>
                 </div>
 
                 {isEditing && (
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                         <button onClick={handleSave} disabled={isSaving} className="btn-primary" style={{ flex: 1 }}>
                             {isSaving ? 'Saving...' : 'Save Changes'}
                         </button>
