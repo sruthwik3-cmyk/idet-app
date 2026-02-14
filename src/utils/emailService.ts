@@ -1,53 +1,62 @@
-import emailjs from '@emailjs/browser';
 import { generateCalendarUrl } from './calendarUtils';
 
 /**
- * Sends an email alert using EmailJS browser SDK.
- * This bypasses Render's SMTP port restrictions.
+ * Sends an email alert via the backend API.
+ * The backend now uses Gmail API (REST) to bypass Render port blocks.
  */
 export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft: number, expiryDateStr: string, priority: string = 'Important') => {
+    const subject = daysLeft <= 7 ? `🚨 URGENT: ${docName} expires in ${daysLeft} days!` : `Reminder: ${docName} Expiry Alert (${daysLeft}d)`;
     const calendarUrl = generateCalendarUrl(docName, expiryDateStr, priority);
     const formattedDate = new Date(expiryDateStr).toLocaleDateString();
 
-    const templateParams = {
-        to_email: toEmail,
-        doc_name: docName,
-        days_left: daysLeft,
-        expiry_date: formattedDate,
-        calendar_url: calendarUrl,
-        priority: priority
-    };
+    const html = `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+            <h2 style="color: #4f46e5;">Document Expiry Alert</h2>
+            <p>Your document <strong>${docName}</strong> expires on <strong>${formattedDate}</strong>.</p>
+            <p><strong>Days Left:</strong> ${daysLeft}</p>
+            <div style="margin-top: 20px;">
+                <a href="${calendarUrl}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Add to Calendar</a>
+            </div>
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">Sent via IDET Document Manager (Gmail API)</p>
+        </div>
+    `;
 
     try {
-        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-        const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-        const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
 
-        if (!publicKey || !serviceId || !templateId) {
-            console.error("[EmailJS] Missing configuration:", { serviceId, templateId, publicKey });
-            return {
-                success: false,
-                error: "EmailJS not configured correctly. Please check Render Environment Variables."
-            };
-        }
+        const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: toEmail, subject, html, text: `Alert: ${docName} expires in ${daysLeft} days!` }),
+            signal: controller.signal,
+        });
 
-        const response = await emailjs.send(serviceId, templateId, templateParams, publicKey);
+        clearTimeout(timeoutId);
 
-        if (response.status === 200) {
-            console.log("[EmailJS] Alert sent successfully for:", docName);
-            return { success: true, messageId: "emailjs_" + Date.now() };
-        } else {
-            return { success: false, error: `EmailJS Error: ${response.text}` };
-        }
+        const data = await response.json();
+        if (!response.ok) return { success: false, error: data.error || 'Backend Error' };
+        return { success: true, ...data };
     } catch (error: any) {
-        console.error("[EmailJS] Send Error:", error);
-        return { success: false, error: error.message || "Unknown EmailJS error" };
+        if (error.name === 'AbortError') {
+            return { success: false, error: 'Email request timed out' };
+        }
+        return { success: false, error: error.message || 'Network error' };
     }
 };
 
 /**
- * Client-side connectivity test for EmailJS.
+ * Backend connectivity test for Gmail API.
  */
 export const testBackendConnectivity = async (email: string) => {
-    return sendExpiryAlert(email, "TEST_DOCUMENT", 30, new Date().toISOString());
+    const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            to: email,
+            subject: 'IDET Connectivity Test',
+            text: 'Connection Successful!'
+        }),
+    });
+    return response.json();
 };
