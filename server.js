@@ -122,11 +122,19 @@ app.post('/api/send-email', async (req, res) => {
 // App health/status endpoint
 app.get('/api/health', async (req, res) => {
     let gmailStatus = 'checking';
+    let diagnostics = null;
+
+    // IMPORTANT: .trim() to prevent invisible spaces from Render UI
+    const gmailUser = (process.env.GMAIL_USER || '').trim();
+    const clientId = (process.env.GOOGLE_CLIENT_ID || '').trim();
+    const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
+    const refreshToken = (process.env.GMAIL_REFRESH_TOKEN || '').trim();
+
     const credentials = {
-        hasUser: !!process.env.GMAIL_USER,
-        hasClientId: !!process.env.GOOGLE_CLIENT_ID,
-        hasSecret: !!process.env.GOOGLE_CLIENT_SECRET,
-        hasToken: !!process.env.GMAIL_REFRESH_TOKEN
+        hasUser: !!gmailUser,
+        hasClientId: !!clientId,
+        hasSecret: !!clientSecret,
+        hasToken: !!refreshToken
     };
 
     try {
@@ -137,12 +145,19 @@ app.get('/api/health', async (req, res) => {
         gmailStatus = `connected as ${profile.data.emailAddress}`;
     } catch (err) {
         gmailStatus = `error: ${err.message}`;
+        diagnostics = {
+            idLen: clientId.length,
+            secretLen: clientSecret.length,
+            idPrefix: clientId.substring(0, 10),
+            secretPrefix: clientSecret.substring(0, 7)
+        };
         console.error('[Health Check] Verification Failure:', err);
     }
 
     res.json({
         status: 'ok',
         gmailStatus,
+        diagnostics,
         credentials,
         mode: 'gmail-api-rest',
         timestamp: new Date().toISOString()
