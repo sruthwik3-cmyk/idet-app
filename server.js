@@ -1,147 +1,80 @@
-import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import nodemailer from 'nodemailer';
-import { google } from 'googleapis';
+// server.js
 
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
+const express = require('express');
+const nodemailer = require('nodemailer');
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// Middleware for logging
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
+// Gmail OAuth2 setup
+const { google } = require('googleapis');
+const OAuth2 = google.auth.OAuth2;
+
+const oauth2Client = new OAuth2(
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    'https://developers.google.com/oauthplayground'
+);
+
 app.use(express.json());
+// route to send email
+app.post('/send', async (req, res) => {
+    const { to, subject, text } = req.body;
 
-// Serve static files from the 'dist' directory
-app.use(express.static(path.join(__dirname, 'dist')));
+    try {
+        oauth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
+        const accessToken = await oauth2Client.getAccessToken();
 
-/**
- * Creates a Nodemailer transporter based on available environment variables.
- * Prioritizes OAuth2 but falls back to App Password.
- */
-const createTransporter = async () => {
-    const gmailUser = process.env.GMAIL_USER;
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
-    const appPassword = process.env.GMAIL_APP_PASSWORD;
-
-    if (!gmailUser) {
-        console.error('[Email Service] Error: GMAIL_USER environment variable is missing.');
-    }
-
-    // A: Attempt OAuth2
-    if (clientId && clientSecret && refreshToken) {
-        console.log('[Email Service] Using OAuth2 authentication...');
-        const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
-        oauth2Client.setCredentials({ refresh_token: refreshToken });
-
-        try {
-            const { token } = await oauth2Client.getAccessToken();
-            return nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    type: 'OAuth2',
-                    user: gmailUser,
-                    clientId,
-                    clientSecret,
-                    refreshToken,
-                    accessToken: token
-                }
-            });
-        } catch (err) {
-            console.error('[Email Service] OAuth2 Error, looking for fallback:', err.message);
-        }
-    }
-
-    // B: Fallback to App Password
-    if (appPassword) {
-        console.log('[Email Service] Using App Password authentication.');
-        return nodemailer.createTransport({
+        const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: gmailUser,
-                pass: appPassword
-            }
+                type: 'OAuth2',
+                user: process.env.EMAIL,
+                clientId: process.env.CLIENT_ID,
+                clientSecret: process.env.CLIENT_SECRET,
+                refreshToken: process.env.REFRESH_TOKEN,
+                accessToken: accessToken.token,
+            },
         });
-    }
 
-    throw new Error('Missing GMAIL_USER and either GMAIL_APP_PASSWORD or OAuth2 credentials.');
-};
-
-// API Endpoint for sending emails
-app.post('/api/send-email', async (req, res) => {
-    const timestamp = new Date().toISOString();
-    const { to, subject, html, text } = req.body;
-
-    console.log(`[${timestamp}] [Email] Send request to: ${to}`);
-
-    if (!to || !subject || (!html && !text)) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    try {
-        const transporter = await createTransporter();
-        const info = await transporter.sendMail({
-            from: `"IDET Alerts" <${process.env.GMAIL_USER}>`,
+        const mailOptions = {
+            from: process.env.EMAIL,
             to,
             subject,
-            html,
-            text
-        });
+            text,
+        };
 
-        console.log(`[${timestamp}] [Email] Success! ID: ${info.messageId}`);
-        return res.status(200).json({ message: "Email sent successfully", messageId: info.messageId });
-
+        const result = await transporter.sendMail(mailOptions);
+        res.status(200).json({ message: 'Email sent', messageId: result.messageId });
     } catch (error) {
-        console.error(`[${timestamp}] [Email] Error:`, error.message);
-        return res.status(500).json({
-            error: "Failed to send email",
-            details: error.message,
-            reason: error.message.includes('Missing GMAIL_USER') ? 'Credentials Missing' : 'SMTP Error'
-        });
+        console.error('Error sending email:', error);
+        res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 });
 
-// App health/status endpoint
-app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'ok',
-        emailService: !!(process.env.GMAIL_APP_PASSWORD || process.env.GMAIL_REFRESH_TOKEN) ? 'configured' : 'missing',
-        timestamp: new Date().toISOString()
-    });
-});
-
-// Direct test endpoint
-app.post('/api/test-email', async (req, res) => {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: "Email required" });
+// Health endpoint
+app.get('/health', async (req, res) => {
     try {
-        const transporter = await createTransporter();
-        await transporter.verify();
-        const info = await transporter.sendMail({
-            from: `"IDET Alerts" <${process.env.GMAIL_USER}>`,
-            to: email,
-            subject: 'IDET Connectivity Test',
-            text: 'Your email alert system is connected!'
-        });
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        // Check if OAuth2 credentials are valid
+        oauth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
+        const accessToken = await oauth2Client.getAccessToken();
+
+        if (accessToken.token) {
+            return res.status(200).json({ message: 'Service is healthy!', messageId: null });
+        } else {
+            return res.status(500).json({ message: 'Invalid OAuth2 credentials', messageId: null });
+        }
+    } catch (error) {
+        console.error('Health check error:', error);
+        res.status(500).json({ message: 'Health check failed', error: error.message, messageId: null });
     }
 });
 
-// SPA routing catch-all
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
