@@ -13,6 +13,7 @@ const UserSettings: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [isTesting, setIsTesting] = useState(false);
     const [emailStatus, setEmailStatus] = useState<'checking' | 'configured' | 'error'>('checking');
+    const [diagnostics, setDiagnostics] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({ fullName: '', phone: '', dob: '', userGroup: 'Self' as any });
 
@@ -35,6 +36,7 @@ const UserSettings: React.FC = () => {
                 // If it contains "connected", it's configured
                 const isOnline = data.gmailStatus && data.gmailStatus.includes('connected');
                 setEmailStatus(isOnline ? 'configured' : 'error');
+                setDiagnostics(data.diagnostics);
 
                 if (!isOnline && data.gmailStatus) {
                     console.error("[Health Check] Gmail Error:", data.gmailStatus);
