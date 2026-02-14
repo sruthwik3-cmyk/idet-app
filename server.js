@@ -153,7 +153,7 @@ app.get('/api/health', (req, res) => {
 
 // SPA routing catch-all
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist', 'Index.html'));
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(PORT, () => {

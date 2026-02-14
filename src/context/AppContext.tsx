@@ -128,6 +128,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const userToCheck = currentUser || userProfile;
 
         if (!userToCheck?.email || docsToCheck.length === 0) return;
+        console.log(`[Alert] Checking ${docsToCheck.length} documents for user ${userToCheck.email}`);
         const now = new Date();
         const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -136,49 +137,72 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
             const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
-            if (diffDays <= 30 && diffDays >= 0) {
-                let updatedAlerts = { ...doc.alerts };
-                let triggerUpdate = false;
+            // ONLY alert for documents expiring within 30 days (and not already expired)
+            if (diffDays > 30 || diffDays < 0) continue;
 
-                // 30-Day Alert
-                if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30) {
-                    console.log(`[Alert] Attempting 30-day email for ${doc.name}`);
+            let updatedAlerts = { ...doc.alerts };
+            let triggerUpdate = false;
+
+            // 30-Day Alert (8-30 days remaining)
+            if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30) {
+                console.log(`[Alert] 30-day trigger for "${doc.name}" (${diffDays} days left)`);
+
+                // Play sound immediately (user wants to hear it)
+                playAlertSound();
+
+                // Attempt email (but don't block the alert on it)
+                try {
                     const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-
                     if (emailRes.success) {
-                        console.log(`[Alert] 30-day email success for ${doc.name}`);
-                        playAlertSound();
-                        updatedAlerts.emailSent30 = true;
-                        triggerUpdate = true;
-                        showNotification(`30-day alert sent for ${doc.name}`, 'success');
+                        showNotification(`30-day alert: ${doc.name} - Email sent!`, 'success');
                     } else {
-                        console.error(`[Alert] 30-day email failed for ${doc.name}:`, emailRes);
-                        // Do not play sound, do not update DB (so it retries), but warn user
-                        showNotification(`Failed to send 30-day alert: ${emailRes.error || 'Unknown error'}`, 'error');
+                        console.error(`[Alert] Email failed for ${doc.name}:`, emailRes);
+                        showNotification(`30-day alert: ${doc.name} (email failed: ${emailRes.error || 'check server'})`, 'error');
                     }
+                } catch (e) {
+                    console.error(`[Alert] Email exception for ${doc.name}:`, e);
+                    showNotification(`30-day alert: ${doc.name} (email error)`, 'error');
                 }
 
-                // 7-Day Alert (Urgent)
-                if (diffDays <= 7 && !doc.alerts.emailSent7) {
-                    console.log(`[Alert] Attempting 7-day email for ${doc.name}`);
+                // Always mark as sent to prevent infinite loops
+                updatedAlerts.emailSent30 = true;
+                triggerUpdate = true;
+            }
+
+            // 7-Day Alert (0-7 days remaining) - Urgent
+            if (diffDays <= 7 && !doc.alerts.emailSent7) {
+                console.log(`[Alert] 7-day URGENT trigger for "${doc.name}" (${diffDays} days left)`);
+
+                // Play sound immediately
+                playAlertSound();
+
+                // Attempt email
+                try {
                     const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-
                     if (emailRes.success) {
-                        console.log(`[Alert] 7-day email success for ${doc.name}`);
-                        playAlertSound();
-                        updatedAlerts.emailSent7 = true;
-                        triggerUpdate = true;
-                        showNotification(`URGENT 7-day alert sent for ${doc.name}`, 'info');
+                        showNotification(`URGENT 7-day alert: ${doc.name} - Email sent!`, 'success');
                     } else {
-                        console.error(`[Alert] 7-day email failed for ${doc.name}:`, emailRes);
-                        showNotification(`Failed to send 7-day alert: ${emailRes.error || 'Unknown error'}`, 'error');
+                        console.error(`[Alert] Email failed for ${doc.name}:`, emailRes);
+                        showNotification(`URGENT: ${doc.name} expires in ${diffDays}d (email failed)`, 'error');
                     }
+                } catch (e) {
+                    console.error(`[Alert] Email exception for ${doc.name}:`, e);
+                    showNotification(`URGENT: ${doc.name} expires in ${diffDays}d (email error)`, 'error');
                 }
 
-                if (triggerUpdate) {
-                    await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
-                    setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
+                // Always mark as sent
+                updatedAlerts.emailSent7 = true;
+                triggerUpdate = true;
+            }
+
+            if (triggerUpdate) {
+                const { error: dbError } = await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
+                if (dbError) {
+                    console.error(`[Alert] DB update failed for ${doc.name}:`, dbError);
+                } else {
+                    console.log(`[Alert] DB updated for ${doc.name}`);
                 }
+                setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
             }
         }
     };
