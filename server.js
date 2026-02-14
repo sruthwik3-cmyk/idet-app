@@ -31,6 +31,15 @@ const getGmailClient = async () => {
     const clientSecret = (process.env.GOOGLE_CLIENT_SECRET || '').trim();
     const refreshToken = (process.env.GMAIL_REFRESH_TOKEN || '').trim();
 
+    console.log('[Gmail API] Diagnostic Credential Mesh:', {
+        userLen: gmailUser.length,
+        idLen: clientId.length,
+        secretLen: clientSecret.length,
+        tokenLen: refreshToken.length,
+        idPrefix: clientId.substring(0, 10) + '...',
+        secretPrefix: clientSecret.substring(0, 7) + '...'
+    });
+
     if (!gmailUser || !clientId || !clientSecret || !refreshToken) {
         console.error('[Gmail API] Missing/Empty credentials:', {
             hasUser: !!gmailUser,
