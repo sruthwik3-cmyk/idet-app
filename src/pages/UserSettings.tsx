@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, RefreshCw, Bell, Edit2, X, Camera, Send } from 'lucide-react';
+import { LogOut, Bell, Edit2, X, Send, RefreshCw } from 'lucide-react';
 import { testBackendConnectivity, sendExpiryAlert } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 import { supabase } from '../utils/supabaseClient';
 
-const Profile: React.FC = () => {
+const UserSettings: React.FC = () => {
     const { userProfile, updateUserProfile, showNotification } = useApp();
     const navigate = useNavigate();
 
@@ -105,7 +105,7 @@ const Profile: React.FC = () => {
                 </div>
 
                 <div style={{ marginTop: '2.5rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-                    <button onClick={handleLogout} className="btn-logout" style={{ width: '100%' }}>Logout</button>
+                    <button onClick={handleLogout} className="btn-logout" style={{ width: '100%' }}><LogOut size={18} style={{ marginRight: '8px' }} />Logout</button>
                 </div>
             </div>
 
@@ -119,12 +119,12 @@ const Profile: React.FC = () => {
                         </span>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        <button onClick={handleVerify} className="btn-secondary">Check Connection</button>
-                        <button onClick={() => handleTest(30)} disabled={isTesting} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Send size={14} /> Test 30d
+                        <button onClick={handleVerify} className="btn-secondary"><RefreshCw size={14} style={{ marginRight: '6px' }} /> Check Connection</button>
+                        <button onClick={() => handleTest(30)} disabled={isTesting} className="btn-secondary">
+                            <Send size={14} style={{ marginRight: '6px' }} /> Test 30d
                         </button>
-                        <button onClick={() => handleTest(7)} disabled={isTesting} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Send size={14} /> Test 7d
+                        <button onClick={() => handleTest(7)} disabled={isTesting} className="btn-secondary">
+                            <Send size={14} style={{ marginRight: '6px' }} /> Test 7d
                         </button>
                     </div>
                 </div>
@@ -133,4 +133,4 @@ const Profile: React.FC = () => {
     );
 };
 
-export default Profile;
+export default UserSettings;
