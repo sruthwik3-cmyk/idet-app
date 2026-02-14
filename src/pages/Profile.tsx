@@ -1,79 +1,108 @@
 import React, { useState, useEffect } from 'react';
-import { useApp, UserProfile } from '../context/AppContext';
+import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, RefreshCw, Send, Edit2, Save, Camera, Shield, User, Mail, Globe, Zap } from 'lucide-react';
+import { LogOut, RefreshCw, Bell, Send, Edit2, Save, X, Camera } from 'lucide-react';
 import { sendExpiryAlert } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
+
 import { supabase } from '../utils/supabaseClient';
 
 const Profile: React.FC = () => {
-    const { userProfile, updateUserProfile, stats } = useApp();
+    const { userProfile, documents, updateUserProfile, showNotification } = useApp();
     const navigate = useNavigate();
 
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [isTesting, setIsTesting] = useState(false);
+    const [lastSynced, setLastSynced] = useState('Just now');
+
+    // Edit Mode State
     const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState<UserProfile>({
-        fullName: userProfile?.fullName || '',
-        phone: userProfile?.phone || '',
-        email: userProfile?.email || '',
-        dob: userProfile?.dob || '',
-        userGroup: userProfile?.userGroup || 'Self'
+    const [formData, setFormData] = useState({
+        fullName: '',
+        phone: '',
+        dob: '',
+        userGroup: 'Self' as 'Self' | 'Family' | 'Organization'
     });
 
-    const [testAlertEmail, setTestAlertEmail] = useState(userProfile?.email || '');
-    const [isTesting, setIsTesting] = useState(false);
-    const [isSyncing, setIsSyncing] = useState(false);
-
+    // Initialize form data when profile loads or when entering edit mode
     useEffect(() => {
         if (userProfile) {
             setFormData({
                 fullName: userProfile.fullName || '',
                 phone: userProfile.phone || '',
-                email: userProfile.email || '',
                 dob: userProfile.dob || '',
                 userGroup: userProfile.userGroup || 'Self'
             });
-            setTestAlertEmail(userProfile.email || '');
         }
-    }, [userProfile]);
+    }, [userProfile, isEditing]);
 
     const handleSaveProfile = async () => {
-        await updateUserProfile(formData);
-        setIsEditing(false);
+        if (!userProfile) return;
+
+        try {
+            await updateUserProfile({
+                ...userProfile,
+                ...formData
+            });
+            setIsEditing(false);
+            showNotification('Profile updated successfully!', 'success');
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            showNotification('Failed to update profile.', 'error');
+        }
     };
 
     const handleTestAlert = async (days: number) => {
-        if (isTesting) return;
+        if (!userProfile?.email) return;
         setIsTesting(true);
-        try {
-            playAlertSound();
-            const success = await sendExpiryAlert(
-                testAlertEmail,
-                '🧪 SECURITY TEST DOCUMENT',
-                days,
-                new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                'Important'
-            );
 
-            if (success) {
-                alert(`Test ${days}d alert triggered! Check ${testAlertEmail}`);
-            } else {
-                alert('Test alert failed. Check deployment logs or console.');
-            }
-        } catch (error) {
-            console.error('Test alert error:', error);
-        } finally {
-            setIsTesting(false);
+        // Simulate a date 'days' from now
+        const testDate = new Date();
+        testDate.setDate(testDate.getDate() + days);
+
+        const res = await sendExpiryAlert(userProfile.email, `Test ${days}-Day Document`, days, testDate.toISOString(), days <= 7 ? 'Critical' : 'Important');
+
+        console.log(`Test ${days}-Day Alert Response:`, res);
+
+        if (res?.success) {
+            playAlertSound();
+            showNotification(res.isSimulation ? `[Simulation] ${days}-day alert sent to log.` : `${days}-day alert sent to Gmail!`, 'success');
+        } else {
+            const errorRes = res as any;
+            const errorMsg = errorRes?.error?.message || errorRes?.error?.details || 'Failed to send test.';
+            showNotification(`Error: ${errorMsg}`, 'error');
         }
+        setIsTesting(false);
     };
 
-    const handleSync = async () => {
+    const handleSync = () => {
         setIsSyncing(true);
-        // Simulate sync logic
+        // Simulate network request (could be real sync if needed, but standard fetch is auto)
         setTimeout(() => {
             setIsSyncing(false);
-            alert('Cloud Vault Synchronization Complete.');
-        }, 1500);
+            const now = new Date();
+            setLastSynced(`${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`);
+        }, 2000);
     };
+
+    const [emailStatus, setEmailStatus] = useState<'checking' | 'configured' | 'error'>('checking');
+
+    useEffect(() => {
+        const checkEmailStatus = async () => {
+            try {
+                const res = await fetch('/api/health');
+                if (res.ok) {
+                    const data = await res.json();
+                    setEmailStatus(data.emailService === 'configured' ? 'configured' : 'error');
+                } else {
+                    setEmailStatus('error');
+                }
+            } catch (e) {
+                setEmailStatus('error');
+            }
+        };
+        checkEmailStatus();
+    }, []);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -81,213 +110,330 @@ const Profile: React.FC = () => {
     };
 
     return (
-        <div className="animate-fade-in profile-wrapper">
+        <div className="animate-fade-in">
             <div className="page-header">
-                <div>
-                    <h1 className="page-title">Profile Hub</h1>
-                    <p style={{ color: 'var(--text-dim)', margin: '0.5rem 0 0', fontSize: '1rem' }}>
-                        Manage your security credentials and system preferences.
-                    </p>
-                </div>
-                <button className="btn-logout" onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem 1.25rem', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 700 }}>
-                    <LogOut size={18} /> TERMINATE SESSION
-                </button>
+                <h1 className="page-title">Profile & Settings</h1>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 400px) 1fr', gap: '2.5rem', alignItems: 'start' }}>
-                {/* Left: Avatar & Quick Info */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                    <div className="card glass-panel" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-                        <div style={{ position: 'relative', width: '120px', height: '120px', margin: '0 auto 1.5rem' }}>
+            <div className="grid-cols-2" style={{ gridTemplateColumns: 'minmax(350px, 1fr) 1fr' }}>
+                {/* Profile Card */}
+                <div className="card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                             <div style={{
-                                width: '100%',
-                                height: '100%',
-                                background: 'linear-gradient(135deg, var(--primary), #ec4899)',
+                                width: '80px',
+                                height: '80px',
+                                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
                                 borderRadius: '50%',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: '3rem',
-                                fontWeight: 900,
                                 color: 'white',
-                                boxShadow: '0 0 30px rgba(124, 58, 237, 0.4)',
-                                border: '4px solid rgba(255,255,255,0.1)',
-                                animation: 'float 6s ease-in-out infinite'
+                                fontSize: '2rem',
+                                fontWeight: 600,
+                                boxShadow: '0 10px 15px -3px rgba(99, 102, 241, 0.3)',
+                                position: 'relative'
                             }}>
-                                {formData.fullName?.charAt(0) || formData.email?.charAt(0) || 'U'}
-                            </div>
-                            <button style={{
-                                position: 'absolute',
-                                bottom: '0',
-                                right: '0',
-                                width: '36px',
-                                height: '36px',
-                                background: 'white',
-                                border: 'none',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'var(--bg)',
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
-                                transition: 'all 0.3s var(--spring)',
-                                padding: '8px'
-                            }} onClick={() => alert('Feature coming soon: Avatar Upload')}>
-                                <Camera size={18} />
-                            </button>
-                        </div>
-                        <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.5rem', fontWeight: 800 }}>{formData.fullName || 'Citizen User'}</h2>
-                        <p style={{ margin: 0, color: 'var(--text-dim)', fontSize: '0.9rem', fontWeight: 500 }}>{formData.email}</p>
-
-                        <div style={{
-                            marginTop: '2rem',
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: '1rem',
-                            borderTop: '1px solid rgba(255,255,255,0.06)',
-                            paddingTop: '2rem'
-                        }}>
-                            <div>
-                                <span style={{ display: 'block', fontSize: '1.25rem', fontWeight: 800, color: '#c084fc' }}>{stats.total}</span>
-                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Assets</span>
+                                {userProfile?.fullName?.charAt(0) || 'U'}
+                                {isEditing && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        right: 0,
+                                        background: 'var(--card-bg)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '50%',
+                                        padding: '4px',
+                                        cursor: 'pointer'
+                                    }}>
+                                        <Camera size={14} color="var(--text-secondary)" />
+                                    </div>
+                                )}
                             </div>
                             <div>
-                                <span style={{ display: 'block', fontSize: '1.25rem', fontWeight: 800, color: '#34d399' }}>{stats.active}</span>
-                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Locked</span>
+                                {!isEditing ? (
+                                    <>
+                                        <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>{userProfile?.fullName || 'User'}</h2>
+                                        <p style={{ margin: '0.25rem 0', color: 'var(--text-secondary)' }}>{userProfile?.userGroup || 'Self'}</p>
+                                    </>
+                                ) : (
+                                    <div className="badge badge-warning">Editing Profile</div>
+                                )}
                             </div>
                         </div>
-                    </div>
 
-                    <div className="card" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%)' }}>
-                        <h4 style={{ margin: '0 0 1.25rem', fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.01em', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            <Shield size={18} color="#34d399" /> SECURITY STATUS
-                        </h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                                <span style={{ color: 'var(--text-dim)' }}>Vault Encryption</span>
-                                <span style={{ color: '#34d399', fontWeight: 700 }}>AES-256 ACTIVE</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                                <span style={{ color: 'var(--text-dim)' }}>Alert Accuracy</span>
-                                <span style={{ color: '#c084fc', fontWeight: 700 }}>99.9% MONITOR</span>
-                            </div>
-                            <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
-                                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg, #34d399, #10b981)', animation: 'shimmerSweep 3s infinite' }}></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Right: Detailed Settings */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                    <div className="card glass-panel" style={{ padding: '2.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>Member Credentials</h3>
+                        {!isEditing ? (
                             <button
-                                className="btn-secondary"
-                                onClick={() => isEditing ? handleSaveProfile() : setIsEditing(true)}
-                                style={{ padding: '0.6rem 1.2rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 700 }}
+                                onClick={() => setIsEditing(true)}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}
                             >
-                                {isEditing ? <><Save size={16} /> COMMIT CHANGES</> : <><Edit2 size={16} /> UPDATE VAULT</>}
+                                <Edit2 size={18} /> <span style={{ fontSize: '0.9rem' }}>Edit</span>
                             </button>
-                        </div>
+                        ) : (
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    onClick={() => setIsEditing(false)}
+                                    style={{ background: 'rgba(255,255,255,0.05)', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '0.5rem', borderRadius: '6px' }}
+                                    title="Cancel"
+                                >
+                                    <X size={18} />
+                                </button>
+                                <button
+                                    onClick={handleSaveProfile}
+                                    style={{ background: 'var(--primary)', border: 'none', cursor: 'pointer', color: 'white', padding: '0.5rem', borderRadius: '6px' }}
+                                    title="Save"
+                                >
+                                    <Save size={18} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                            <div className="input-group">
-                                <label><User size={14} style={{ marginRight: '6px' }} /> Full Name</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {/* Name Field */}
+                        <div className="input-group">
+                            <label style={{ color: 'var(--text-secondary)' }}>Full Name</label>
+                            {isEditing ? (
                                 <input
                                     type="text"
                                     className="input-field"
-                                    disabled={!isEditing}
                                     value={formData.fullName}
                                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                                    style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'var(--primary)' }}
                                 />
+                            ) : (
+                                <div style={{ padding: '0.75rem', color: 'var(--text-primary)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    {userProfile?.fullName || 'Not set'}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Email Field (Always Read-only) */}
+                        <div className="input-group">
+                            <label style={{ color: 'var(--text-secondary)' }}>Email Address</label>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <span style={{ color: 'var(--text-primary)' }}>{userProfile?.email}</span>
+                                <span className="badge badge-success" style={{ background: 'rgba(52, 211, 153, 0.1)', color: '#34d399' }}>Verified</span>
                             </div>
-                            <div className="input-group">
-                                <label><Mail size={14} style={{ marginRight: '6px' }} /> Strategic Email</label>
+                        </div>
+
+                        {/* Phone Field */}
+                        <div className="input-group">
+                            <label style={{ color: 'var(--text-secondary)' }}>Phone Number</label>
+                            {isEditing ? (
                                 <input
-                                    type="email"
+                                    type="tel"
                                     className="input-field"
-                                    disabled={!isEditing}
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                />
-                            </div>
-                            <div className="input-group">
-                                <label><Globe size={14} style={{ marginRight: '6px' }} /> Member Group</label>
-                                <select
-                                    className="input-field"
-                                    disabled={!isEditing}
-                                    value={formData.userGroup}
-                                    onChange={(e) => setFormData({ ...formData, userGroup: e.target.value as any })}
-                                >
-                                    <option value="Self">Self</option>
-                                    <option value="Family">Family</option>
-                                    <option value="Organization">Organization</option>
-                                </select>
-                            </div>
-                            <div className="input-group">
-                                <label><Shield size={14} style={{ marginRight: '6px' }} /> Comms Link (Phone)</label>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    disabled={!isEditing}
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    placeholder="+1 (555) 000-0000"
+                                    style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'var(--primary)' }}
                                 />
+                            ) : (
+                                <div style={{ padding: '0.75rem', color: 'var(--text-primary)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    {userProfile?.phone || 'Not set'}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Split Row for DOB and Group */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div className="input-group">
+                                <label style={{ color: 'var(--text-secondary)' }}>Date of Birth</label>
+                                {isEditing ? (
+                                    <input
+                                        type="date"
+                                        className="input-field"
+                                        value={formData.dob}
+                                        onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                                        style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'var(--primary)', colorScheme: 'dark' }}
+                                    />
+                                ) : (
+                                    <div style={{ padding: '0.75rem', color: 'var(--text-primary)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                        {userProfile?.dob || 'Not set'}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="input-group">
+                                <label style={{ color: 'var(--text-secondary)' }}>Account Type</label>
+                                {isEditing ? (
+                                    <select
+                                        className="input-field"
+                                        value={formData.userGroup}
+                                        onChange={(e) => setFormData({ ...formData, userGroup: e.target.value as any })}
+                                        style={{ background: 'rgba(0,0,0,0.2)', borderColor: 'var(--primary)', color: 'white' }}
+                                    >
+                                        <option value="Self" style={{ color: 'black' }}>Individual</option>
+                                        <option value="Family" style={{ color: 'black' }}>Family</option>
+                                        <option value="Organization" style={{ color: 'black' }}>Organization</option>
+                                    </select>
+                                ) : (
+                                    <div style={{ padding: '0.75rem', color: 'var(--text-primary)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                        {userProfile?.userGroup || 'Self'}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    <div className="card" style={{ padding: '2.5rem' }}>
-                        <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.3rem', fontWeight: 800 }}>System Diagnostics</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '3rem' }}>
+                    <div style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <button
+                            className="btn-logout"
+                            onClick={handleLogout}
+                            style={{
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <LogOut size={18} /> Logout
+                        </button>
+                    </div>
+                </div>
+
+                {/* Status Column */}
+                <div className="card">
+                    <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <Bell size={20} color="var(--primary)" /> Sync Status
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
                             <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '1rem' }}>Trigger Manual Scan</label>
-                                <button
-                                    className="btn-primary-full"
-                                    onClick={handleSync}
-                                    disabled={isSyncing}
-                                    style={{ height: '50px', marginBottom: 0 }}
-                                >
-                                    {isSyncing ? <RefreshCw size={20} className="animate-spin" /> : <><RefreshCw size={20} /> SYNC CLOUD VAULT</>}
-                                </button>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.75rem' }}>Last sync: moments ago.</p>
+                                <strong style={{ color: 'var(--text-primary)' }}>Google Calendar</strong>
+                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Last synced: {lastSynced}</p>
                             </div>
+                            <button
+                                onClick={handleSync}
+                                disabled={isSyncing}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                            >
+                                <RefreshCw
+                                    size={18}
+                                    color={isSyncing ? "var(--primary)" : "#34d399"}
+                                    style={{
+                                        animation: isSyncing ? 'spin 1s linear infinite' : 'none',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                />
+                                <style>{`
+                                    @keyframes spin {
+                                        from { transform: rotate(0deg); }
+                                        to { transform: rotate(360deg); }
+                                    }
+                                `}</style>
+                            </button>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.02)' }}>
                             <div>
-                                <label style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '1rem' }}>Alert Communications Test</label>
-                                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                    <button
-                                        onClick={() => handleTestAlert(30)}
-                                        className="btn-secondary"
-                                        style={{ flex: 1, padding: '1rem', borderStyle: 'dashed' }}
-                                        title="Send 30d test email"
-                                        disabled={isTesting}
-                                    >
-                                        <Send size={16} /> 30D TEST
-                                    </button>
-                                    <button
-                                        onClick={() => handleTestAlert(7)}
-                                        className="btn-secondary"
-                                        style={{ flex: 1, padding: '1rem', borderStyle: 'dotted' }}
-                                        title="Send 7d test email"
-                                        disabled={isTesting}
-                                    >
-                                        <Zap size={16} /> 7D TEST
-                                    </button>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <strong style={{ color: 'var(--text-primary)' }}>Gmail Alerts Service</strong>
+                                    {emailStatus === 'configured' && <span className="badge badge-success" style={{ padding: '2px 6px', fontSize: '10px' }}>ONLINE</span>}
+                                    {emailStatus === 'error' && <span className="badge badge-danger" style={{ padding: '2px 6px', fontSize: '10px' }}>OFFLINE</span>}
+                                    {emailStatus === 'checking' && <span className="badge badge-neutral" style={{ padding: '2px 6px', fontSize: '10px' }}>CHECKING...</span>}
                                 </div>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.75rem' }}>Test real-time Gmail alert delivery to your address.</p>
+                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                    {emailStatus === 'error' ? 'Check Render Environment Variables (GMAIL_USER)' : 'Test automatic expiry emails'}
+                                </p>
                             </div>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    onClick={() => handleTestAlert(30)}
+                                    disabled={isTesting}
+                                    style={{
+                                        background: 'rgba(52, 211, 153, 0.1)',
+                                        color: '#34d399',
+                                        border: '1px solid rgba(52, 211, 153, 0.2)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 0.75rem',
+                                        fontSize: '0.85rem',
+                                        borderRadius: '6px',
+                                        opacity: isTesting ? 0.6 : 1
+                                    }}
+                                >
+                                    <Send size={14} /> Test 30-Day
+                                </button>
+                                <button
+                                    onClick={() => handleTestAlert(7)}
+                                    disabled={isTesting}
+                                    style={{
+                                        background: 'rgba(248, 113, 113, 0.1)',
+                                        color: '#f87171',
+                                        border: '1px solid rgba(248, 113, 113, 0.2)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 0.75rem',
+                                        fontSize: '0.85rem',
+                                        borderRadius: '6px',
+                                        opacity: isTesting ? 0.6 : 1
+                                    }}
+                                >
+                                    <Send size={14} /> Test 7-Day (Urgent)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card" style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem' }}>
+                        <h3 style={{ marginTop: 0, marginBottom: '1rem', color: 'var(--text-primary)' }}>Data Management</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                                <strong style={{ color: 'var(--text-primary)' }}>Export Data</strong>
+                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Download all documents as CSV</p>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    const headers = ['Name', 'Category', 'Expiry Date', 'Priority', 'Notes'];
+                                    const csvContent = [
+                                        headers.join(','),
+                                        ...documents.map(doc => [
+                                            `"${doc.name}"`,
+                                            `"${doc.category}"`,
+                                            doc.expiryDate,
+                                            doc.priority,
+                                            `"${doc.notes || ''}"`
+                                        ].join(','))
+                                    ].join('\n');
+
+                                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                                    const link = document.createElement('a');
+                                    if (link.download !== undefined) {
+                                        const url = URL.createObjectURL(blob);
+                                        link.setAttribute('href', url);
+                                        link.setAttribute('download', 'my_documents_idet.csv');
+                                        link.style.visibility = 'hidden';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                    }
+                                }}
+                                className="btn-secondary"
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    fontSize: '0.875rem',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    cursor: 'pointer',
+                                    borderRadius: '6px'
+                                }}
+                            >
+                                Download CSV
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <style>{`
-                .profile-wrapper { padding-bottom: 4rem; }
-                .animate-spin { animation: spin 1s linear infinite; }
-                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-            `}</style>
         </div>
     );
 };

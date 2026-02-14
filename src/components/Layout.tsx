@@ -64,8 +64,12 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
 
                 <nav className="sidebar-nav">
                     <button
-                        className="btn-primary-full btn-pulse"
+                        className="btn-primary-full"
                         onClick={() => navigate('/add-document')}
+                        style={{
+                            boxShadow: '0 4px 12px rgba(129, 140, 248, 0.3)',
+                            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)'
+                        }}
                     >
                         <PlusCircle size={20} /> <span style={{ fontWeight: 600 }}>New Document</span>
                     </button>
@@ -127,35 +131,22 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
             {notification && (
                 <div className={`notification-toast ${notification.type}`} style={{
                     position: 'fixed',
-                    top: '30px',
-                    right: '30px',
-                    padding: '1.25rem 2rem',
-                    borderRadius: '16px',
-                    background: 'rgba(10, 0, 40, 0.95)',
-                    backdropFilter: 'blur(20px) saturate(180%)',
+                    top: '20px',
+                    right: '20px',
+                    padding: '1rem 1.5rem',
+                    borderRadius: '12px',
+                    background: 'rgba(30, 41, 59, 0.95)',
+                    backdropFilter: 'blur(12px)',
                     border: '1px solid var(--primary)',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '1rem',
-                    boxShadow: '0 10px 40px rgba(124, 58, 237, 0.3)',
+                    gap: '0.75rem',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
                     zIndex: 9999,
-                    animation: 'fadeInUp 0.4s var(--bounce) forwards'
                 }}>
-                    <div style={{
-                        background: 'var(--primary-soft)',
-                        padding: '0.6rem',
-                        borderRadius: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
-                        <Bell size={22} color="#c084fc" />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.01em' }}>System Alert</span>
-                        <span style={{ fontWeight: 500, fontSize: '0.85rem', color: 'var(--text-dim)' }}>{notification.message}</span>
-                    </div>
+                    <Bell size={20} color="var(--primary)" />
+                    <span style={{ fontWeight: 500 }}>{notification.message}</span>
                 </div>
             )}
         </div>

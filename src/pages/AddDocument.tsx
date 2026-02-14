@@ -1,424 +1,231 @@
-import React, { useState } from 'react';
-import { useApp, Document } from '../context/AppContext';
+import React, { useState, useEffect } from 'react';
+import { useApp } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle, Shield, ArrowLeft, Calendar as CalendarIcon, Info } from 'lucide-react';
-import { format, parse, isValid } from 'date-fns';
-import { generateCalendarUrl } from '../utils/calendarUtils';
+import { Calendar, CheckCircle, Bell } from 'lucide-react';
 
 const AddDocument: React.FC = () => {
-    const { addDocument, updateDocument } = useApp();
+    const { addDocument, updateDocument, documents } = useApp();
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Check if we are editing an existing document
-    const editingDoc = location.state?.document as Document | undefined;
+    // Check if we are in Edit Mode
+    const editDoc = location.state?.document;
+    const isEditMode = !!editDoc;
 
-    // Internal state for the date input string (dd-mm-yyyy)
-    const [dateInput, setDateInput] = useState(
-        editingDoc?.expiryDate ? format(new Date(editingDoc.expiryDate), 'dd-MM-yyyy') : ''
-    );
+    // Smart Categories: Extract unique custom categories from existing documents
+    const existingCustomCategories = Array.from(new Set(
+        documents
+            .map((d: any) => d.category)
+            .filter((c: string) => !['Personal', 'Financial', 'Medical', 'Legal', 'Education', 'Vehicle'].includes(c))
+    ));
 
     const [formData, setFormData] = useState({
-        name: editingDoc?.name || '',
-        category: editingDoc?.category || 'Passport',
-        priority: editingDoc?.priority || 'Important',
-        notes: editingDoc?.notes || '',
-        userGroup: editingDoc?.userGroup || 'Self',
-        customCategory: ''
+        name: editDoc?.name || '',
+        category: 'Personal',
+        expiryDate: editDoc?.expiryDate || '',
+        priority: (editDoc?.priority as 'Critical' | 'Important' | 'Optional') || 'Important',
+        notes: editDoc?.notes || '',
+        userGroup: (editDoc?.userGroup as 'Self' | 'Family' | 'Organization') || 'Self'
     });
 
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [customCategory, setCustomCategory] = useState('');
+    const [calendarUrl, setCalendarUrl] = useState('');
+    const [showSuccess, setShowSuccess] = useState(false);
 
-    const categories = [
-        'Passport',
-        'Aadhaar Card',
-        'PAN Card',
-        'Life Insurance',
-        'Driving License',
-        'Health Insurance Policy',
-        'Vehicle Insurance (Car/Bike)',
-        'Driving License Renewal',
-        'Debit/Credit Card',
-        'Other',
-        'Custom'
-    ];
-    const priorities: ('Critical' | 'Important' | 'Optional')[] = ['Optional', 'Important', 'Critical'];
+    // Check for Voice Command Data
+    const voiceData = location.state?.voiceData;
 
-    // Handle date input formatting (dd-mm-yyyy mask)
-    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let val = e.target.value.replace(/\D/g, ''); // Remove non-digits
-        if (val.length > 8) val = val.slice(0, 8);
-
-        let masked = '';
-        if (val.length > 0) {
-            masked += val.slice(0, 2);
-            if (val.length > 2) {
-                masked += '-' + val.slice(2, 4);
-                if (val.length > 4) {
-                    masked += '-' + val.slice(4, 8);
-                }
+    // Initialize category logic for Edit Mode or Voice Mode
+    useEffect(() => {
+        if (editDoc) {
+            const standardCategories = ['Personal', 'Financial', 'Medical', 'Legal', 'Education', 'Vehicle'];
+            if (standardCategories.includes(editDoc.category)) {
+                setFormData(prev => ({ ...prev, category: editDoc.category }));
+            } else {
+                setFormData(prev => ({ ...prev, category: 'Custom' }));
+                setCustomCategory(editDoc.category);
+            }
+        } else if (voiceData) {
+            // Auto-fill from Voice Command
+            setFormData(prev => ({
+                ...prev,
+                name: voiceData.name,
+                category: voiceData.category,
+                expiryDate: voiceData.expiryDate
+            }));
+            if (voiceData.category === 'Custom') {
+                setCustomCategory(voiceData.customCategory);
             }
         }
+    }, [editDoc, voiceData]);
 
-        setDateInput(masked);
-    };
-
-    const handleFormSubmit = async (e: React.FormEvent) => {
+    const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
+        const finalCategory = formData.category === 'Custom' ? customCategory : formData.category;
+        const docPayload = { ...formData, category: finalCategory };
 
-        // Parse dd-mm-yyyy back to yyyy-mm-dd for storage
-        const parsedDate = parse(dateInput, 'dd-MM-yyyy', new Date());
-        if (!isValid(parsedDate)) {
-            alert('Please enter a valid date in DD-MM-YYYY format');
-            setIsSubmitting(false);
-            return;
-        }
-
-        const finalExpiryDate = format(parsedDate, 'yyyy-MM-dd');
-        const finalCategory = formData.category === 'Custom' ? formData.customCategory : formData.category;
-
-        const submissionData = {
-            name: formData.name,
-            category: finalCategory,
-            expiryDate: finalExpiryDate,
-            priority: formData.priority as 'Critical' | 'Important' | 'Optional',
-            notes: formData.notes,
-            userGroup: formData.userGroup as 'Self' | 'Family' | 'Organization'
-        };
-
-        try {
-            let resultDoc = null;
-            if (editingDoc) {
-                const success = await updateDocument(editingDoc.id, submissionData);
-                if (success) resultDoc = { ...submissionData, id: editingDoc.id };
-            } else {
-                resultDoc = await addDocument(submissionData);
-            }
-
-            if (resultDoc) {
-                // Determine days for UI feedback/alerts
-                const now = new Date();
-                const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-                const expiry = new Date(finalExpiryDate);
-                const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
-                const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
-
-                // AUTOMATIC GOOGLE CALENDAR OPEN (Always)
-                const calUrl = generateCalendarUrl(submissionData.name, submissionData.expiryDate, submissionData.priority);
-                const calWindow = window.open(calUrl, '_blank');
-
-                if (!calWindow) {
-                    console.error('[AddDoc] Popup blocked!');
-                    alert('Please allow popups to automatically sync with Google Calendar.');
-                }
-
-                // If >30, only calendar was expected. If <= 30, Gmail/Sound are already handled in AppContext.
-                console.log(`[AddDoc] Success handling for ${diffDays} days to expiry.`);
-
-                navigate('/dashboard');
-            } else {
-                setIsSubmitting(false);
-            }
-        } catch (err) {
-            console.error(err);
-            setIsSubmitting(false);
+        if (isEditMode) {
+            updateDocument(editDoc.id, docPayload);
+            navigate('/dashboard');
+        } else {
+            addDocument(docPayload);
+            // Generate Google Calendar Web Intent URL
+            const startDate = new Date(formData.expiryDate).toISOString().replace(/-|:|\.\d\d\d/g, "");
+            const endDate = new Date(new Date(formData.expiryDate).getTime() + 60 * 60 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
+            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Expiry: ${formData.name}`)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(`Document Category: ${finalCategory}\nNotes: ${formData.notes}\nPriority: ${formData.priority}`)}&sf=true&output=xml`;
+            setCalendarUrl(url);
+            setShowSuccess(true);
+            window.open(url, '_blank');
         }
     };
+
+    if (showSuccess) {
+        return (
+            <div className="animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                <CheckCircle size={64} color="var(--success)" style={{ marginBottom: '1rem' }} />
+                <h1>Document Saved!</h1>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>We've automated 30-day and 7-day Gmail reminders for you.<br />We've also opened Google Calendar to save your final deadline.</p>
+
+                <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '400px' }}>
+                    <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '1px solid var(--success)', textAlign: 'left', background: 'rgba(52, 211, 153, 0.05)' }}>
+                        <Bell size={24} color="var(--success)" />
+                        <div>
+                            <strong style={{ display: 'block' }}>Gmail Alerts Active</strong>
+                            <small style={{ color: 'var(--text-secondary)' }}>30-day and 7-day reminders are scheduled.</small>
+                        </div>
+                    </div>
+
+                    <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', cursor: 'pointer', border: '1px solid var(--primary)', textAlign: 'left' }} onClick={() => window.open(calendarUrl, '_blank')}>
+                        <Calendar size={24} color="var(--primary)" />
+                        <div>
+                            <strong style={{ display: 'block' }}>Add to Google Calendar</strong>
+                            <small style={{ color: 'var(--text-secondary)' }}>Click to save the deadline to your schedule.</small>
+                        </div>
+                    </div>
+
+                    <button className="btn-primary-full" onClick={() => navigate('/dashboard')} style={{ marginTop: '1rem' }}>
+                        Back to Dashboard
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="animate-fade-in add-doc-wrapper" style={{ perspective: '1000px' }}>
-            <div className="page-header" style={{ marginBottom: '3rem' }}>
-                <div style={{ animation: 'slideInLeft 0.8s var(--spring)' }}>
-                    <h1 className="page-title" style={{ fontSize: '3.5rem', marginBottom: '0.5rem', fontWeight: 900 }}>
-                        {editingDoc ? 'Refine Asset' : 'Secure New Asset'}
-                    </h1>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-dim)', background: 'rgba(139, 92, 246, 0.05)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.1)', width: 'fit-content' }}>
-                        <Shield size={16} color="var(--primary)" />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Authenticated Vault Entry Zone</span>
-                    </div>
-                </div>
-                <button
-                    className="btn-secondary"
-                    onClick={() => navigate(-1)}
-                    style={{
-                        padding: '1rem 2rem',
-                        borderRadius: '20px',
-                        gap: '0.75rem',
-                        fontSize: '0.9rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.1em'
-                    }}
-                >
-                    <ArrowLeft size={18} /> RETURN
-                </button>
+        <div className="animate-fade-in">
+            <div className="page-header">
+                <h1 className="page-title">{isEditMode ? 'Edit Document' : 'Add New Document'}</h1>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '4rem', alignItems: 'start' }}>
-                <div
-                    className="card glass-panel"
-                    style={{
-                        padding: '3.5rem',
-                        animation: 'fadeInUpStagger 0.8s 0.1s var(--spring) both',
-                        border: '1px solid rgba(139, 92, 246, 0.2)',
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                        position: 'relative'
-                    }}
-                >
-                    {/* Decorative glow */}
-                    <div style={{ position: 'absolute', top: 0, right: 0, width: '100px', height: '100px', background: 'radial-gradient(circle, var(--primary-soft) 0%, transparent 70%)', opacity: 0.5 }}></div>
+            <div className="card" style={{ maxWidth: '600px', margin: '0 auto', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <form onSubmit={handleFormSubmit}>
+                    <div className="input-group">
+                        <label>Document Name</label>
+                        <input
+                            type="text"
+                            className="input-field"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            placeholder="e.g. Passport, Insurance Policy"
+                            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)' }}
+                        />
+                    </div>
 
-                    <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                        <div className="input-group" style={{ animation: 'revealIn 0.8s 0.2s var(--spring) both' }}>
-                            <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>Asset Label</label>
+                    <div className="grid-cols-2" style={{ gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div className="input-group">
+                            <label>Category</label>
+                            <select
+                                className="input-field"
+                                value={formData.category}
+                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                            >
+                                <option value="Personal" style={{ color: 'black' }}>Personal</option>
+                                <option value="Financial" style={{ color: 'black' }}>Financial</option>
+                                <option value="Medical" style={{ color: 'black' }}>Medical</option>
+                                <option value="Legal" style={{ color: 'black' }}>Legal</option>
+                                <option value="Education" style={{ color: 'black' }}>Education</option>
+                                <option value="Vehicle" style={{ color: 'black' }}>Vehicle</option>
+                                <option value="Custom" style={{ color: 'black', fontWeight: 'bold' }}>+ Custom Type</option>
+                            </select>
+                        </div>
+
+                        <div className="input-group">
+                            <label>Priority</label>
+                            <select
+                                className="input-field"
+                                value={formData.priority}
+                                onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+                            >
+                                <option value="Critical" style={{ color: 'black' }}>Critical</option>
+                                <option value="Important" style={{ color: 'black' }}>Important</option>
+                                <option value="Optional" style={{ color: 'black' }}>Optional</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {formData.category === 'Custom' && (
+                        <div className="input-group animate-fade-in">
+                            <label>Custom Category Name</label>
                             <input
                                 type="text"
                                 className="input-field"
                                 required
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="Enter document name (e.g. My Indian Passport)"
-                                style={{ fontSize: '1.2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139, 92, 246, 0.1)' }}
+                                value={customCategory}
+                                onChange={(e) => setCustomCategory(e.target.value)}
+                                placeholder="Enter custom category (e.g. Pet Records, Warranty)"
+                                list="custom-category-suggestions"
+                                style={{ background: 'rgba(129, 140, 248, 0.05)', borderColor: 'var(--primary)' }}
                             />
-                        </div>
-
-                        <div style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '2rem',
-                            animation: 'revealIn 0.8s 0.3s var(--spring) both'
-                        }}>
-                            <div className="input-group" style={{ flex: '1 1 250px' }}>
-                                <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800, whiteSpace: 'nowrap' }}>Category</label>
-                                <select
-                                    className="input-field"
-                                    value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    style={{ padding: '1.5rem', fontSize: '1.1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139, 92, 246, 0.1)' }}
-                                >
-                                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                            </div>
-
-                            <div className="input-group" style={{ flex: '1 1 250px' }}>
-                                <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800, whiteSpace: 'nowrap' }}>Vital Expiry (DD-MM-YYYY)</label>
-                                <div style={{ position: 'relative' }}>
-                                    <input
-                                        type="text"
-                                        className="input-field"
-                                        required
-                                        autoComplete="off"
-                                        value={dateInput}
-                                        onChange={handleDateChange}
-                                        placeholder="26-01-2030"
-                                        style={{ padding: '1.5rem 1.5rem 1.5rem 3.8rem', fontSize: '1.2rem', letterSpacing: '0.08em', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139, 92, 246, 0.1)' }}
-                                    />
-                                    <CalendarIcon
-                                        size={22}
-                                        style={{
-                                            position: 'absolute',
-                                            left: '1.4rem',
-                                            top: '50%',
-                                            transform: 'translateY(-50%)',
-                                            color: 'var(--primary)',
-                                            opacity: 0.8
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {formData.category === 'Custom' && (
-                            <div className="input-group animate-fade-in" style={{ animation: 'revealIn 0.5s var(--spring) both' }}>
-                                <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>Custom Asset Group</label>
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    required
-                                    value={formData.customCategory}
-                                    onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
-                                    placeholder="Define your custom category..."
-                                    style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139, 92, 246, 0.1)' }}
-                                />
-                            </div>
-                        )}
-
-                        <div className="input-group" style={{ animation: 'revealIn 0.8s 0.5s var(--spring) both' }}>
-                            <label style={{ color: 'var(--primary)', marginBottom: '1rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>Priority Protocol</label>
-                            <div style={{ display: 'flex', gap: '1.25rem' }}>
-                                {priorities.map((p) => (
-                                    <button
-                                        key={p}
-                                        type="button"
-                                        onClick={() => setFormData({ ...formData, priority: p })}
-                                        style={{
-                                            flex: 1,
-                                            padding: '1.2rem',
-                                            borderRadius: '20px',
-                                            border: '1px solid',
-                                            borderColor: formData.priority === p ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                            background: formData.priority === p ? 'rgba(139, 92, 246, 0.2)' : 'rgba(255,255,255,0.02)',
-                                            color: formData.priority === p ? '#fff' : 'var(--text-dim)',
-                                            fontWeight: 800,
-                                            fontSize: '0.9rem',
-                                            transition: 'all 0.5s var(--spring)',
-                                            cursor: 'pointer',
-                                            boxShadow: formData.priority === p ? '0 15px 30px -10px rgba(139, 92, 246, 0.4)' : 'none',
-                                            transform: formData.priority === p ? 'scale(1.05) translateY(-5px)' : 'scale(1)'
-                                        }}
-                                    >
-                                        {p.toUpperCase()}
-                                    </button>
+                            <datalist id="custom-category-suggestions">
+                                {existingCustomCategories.map((cat: string, idx: number) => (
+                                    <option key={idx} value={cat} />
                                 ))}
-                            </div>
+                            </datalist>
                         </div>
+                    )}
 
-                        <div className="input-group" style={{ animation: 'revealIn 0.8s 0.6s var(--spring) both' }}>
-                            <label style={{ color: 'var(--primary)', marginBottom: '0.75rem', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>Security Notes (Optional)</label>
-                            <textarea
-                                className="input-field"
-                                value={formData.notes}
-                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                placeholder="Add confidential notes about this document..."
-                                rows={5}
-                                style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(139, 92, 246, 0.1)', fontSize: '1.1rem' }}
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            className="btn-primary-full btn-pulse"
-                            disabled={isSubmitting}
-                            style={{
-                                marginTop: '1.5rem',
-                                height: '72px',
-                                fontSize: '1.4rem',
-                                fontWeight: 900,
-                                letterSpacing: '0.15em',
-                                filter: isSubmitting ? 'grayscale(1)' : 'none',
-                                opacity: isSubmitting ? 0.7 : 1,
-                                textShadow: '0 2px 10px rgba(0,0,0,0.5)',
-                                borderRadius: '24px',
-                                transition: 'all 0.4s var(--spring)'
-                            }}
-                        >
-                            {isSubmitting ? 'ENCRYPTING...' : editingDoc ? 'UPDATE AND SYNC' : 'SAVE AND UPLOAD'}
-                        </button>
-                    </form>
-                </div>
-
-                <div
-                    style={{
-                        padding: '1rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '3rem',
-                        animation: 'fadeInUpStagger 0.8s 0.2s var(--spring) both'
-                    }}
-                >
-                    <div className="card" style={{ padding: '3.5rem', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, transparent 100%)', border: '1px solid rgba(139, 92, 246, 0.15)', borderRadius: '32px' }}>
-                        <div style={{
-                            width: '80px',
-                            height: '80px',
-                            background: 'rgba(139, 92, 246, 0.15)',
-                            borderRadius: '24px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginBottom: '2rem',
-                            color: 'var(--primary-hover)',
-                            boxShadow: '0 0 40px rgba(139, 92, 246, 0.2)',
-                            border: '1px solid rgba(139, 92, 246, 0.2)'
-                        }}>
-                            <Shield size={42} />
-                        </div>
-                        <h3 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '1.5rem', letterSpacing: '-0.04em', background: 'linear-gradient(to right, #fff, var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Elite Vault Security</h3>
-                        <p style={{ color: 'var(--text-dim)', fontSize: '1.1rem', lineHeight: 1.8, marginBottom: '2.5rem', fontWeight: 500 }}>
-                            IDET uses high-grade cryptographic protocols to ensure your sensitive identification assets are monitored with absolute precision.
-                        </p>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                            {[
-                                { text: 'Localized DD-MM-YYYY Date Interface', active: true },
-                                { text: 'Identity Mapping (Aadhaar/PAN/Voter)', active: true },
-                                { text: 'Mission-Critical Expiry Monitoring', active: true },
-                                { text: 'Nano-Sonic Notification Feedback', active: true }
-                            ].map((item, i) => (
-                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontWeight: 600, fontSize: '1rem' }}>
-                                    <div style={{
-                                        color: '#10b981',
-                                        background: 'rgba(16, 185, 129, 0.1)',
-                                        padding: '8px',
-                                        borderRadius: '12px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        border: '1px solid rgba(16, 185, 129, 0.2)'
-                                    }}>
-                                        <CheckCircle size={20} />
-                                    </div>
-                                    <span style={{ color: item.active ? 'var(--text)' : 'var(--text-dim)', letterSpacing: '0.02em' }}>{item.text}</span>
-                                </div>
-                            ))}
+                    <div className="input-group">
+                        <label>Expiry Date</label>
+                        <input
+                            type="date"
+                            className="input-field"
+                            required
+                            value={formData.expiryDate}
+                            onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)', colorScheme: 'dark' }}
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
+                            <small style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <CheckCircle size={12} color="var(--success)" />
+                                Alerts scheduled for 7 days before expiry
+                            </small>
+                            {formData.expiryDate && (
+                                <small style={{ color: 'var(--primary)', fontWeight: 'bold' }}>
+                                    {new Date(formData.expiryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                </small>
+                            )}
                         </div>
                     </div>
 
-                    <div style={{
-                        padding: '2.5rem',
-                        background: 'rgba(59, 130, 246, 0.05)',
-                        border: '1px solid rgba(59, 130, 246, 0.15)',
-                        borderRadius: '32px',
-                        display: 'flex',
-                        gap: '2rem',
-                        alignItems: 'center',
-                        animation: 'floatSoft 8s ease-in-out infinite',
-                        boxShadow: '0 20px 40px -15px rgba(0,0,0,0.3)'
-                    }}>
-                        <div style={{
-                            background: 'rgba(59, 130, 246, 0.15)',
-                            padding: '16px',
-                            borderRadius: '20px',
-                            color: '#60a5fa',
-                            border: '1px solid rgba(59, 130, 246, 0.2)'
-                        }}>
-                            <Info size={32} />
-                        </div>
-                        <div>
-                            <p style={{ margin: 0, fontSize: '1.1rem', color: '#60a5fa', fontWeight: 800, marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Pro Security Tip</p>
-                            <p style={{ margin: 0, fontSize: '1rem', color: 'var(--text-dim)', lineHeight: 1.6, fontWeight: 500 }}>
-                                Set your <strong style={{ color: '#fff' }}>priority protocols</strong> correctly to trigger the appropriate alert sequence.
-                            </p>
-                        </div>
+                    <div className="input-group">
+                        <label>Notes (Optional)</label>
+                        <textarea
+                            className="input-field"
+                            rows={3}
+                            value={formData.notes}
+                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'var(--border)' }}
+                        />
                     </div>
-                </div>
+
+                    <button type="submit" className="btn-primary-full" style={{ marginTop: '1rem' }}>
+                        {isEditMode ? 'Update Document' : 'Save Document & Schedule Alerts'}
+                    </button>
+                </form>
             </div>
-
-            <style>{`
-                .add-doc-wrapper {
-                    overflow-y: auto;
-                    height: calc(100vh - 4rem);
-                    padding-bottom: 6rem;
-                    scrollbar-width: none;
-                }
-                .add-doc-wrapper::-webkit-scrollbar {
-                    display: none;
-                }
-                .input-field {
-                    transition: all 0.4s var(--spring) !important;
-                }
-                .input-field:focus {
-                    transform: scale(1.01) translateY(-2px);
-                    background: rgba(139, 92, 246, 0.05) !important;
-                    box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.3) !important;
-                }
-                .input-field::placeholder {
-                    color: rgba(148, 163, 184, 0.3);
-                    font-size: 0.95rem;
-                }
-                .btn-primary-full:active {
-                    transform: scale(0.95) !important;
-                }
-            `}</style>
         </div>
     );
 };

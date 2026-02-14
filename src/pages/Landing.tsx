@@ -1,86 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Bell, Clock, Calendar, ArrowRight, CheckCircle2, Siren, ChevronDown } from 'lucide-react';
+import { Shield, Bell, Clock, Calendar, ArrowRight, CheckCircle2, Siren } from 'lucide-react';
 
 const Landing: React.FC = () => {
     const navigate = useNavigate();
-    const [scrolled, setScrolled] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const navLinkStyle = {
-        background: 'none',
-        border: 'none',
-        color: 'rgba(255, 255, 255, 0.6)',
-        fontSize: '0.9rem',
-        fontWeight: 500,
-        cursor: 'pointer',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        padding: '0.5rem 1rem',
-        borderRadius: '8px',
-        textDecoration: 'none'
-    };
-
-    const handleHover = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.currentTarget.style.color = 'white';
-        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-    };
-
-    const handleUnhover = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)';
-        e.currentTarget.style.background = 'none';
-    };
 
     return (
-        <div style={{
-            background: 'var(--background)',
+        <div className="animate-fade-in" style={{
+            background: '#09090b',
             minHeight: '100vh',
-            color: 'var(--text-primary)',
+            color: 'white',
             overflowX: 'hidden',
-            fontFamily: "'Outfit', 'Inter', sans-serif"
+            fontFamily: "'Inter', sans-serif"
         }}>
-            {/* Grainy Texture Overlay */}
+            {/* Ambient background glows */}
             <div style={{
                 position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                pointerEvents: 'none',
-                zIndex: 50,
-                opacity: 0.03,
-                background: 'url("https://grainy-gradients.vercel.app/noise.svg")',
-            }}></div>
-
-            {/* Ambient Animated Background */}
-            <div className="ambient-glow" style={{
-                position: 'fixed',
-                top: '-20%',
+                top: '-10%',
                 right: '-10%',
-                width: '70vw',
-                height: '70vw',
-                background: 'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)',
-                filter: 'blur(120px)',
+                width: '60vw',
+                height: '60vw',
+                background: 'radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%)',
+                filter: 'blur(100px)',
                 zIndex: 0,
-                pointerEvents: 'none',
-                animation: 'float-glow 20s infinite alternate'
+                pointerEvents: 'none'
             }}></div>
-            <div className="ambient-glow-2" style={{
+            <div style={{
                 position: 'fixed',
-                bottom: '-20%',
+                bottom: '-10%',
                 left: '-10%',
-                width: '80vw',
-                height: '80vw',
-                background: 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%)',
-                filter: 'blur(120px)',
+                width: '60vw',
+                height: '60vw',
+                background: 'radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%)',
+                filter: 'blur(100px)',
                 zIndex: 0,
-                pointerEvents: 'none',
-                animation: 'float-glow 25s infinite alternate-reverse'
+                pointerEvents: 'none'
             }}></div>
 
             {/* Navigation Header */}
@@ -88,439 +42,265 @@ const Landing: React.FC = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: scrolled ? '1rem 5%' : '1.5rem 5%',
-                position: 'fixed',
-                top: 0,
-                width: '100%',
-                zIndex: 100,
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                background: scrolled ? 'rgba(9, 9, 11, 0.8)' : 'transparent',
-                backdropFilter: scrolled ? 'blur(16px)' : 'none',
-                borderBottom: scrolled ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid transparent',
-                boxSizing: 'border-box'
+                padding: '1.5rem 5%',
+                position: 'relative',
+                zIndex: 10,
+                backdropFilter: 'blur(10px)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                top: 0
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <div style={{
-                        background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
-                        padding: '10px',
-                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                        padding: '8px',
+                        borderRadius: '10px',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 8px 16px -4px var(--primary-glow)'
+                        justifyContent: 'center'
                     }}>
                         <Shield size={24} color="white" />
                     </div>
-                    <span style={{ fontSize: '1.6rem', fontWeight: 900, letterSpacing: '-0.04em', background: 'linear-gradient(to bottom, #fff, var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        IDET
-                    </span>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>IDET</span>
                 </div>
-
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }} className="nav-desktop">
-                    <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={navLinkStyle} onMouseEnter={handleHover} onMouseLeave={handleUnhover}>Home</button>
-                    <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} style={navLinkStyle} onMouseEnter={handleHover} onMouseLeave={handleUnhover}>About</button>
-                    <button onClick={() => document.getElementById('help')?.scrollIntoView({ behavior: 'smooth' })} style={navLinkStyle} onMouseEnter={handleHover} onMouseLeave={handleUnhover}>Help</button>
-                    <div style={{ width: '1px', height: '20px', background: 'rgba(255, 255, 255, 0.1)', margin: '0 0.5rem' }}></div>
-                    <button onClick={() => navigate('/login')} style={navLinkStyle} onMouseEnter={handleHover} onMouseLeave={handleUnhover}>Login</button>
+                <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
                     <button
                         onClick={() => navigate('/login')}
-                        className="btn-primary-glass"
                         style={{
-                            background: 'var(--primary)',
-                            color: 'white',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            padding: '0.75rem 1.5rem',
-                            borderRadius: '12px',
-                            fontWeight: 700,
-                            fontSize: '0.9rem',
+                            background: 'none',
+                            border: 'none',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            fontSize: '0.95rem',
+                            fontWeight: 500,
                             cursor: 'pointer',
-                            transition: 'var(--transition)',
-                            boxShadow: '0 0 20px var(--primary-glow)',
-                            position: 'relative',
-                            overflow: 'hidden'
+                            transition: 'color 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.color = 'white'}
+                        onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                    >
+                        Login
+                    </button>
+                    <button
+                        onClick={() => navigate('/login')}
+                        style={{
+                            background: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            padding: '0.6rem 1.25rem',
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            fontSize: '0.95rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.backgroundColor = '#059669';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.transform = 'none';
+                            e.currentTarget.style.backgroundColor = '#10b981';
                         }}
                     >
                         Get Started
                     </button>
                 </div>
-
-                {/* Mobile Menu Toggle */}
-                <button
-                    className="nav-mobile-toggle"
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    style={{
-                        display: 'none',
-                        background: 'none',
-                        border: 'none',
-                        color: 'white',
-                        cursor: 'pointer',
-                        padding: '0.5rem'
-                    }}
-                >
-                    <div style={{ width: '24px', height: '2px', background: 'white', marginBottom: '6px', transition: '0.3s', transform: isMenuOpen ? 'rotate(45deg) translate(5px, 6px)' : 'none' }}></div>
-                    <div style={{ width: '24px', height: '2px', background: 'white', marginBottom: '6px', opacity: isMenuOpen ? 0 : 1, transition: '0.3s' }}></div>
-                    <div style={{ width: '24px', height: '2px', background: 'white', transition: '0.3s', transform: isMenuOpen ? 'rotate(-45deg) translate(5px, -6px)' : 'none' }}></div>
-                </button>
-
-                {/* Mobile Navigation Menu */}
-                {isMenuOpen && (
-                    <div style={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: 0,
-                        width: '100%',
-                        background: 'rgba(9, 9, 11, 0.95)',
-                        backdropFilter: 'blur(20px)',
-                        padding: '2rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '1.5rem',
-                        borderBottom: '1px solid var(--border)',
-                        zIndex: 1000
-                    }}>
-                        <button onClick={() => { setIsMenuOpen(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.1rem', textAlign: 'left' }}>Home</button>
-                        <button onClick={() => { setIsMenuOpen(false); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.1rem', textAlign: 'left' }}>About</button>
-                        <button onClick={() => { setIsMenuOpen(false); document.getElementById('help')?.scrollIntoView({ behavior: 'smooth' }); }} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.1rem', textAlign: 'left' }}>Help</button>
-                        <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.1rem', textAlign: 'left' }}>Login</button>
-                        <button onClick={() => navigate('/login')} className="btn-primary-full" style={{ padding: '1rem' }}>Get Started</button>
-                    </div>
-                )}
             </nav>
 
             {/* Hero Section */}
-            <main style={{ position: 'relative', zIndex: 10, padding: '0 5%' }}>
-                <section style={{
-                    paddingTop: '12rem',
-                    paddingBottom: '10rem',
-                    textAlign: 'center',
-                    maxWidth: '1000px',
-                    margin: '0 auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center'
-                }} className="reveal">
-                    <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.6rem',
-                        padding: '0.6rem 1.25rem',
-                        background: 'rgba(99, 102, 241, 0.08)',
-                        border: '1px solid rgba(99, 102, 241, 0.15)',
-                        borderRadius: '100px',
-                        color: '#a5b4fc',
-                        fontSize: '0.85rem',
-                        fontWeight: 600,
-                        marginBottom: '3rem',
-                        backdropFilter: 'blur(10px)',
-                        boxShadow: 'inset 0 0 12px rgba(99, 102, 241, 0.05)'
-                    }}>
-                        <Siren size={16} className="pulse-slow" /> New: Intelligent Sync & Gmail Engine
-                    </div>
-
-                    <h1 style={{
-                        fontSize: 'clamp(3rem, 10vw, 5.5rem)',
-                        fontWeight: 950,
-                        lineHeight: 0.95,
-                        letterSpacing: '-0.06em',
-                        marginBottom: '2rem',
-                        background: 'linear-gradient(to bottom, #ffffff 30%, var(--primary) 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        textAlign: 'center',
-                        filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
-                    }}>
-                        Important Document <br />
-                        <span style={{ color: 'var(--primary)', textShadow: '0 0 40px var(--primary-glow)' }}>Expiry Tracker.</span>
-                    </h1>
-
-                    <p style={{
-                        fontSize: 'clamp(1.1rem, 2.5vw, 1.4rem)',
-                        color: 'rgba(255, 255, 255, 0.5)',
-                        lineHeight: 1.5,
-                        maxWidth: '700px',
-                        margin: '0 auto 4rem',
-                        fontWeight: 400
-                    }}>
-                        The ultimate high-fidelity tracker for your critical documents. <br />
-                        Automated Gmail alerts, synchronized audio, and smart calendar engine.
-                    </p>
-
-                    <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="btn-primary-full btn-pulse"
-                            style={{
-                                width: 'auto',
-                                padding: '1.25rem 3rem',
-                                borderRadius: '16px',
-                                fontSize: '1.2rem'
-                            }}
-                        >
-                            Get Started Free <ArrowRight size={24} />
-                        </button>
-                    </div>
-
-                    <div style={{ marginTop: '8rem', opacity: 0.5 }}>
-                        <ChevronDown size={32} className="bounce-slow" />
-                    </div>
-                </section>
-
-                {/* About Section */}
-                <section id="features" style={{
+            <main style={{ position: 'relative', zIndex: 1, padding: '0 5%' }}>
+                <div style={{
                     paddingTop: '6rem',
-                    paddingBottom: '10rem',
-                    maxWidth: '1200px',
-                    margin: '0 auto'
-                }}>
-                    <div style={{ textAlign: 'center', marginBottom: '6rem' }} className="reveal">
-                        <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.4em', marginBottom: '1rem' }}>The System</h2>
-                        <h3 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.04em', color: 'var(--text-primary)' }}>Engineered for Perfection</h3>
-                    </div>
-
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                        gap: '2.5rem'
-                    }}>
-                        <FeatureCard
-                            icon={<Bell color="var(--warning)" size={32} />}
-                            title="Active Gmail Integration"
-                            description="Deep integration with Gmail to ensure your alerts land directly in your primary inbox, keeping you informed across all devices."
-                            delay="0s"
-                        />
-                        <FeatureCard
-                            icon={<Clock color="var(--success)" size={32} />}
-                            title="Critical Audio Sync"
-                            description="Custom audio-visual feedback loops that synchronize with your high-priority document statuses for zero-friction management."
-                            delay="0.1s"
-                        />
-                        <FeatureCard
-                            icon={<Calendar color="var(--primary)" size={32} />}
-                            title="Engineered Calendar Fix"
-                            description="Instant generation of ICS payloads allowing for seamless one-click synchronization with your global cloud calendar."
-                            delay="0.2s"
-                        />
-                    </div>
-                </section>
-
-                {/* Trust & Status */}
-                <section style={{
-                    paddingBottom: '12rem',
-                    textAlign: 'center'
-                }} className="reveal">
-                    <div style={{
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
-                        borderRadius: '32px',
-                        padding: '4rem 2rem',
-                        backdropFilter: 'blur(20px)',
-                        boxShadow: 'inset 0 0 32px rgba(255, 255, 255, 0.01)'
-                    }}>
-                        <p style={{ color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', fontSize: '0.85rem', letterSpacing: '0.3em', marginBottom: '4rem', fontWeight: 700 }}>Built for Reliable Operations</p>
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            gap: '5rem',
-                            opacity: 0.7,
-                            flexWrap: 'wrap'
-                        }}>
-                            <TrustBadge label="256-bit AES Encryption" />
-                            <TrustBadge label="99.9% Alert Reliability" />
-                            <TrustBadge label="Real-time Cloud Sync" />
-                        </div>
-                    </div>
-                </section>
-
-                {/* Help / FAQ Section */}
-                <section id="help" style={{
-                    paddingBottom: '12rem',
+                    paddingBottom: '8rem',
+                    textAlign: 'center',
                     maxWidth: '900px',
                     margin: '0 auto'
                 }}>
-                    <div style={{ textAlign: 'center', marginBottom: '5rem' }} className="reveal">
-                        <h2 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-0.04em' }}>Capabilities & Support</h2>
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        background: 'rgba(99, 102, 241, 0.1)',
+                        border: '1px solid rgba(99, 102, 241, 0.2)',
+                        borderRadius: '50px',
+                        color: '#818cf8',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        marginBottom: '2rem'
+                    }}>
+                        <Siren size={14} /> New: Synchronized Audio & Gmail Alerts
                     </div>
 
-                    <div style={{ display: 'grid', gap: '1.5rem' }}>
-                        <FAQItem
-                            question="How do the automated alerts behave?"
-                            answer="Our system executes a cold-start check daily, dispatching high-priority headers to your Gmail exactly 30 and 7 days before expiration. This is coupled with local audio-visual triggers for immediate visibility."
-                        />
-                        <FAQItem
-                            question="Is the calendar engine bidirectional?"
-                            answer="Currently, IDET pushes precision event markers to Google Calendar. This ensures your expiration schedule exists outside the application context for maximum resilience."
-                        />
-                        <FAQItem
-                            question="What protocols protect my documents?"
-                            answer="We leverage Supabase's secure infrastructure with Row Level Security (RLS). Every document entry is encrypted at rest and tied exclusively to your authenticated UID."
-                        />
+                    <h1 style={{
+                        fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
+                        fontWeight: 850,
+                        lineHeight: 1.1,
+                        letterSpacing: '-0.04em',
+                        marginBottom: '1.5rem',
+                        background: 'linear-gradient(to bottom right, #fff 50%, rgba(255, 255, 255, 0.6))',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent'
+                    }}>
+                        Manage Documents <br />
+                        <span style={{ color: '#10b981' }}>With Impact.</span>
+                    </h1>
+
+                    <p style={{
+                        fontSize: 'clamp(1.1rem, 3vw, 1.25rem)',
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        lineHeight: 1.6,
+                        maxWidth: '650px',
+                        margin: '0 auto 3rem'
+                    }}>
+                        Professional document tracking with automated Gmail alerts,
+                        perfectly synchronized sound notifications, and seamless calendar integration.
+                    </p>
+
+                    <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="btn-pulse"
+                            style={{
+                                background: '#10b981',
+                                color: 'white',
+                                border: 'none',
+                                padding: '1rem 2.5rem',
+                                borderRadius: '12px',
+                                fontWeight: 700,
+                                fontSize: '1.1rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                transition: 'all 0.3s',
+                                boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)'
+                            }}
+                        >
+                            Get Started Free <ArrowRight size={20} />
+                        </button>
                     </div>
-                </section>
+                </div>
+
+                {/* Features Grid */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gap: '2rem',
+                    paddingBottom: '8rem',
+                    maxWidth: '1200px',
+                    margin: '0 auto'
+                }}>
+                    <FeatureCard
+                        icon={<Bell color="#f59e0b" />}
+                        title="Smart Gmail Alerts"
+                        description="Receive automated professional email reminders 30 and 7 days before any document expires."
+                    />
+                    <FeatureCard
+                        icon={<Clock color="#10b981" />}
+                        title="Synchronized Audio"
+                        description="Visual notifications accompanied by perfectly timed audio alerts for immediate awareness."
+                    />
+                    <FeatureCard
+                        icon={<Calendar color="#6366f1" />}
+                        title="Calendar Sync"
+                        description="One-click integration to add your document expiries directly to your Google Calendar."
+                    />
+                </div>
+
+                {/* Trust Section */}
+                <div style={{
+                    textAlign: 'center',
+                    paddingBottom: '8rem'
+                }}>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.2em', marginBottom: '3rem' }}>
+                        Designed for Professional Organization
+                    </p>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: '4rem',
+                        opacity: 0.6,
+                        flexWrap: 'wrap'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <CheckCircle2 size={20} color="#10b981" /> <span>Secure Auth</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <CheckCircle2 size={20} color="#10b981" /> <span>Cloud Sync</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <CheckCircle2 size={20} color="#10b981" /> <span>Category Focused</span>
+                        </div>
+                    </div>
+                </div>
             </main>
 
-            {/* Cinematic Footer */}
+            {/* Footer */}
             <footer style={{
-                padding: '6rem 5% 4rem',
-                borderTop: '1px solid rgba(255, 255, 255, 0.03)',
+                padding: '4rem 5%',
+                borderTop: '1px solid rgba(255, 255, 255, 0.05)',
                 textAlign: 'center',
-                background: 'linear-gradient(to bottom, transparent, rgba(9, 9, 11, 0.5))'
+                color: 'rgba(255, 255, 255, 0.4)',
+                fontSize: '0.9rem'
             }}>
-                <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', opacity: 0.8 }}>
-                    <Shield size={20} color="#10b981" />
-                    <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.02em' }}>IDET</span>
-                </div>
-                <p style={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: '0.9rem', maxWidth: '400px', margin: '0 auto 2rem', lineHeight: 1.6 }}>
-                    The world's most reliable document expiry engine. <br />
-                    Engineered by professionals, for professionals.
-                </p>
-                <div style={{ color: 'rgba(255, 255, 255, 0.2)', fontSize: '0.75rem', letterSpacing: '0.1em', fontWeight: 600 }}>
-                    © {new Date().getFullYear()} IDET INFRASTRUCTURES. ALL RIGHTS RESERVED.
-                </div>
+                <p>© {new Date().getFullYear()} IDET Document Manager. All rights reserved.</p>
             </footer>
 
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;400;700;900&display=swap');
-
-                .btn-main-pulse {
-                    position: relative;
+                .btn-pulse {
+                    animation: pulse-emerald 2s infinite;
                 }
-                .btn-main-pulse::after {
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    border-radius: 14px;
-                    background: #10b981;
-                    opacity: 0.3;
-                    z-index: -1;
-                    animation: main-pulse 2s cubic-bezier(0.24, 0, 0.22, 1) infinite;
+                @keyframes pulse-emerald {
+                    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
                 }
-
-                @keyframes main-pulse {
-                    0% { transform: scale(1); opacity: 0.6; }
-                    100% { transform: scale(1.4); opacity: 0; }
+                @keyframes fade-in {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
-
-                @keyframes float-glow {
-                    from { transform: translate(0, 0) scale(1); }
-                    to { transform: translate(-10%, 10%) scale(1.1); }
-                }
-
-                @keyframes bounce-slow {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(15px); }
-                }
-
-                .bounce-slow {
-                    animation: bounce-slow 3s infinite ease-in-out;
-                }
-
-                .pulse-slow {
-                    animation: inner-pulse 2s infinite ease-in-out;
-                }
-
-                @keyframes inner-pulse {
-                    0%, 100% { opacity: 0.6; transform: scale(1); }
-                    50% { opacity: 1; transform: scale(1.2); }
-                }
-
-                .reveal {
-                    animation: reveal-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                }
-
-                @keyframes reveal-up {
-                    from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
-                    to { opacity: 1; transform: translateY(0); filter: blur(0); }
-                }
-
-                @media (max-width: 768px) {
-                    .nav-desktop { display: none !important; }
-                    .nav-mobile-toggle { display: block !important; }
-                    .reveal h1 { font-size: 2.5rem !important; }
-                    .reveal p { font-size: 1rem !important; }
-                    .feature-card { padding: 2rem 1.5rem !important; }
-                    h3 { font-size: 2rem !important; }
-                }
-
-                * {
-                    -webkit-font-smoothing: antialiased;
-                    -moz-osx-font-smoothing: grayscale;
-                    scroll-behavior: smooth;
+                .animate-fade-in {
+                    animation: fade-in 0.8s ease-out forwards;
                 }
             `}</style>
         </div>
     );
 };
 
-const FeatureCard = ({ icon, title, description, delay }: { icon: React.ReactNode, title: string, description: string, delay: string }) => (
+const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
     <div style={{
-        padding: '3rem 2.5rem',
-        background: 'rgba(255, 255, 255, 0.01)',
-        border: '1px solid rgba(255, 255, 255, 0.03)',
-        borderRadius: '32px',
-        transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-        cursor: 'default',
-        animation: `reveal-up 1.2s ${delay} cubic-bezier(0.16, 1, 0.3, 1) forwards`,
-        opacity: 0,
-        backdropFilter: 'blur(10px)',
+        padding: '2rem',
+        background: 'rgba(255, 255, 255, 0.02)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: '24px',
+        transition: 'all 0.3s'
     }}
-        className="feature-card"
         onMouseOver={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
             e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            e.currentTarget.style.transform = 'translateY(-15px) scale(1.02)';
-            e.currentTarget.style.boxShadow = '0 30px 60px -15px rgba(0,0,0,0.5)';
+            e.currentTarget.style.transform = 'translateY(-5px)';
         }}
         onMouseOut={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
-            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.03)';
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
             e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = 'none';
         }}
     >
         <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '16px',
-            background: 'rgba(255, 255, 255, 0.02)',
+            width: '48px',
+            height: '48px',
+            borderRadius: '12px',
+            background: 'rgba(255, 255, 255, 0.05)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '2rem',
-            boxShadow: 'inset 0 0 12px rgba(255,255,255,0.05)'
+            marginBottom: '1.5rem'
         }}>
             {icon}
         </div>
-        <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '1.25rem', color: 'white', letterSpacing: '-0.02em' }}>{title}</h3>
-        <p style={{ color: 'rgba(255, 255, 255, 0.4)', lineHeight: 1.7, fontSize: '1rem', fontWeight: 400 }}>{description}</p>
-    </div>
-);
-
-const TrustBadge = ({ label }: { label: string }) => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1.5rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '100px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
-        <CheckCircle2 size={20} color="#10b981" />
-        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>{label}</span>
-    </div>
-);
-
-const FAQItem = ({ question, answer }: { question: string, answer: string }) => (
-    <div style={{
-        padding: '2.5rem',
-        background: 'rgba(255, 255, 255, 0.01)',
-        border: '1px solid rgba(255, 255, 255, 0.03)',
-        borderRadius: '24px',
-        transition: 'all 0.3s ease'
-    }}
-        onMouseOver={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.2)';
-            e.currentTarget.style.background = 'rgba(16, 185, 129, 0.01)';
-        }}
-        onMouseOut={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.03)';
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
-        }}
-    >
-        <h4 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: '1rem', color: '#10b981', letterSpacing: '-0.02em' }}>{question}</h4>
-        <p style={{ color: 'rgba(255, 255, 255, 0.4)', lineHeight: 1.7, fontSize: '1.05rem', margin: 0, fontWeight: 400 }}>{answer}</p>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: 'white' }}>{title}</h3>
+        <p style={{ color: 'rgba(255, 255, 255, 0.5)', lineHeight: 1.6, fontSize: '0.95rem' }}>{description}</p>
     </div>
 );
 

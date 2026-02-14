@@ -1,46 +1,34 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import {
-    LayoutDashboard,
-    Calendar as CalendarIcon,
-    Search,
-    Pencil,
-    Trash2,
-    Zap,
-    CreditCard,
-    FileText,
-    Car,
-    Heart,
-    ShieldCheck,
-    Briefcase,
-    Download,
-    Clock,
-    AlertTriangle,
-    User
-} from 'lucide-react';
-import { format } from 'date-fns';
+import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
-import { generateCalendarUrl } from '../utils/calendarUtils';
+// Wait, I see useApp has notification. Let's use that or just console logs if UI not ready.
+// Actually, I'll implement a custom visual indicator for the user to see WHICH doc is triggering.
 
 const Dashboard: React.FC = () => {
+    // Force Refresh Trigger: 2026-02-12
     const { stats, documents, deleteDocument, loading } = useApp();
     const navigate = useNavigate();
     const location = useLocation();
 
+    // Initialize search from Voice Command if present
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
+
 
     if (loading) {
         return <SkeletonDashboard />;
     }
 
-    const categories = ['All', 'Critical', ...Array.from(new Set(documents.filter(d => d.category).map(d => d.category)))];
+    // Get unique categories for filters
+    const categories = ['All', 'Critical', ...Array.from(new Set(documents.map(d => d.category)))];
 
+    // Show documents that match search and filter
     const filteredDocs = documents
         .filter(doc => {
             const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (doc.category && doc.category.toLowerCase().includes(searchTerm.toLowerCase()));
+                doc.category.toLowerCase().includes(searchTerm.toLowerCase());
 
             const matchesCategory = selectedCategory === 'All'
                 ? true
@@ -51,10 +39,13 @@ const Dashboard: React.FC = () => {
             return matchesSearch && matchesCategory;
         })
         .sort((a, b) => {
+            // Critical items always on top
             if (a.priority === 'Critical' && b.priority !== 'Critical') return -1;
             if (a.priority !== 'Critical' && b.priority === 'Critical') return 1;
+            // Then by date
             return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
-        });
+        })
+        .slice(0, 10); // Show up to 10 recent/upcoming docs
 
     const handleDelete = async (id: string, name: string) => {
         if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
@@ -89,358 +80,375 @@ const Dashboard: React.FC = () => {
         document.body.removeChild(link);
     };
 
-    const StatCard = ({ title, value, icon: Icon, color, bg }: any) => (
-        <div className="card stat-card-premium" style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            cursor: 'pointer'
+    const StatCard = ({ title, value, icon: Icon, color, gradient }: any) => (
+        <div className="card" style={{
+            background: 'var(--card-bg)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            position: 'relative',
+            overflow: 'hidden'
         }}>
-            <div>
-                <p style={{ margin: 0, color: 'var(--text-dim)', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</p>
-                <h3 style={{ margin: '0.4rem 0 0', fontSize: '2.2rem', fontWeight: 900, color: 'white', letterSpacing: '-0.03em' }}>{value}</h3>
-            </div>
-            <div className="stat-icon-wrapper" style={{
-                padding: '0.9rem',
-                borderRadius: '14px',
-                background: `linear-gradient(135deg, ${bg}, transparent)`,
-                color: color,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: `0 0 20px ${bg}`,
-                border: `1px solid ${color}33`,
-                animation: 'float 3s ease-in-out infinite'
-            }}>
-                <Icon size={26} />
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                width: '60px',
+                height: '60px',
+                background: gradient,
+                filter: 'blur(40px)',
+                opacity: 0.2
+            }}></div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+                <div>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{title}</p>
+                    <h3 style={{ margin: '0.5rem 0 0', fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</h3>
+                </div>
+                <div style={{
+                    padding: '0.75rem',
+                    borderRadius: '12px',
+                    background: 'rgba(255,255,255,0.05)',
+                    color: color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <Icon size={24} />
+                </div>
             </div>
         </div>
     );
 
     return (
-        <div className="animate-fade-in dashboard-wrapper">
-            <div className="page-header" style={{ marginBottom: '2.5rem' }}>
+        <div className="animate-fade-in">
+            <style>{`
+                @keyframes pulse-red {
+                    0% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4); border-color: rgba(248, 113, 113, 0.4); }
+                    70% { box-shadow: 0 0 0 6px rgba(248, 113, 113, 0); border-color: rgba(248, 113, 113, 0.8); }
+                    100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); border-color: rgba(248, 113, 113, 0.4); }
+                }
+                .high-alert {
+                    animation: pulse-red 2s infinite;
+                    background: linear-gradient(90deg, rgba(248, 113, 113, 0.05) 0%, rgba(0,0,0,0) 100%);
+                }
+                .filter-chip {
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 20px;
+                    font-size: 0.8rem;
+                    cursor: pointer;
+                    background: rgba(255,255,255,0.05);
+                    border: 1px solid rgba(255,255,255,0.1);
+                    color: var(--text-secondary);
+                    transition: all 0.2s;
+                    user-select: none;
+                }
+                .filter-chip.active {
+                    background: var(--primary);
+                    color: white;
+                    border-color: var(--primary);
+                }
+                .filter-chip:hover:not(.active) {
+                    background: rgba(255,255,255,0.1);
+                }
+            `}</style>
+            <div className="page-header">
                 <div>
                     <h1 className="page-title">Dashboard</h1>
-                    <p style={{ color: 'var(--text-dim)', margin: '0.5rem 0 0', fontSize: '1rem', fontWeight: 500 }}>
-                        Elevate your document management with IDET.
-                    </p>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
-                        onClick={handleExport}
                         className="btn-secondary"
-                        style={{ padding: '0.75rem 1.5rem', borderRadius: '14px' }}
+                        onClick={handleExport}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
                     >
-                        <Download size={18} /> <span>Export CSV</span>
+                        <Download size={16} /> Export CSV
                     </button>
-                    <button
-                        className="btn-primary-full"
-                        style={{ width: 'auto', marginBottom: 0, padding: '0.75rem 1.75rem', borderRadius: '14px' }}
-                        onClick={() => navigate('/add-document')}
-                    >
-                        + Add Document
+                    <button className="btn-primary-full btn-pulse" style={{ width: 'auto', marginBottom: 0 }} onClick={() => navigate('/add-document')}>
+                        + Add New
                     </button>
                 </div>
             </div>
 
-            {/* Stat Cards Section */}
-            <div className="grid-cols-4" style={{ marginBottom: '3rem', gap: '1.5rem' }}>
-                <StatCard title="Total Vault" value={stats.total} icon={LayoutDashboard} color="#a5b4fc" bg="rgba(165, 180, 252, 0.15)" />
-                <StatCard title="Active Guards" value={stats.active} icon={Clock} color="#34d399" bg="rgba(52, 211, 153, 0.15)" />
-                <StatCard title="Critical Alert" value={stats.expiringSoon} icon={Zap} color="#fbbf24" bg="rgba(251, 191, 36, 0.15)" />
-                <StatCard title="Security Breach" value={stats.expired} icon={AlertTriangle} color="#f87171" bg="rgba(248, 113, 113, 0.15)" />
+            <div className="grid-cols-4" style={{ marginBottom: '2rem' }}>
+                <StatCard
+                    title="Total Documents"
+                    value={stats.total}
+                    icon={FileText}
+                    color="#818cf8"
+                    gradient="linear-gradient(135deg, #818cf8 0%, #c084fc 100%)"
+                />
+                <StatCard
+                    title="Active"
+                    value={stats.active}
+                    icon={Clock}
+                    color="#34d399"
+                    gradient="linear-gradient(135deg, #34d399 0%, #6ee7b7 100%)"
+                />
+                <StatCard
+                    title="Expiring Soon"
+                    value={stats.expiringSoon}
+                    icon={AlertTriangle}
+                    color="#fbbf24"
+                    gradient="linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%)"
+                />
+                <StatCard
+                    title="Expired"
+                    value={stats.expired}
+                    icon={AlertTriangle}
+                    color="#f87171"
+                    gradient="linear-gradient(135deg, #f87171 0%, #fca5a5 100%)"
+                />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '2.5rem' }}>
-                {/* Documents Vault */}
-                <div className="card glass-panel" style={{ padding: '2.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                        <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Document Vault</h3>
+            <div className="grid-cols-2">
+                <div className="card" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Your Documents</h3>
                         <div style={{ position: 'relative' }}>
                             <input
                                 type="text"
-                                className="input-field search-input"
-                                placeholder="Search vault..."
+                                placeholder="Search documents..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 style={{
+                                    background: 'rgba(0, 0, 0, 0.2)',
+                                    border: '1px solid var(--border)',
                                     borderRadius: '50px',
-                                    paddingLeft: '2.8rem',
-                                    width: '280px',
-                                    fontSize: '0.9rem'
+                                    padding: '0.5rem 1rem',
+                                    paddingLeft: '2.5rem',
+                                    color: 'white',
+                                    fontSize: '0.875rem',
+                                    outline: 'none',
+                                    width: '200px',
+                                    transition: 'all 0.2s'
                                 }}
                             />
-                            <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+                            <div style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </div>
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                         {categories.map(cat => (
-                            <div key={cat} className={`filter-chip ${selectedCategory === cat ? 'active' : ''}`} onClick={() => setSelectedCategory(cat)}>
+                            <div
+                                key={cat}
+                                className={`filter-chip ${selectedCategory === cat ? 'active' : ''}`}
+                                onClick={() => setSelectedCategory(cat)}
+                            >
                                 {cat}
                             </div>
                         ))}
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {filteredDocs.length > 0 ? filteredDocs.map((doc) => {
-                            const expiry = new Date(doc.expiryDate);
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-                            const isExpired = diffDays < 0;
-                            const isCritical = doc.priority === 'Critical' || isExpired;
+                    {filteredDocs.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {filteredDocs.map(doc => {
+                                // Also update visual display loop to match strict logic for consistency if needed, 
+                                // but existing Math.ceil is usually fine. 
+                                // Let's try to match the strict logic for the visual label too.
+                                const expiryDate = new Date(doc.expiryDate);
+                                const todayDate = new Date();
+                                const expiryUTC = Date.UTC(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+                                const todayUTC = Date.UTC(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+                                const strictDaysLeft = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
-                            const getDocIcon = (category: string) => {
-                                const cat = category.toLowerCase();
-                                if (cat.includes('passport')) return <ShieldCheck size={22} />;
-                                if (cat.includes('aadhaar') || cat.includes('pan') || cat.includes('card')) return <CreditCard size={22} />;
-                                if (cat.includes('insurance') && cat.includes('health')) return <Heart size={22} />;
-                                if (cat.includes('insurance') && (cat.includes('vehicle') || cat.includes('car') || cat.includes('bike'))) return <Car size={22} />;
-                                if (cat.includes('insurance')) return <ShieldCheck size={22} />;
-                                if (cat.includes('license')) return <Briefcase size={22} />;
-                                return <FileText size={22} />;
-                            };
+                                const isCritical = doc.priority === 'Critical';
 
-                            const getIconColor = (category: string) => {
-                                const cat = category.toLowerCase();
-                                if (cat.includes('passport')) return '#c084fc';
-                                if (cat.includes('aadhaar') || cat.includes('pan') || cat.includes('card')) return '#60a5fa';
-                                if (cat.includes('health')) return '#f87171';
-                                if (cat.includes('vehicle')) return '#fbbf24';
-                                if (cat.includes('insurance')) return '#34d399';
-                                return '#94a3b8';
-                            };
-
-                            return (
-                                <div key={doc.id} className={`doc-item ${isCritical ? 'critical' : ''}`}>
-                                    <div style={{
-                                        width: '48px',
-                                        height: '48px',
-                                        borderRadius: '12px',
-                                        background: `${getIconColor(doc.category)}15`,
+                                return (
+                                    <div key={doc.id} style={{
                                         display: 'flex',
+                                        justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                        color: getIconColor(doc.category),
-                                        border: `1px solid ${getIconColor(doc.category)}33`,
-                                        marginRight: '1.25rem'
-                                    }}>
-                                        {getDocIcon(doc.category)}
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.6rem' }}>
-                                            <span style={{ fontWeight: 800, color: 'white', fontSize: '1.1rem' }}>{doc.name}</span>
-                                            {doc.priority === 'Critical' && (
-                                                <span className="badge badge-danger">
-                                                    <Zap size={10} /> CRITICAL
-                                                </span>
-                                            )}
+                                        padding: '1rem',
+                                        backgroundColor: 'rgba(255,255,255,0.03)',
+                                        borderRadius: 'var(--radius)',
+                                        border: isCritical ? '1px solid #f87171' : '1px solid rgba(255,255,255,0.05)',
+                                        transition: 'all 0.2s'
+                                    }} className={`doc-item ${isCritical ? 'high-alert' : ''}`}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                                            <div>
+                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    {doc.name}
+                                                    {isCritical && (
+                                                        <span className="badge" style={{
+                                                            background: '#f87171',
+                                                            color: 'white',
+                                                            fontSize: '0.7rem',
+                                                            fontWeight: 'bold',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '4px',
+                                                            animation: 'none' // Override pulse for the badge text itself
+                                                        }}>
+                                                            <Siren size={12} /> CRITICAL
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                                    <span style={{ color: strictDaysLeft <= 30 ? '#f87171' : '#34d399', fontWeight: strictDaysLeft <= 30 ? 'bold' : 'normal' }}>
+                                                        {strictDaysLeft < 0 ? `Expired ${Math.abs(strictDaysLeft)} days ago` : `Expires in ${strictDaysLeft} days`}
+                                                        <span style={{ opacity: 0.6, fontWeight: 'normal', marginLeft: '4px', color: 'var(--text-secondary)' }}>
+                                                            ({new Date(doc.expiryDate).toLocaleDateString('en-GB')})
+                                                        </span>
+                                                    </span>
+                                                    <span>•</span>
+                                                    {(() => {
+                                                        const getCategoryColor = (cat: string) => {
+                                                            const colors: Record<string, string> = {
+                                                                'Personal': '#60a5fa',
+                                                                'Financial': '#34d399',
+                                                                'Medical': '#f87171',
+                                                                'Legal': '#fbbf24',
+                                                                'Education': '#a78bfa',
+                                                                'Vehicle': '#fb923c',
+                                                            };
+                                                            return colors[cat] || '#e879f9';
+                                                        };
+                                                        const catColor = getCategoryColor(doc.category);
+                                                        return (
+                                                            <span style={{
+                                                                fontSize: '0.75rem',
+                                                                padding: '2px 8px',
+                                                                borderRadius: '4px',
+                                                                backgroundColor: `${catColor}33`,
+                                                                color: catColor,
+                                                                border: `1px solid ${catColor}66`
+                                                            }}>
+                                                                {doc.category}
+                                                            </span>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                                            <span style={{
-                                                color: isExpired ? '#f43f5e' : diffDays <= 7 ? '#fbbf24' : '#34d399',
-                                                fontWeight: 700,
-                                                letterSpacing: '0.02em'
-                                            }}>
-                                                {isExpired ? `EXPIRED ${Math.abs(diffDays)}d AGO` : `EXPIRES IN ${diffDays}d`}
-                                            </span>
-                                            <span style={{ opacity: 0.3 }}>•</span>
-                                            <span style={{ fontWeight: 700, color: 'var(--text-dim)', letterSpacing: '0.05em' }}>
-                                                {format(new Date(doc.expiryDate), 'dd-MM-yyyy')}
-                                            </span>
-                                            <span style={{ opacity: 0.3 }}>•</span>
-                                            <span style={{
-                                                background: 'rgba(255, 255, 255, 0.06)',
-                                                padding: '3px 12px',
-                                                borderRadius: '6px',
-                                                fontSize: '0.75rem',
-                                                border: '1px solid rgba(255,255,255,0.08)',
-                                                fontWeight: 600,
-                                                textTransform: 'uppercase'
-                                            }}>{doc.category}</span>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                                {doc.alerts.emailSent30 && <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>30d Alert</span>}
+                                                {doc.alerts.emailSent7 && <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>7d Alert</span>}
+                                                <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(96, 165, 250, 0.1)', color: '#60a5fa', border: '1px solid rgba(96, 165, 250, 0.2)' }}>Cal Event</span>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleEdit(doc); }}
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', transition: 'background 0.2s' }}
+                                                    className="action-btn"
+                                                    title="Edit Document"
+                                                >
+                                                    <Pencil size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDelete(doc.id, doc.name); }}
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', padding: '4px', borderRadius: '4px', transition: 'background 0.2s' }}
+                                                    className="action-btn"
+                                                    title="Delete Document"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                                        <button
-                                            className="btn-action"
-                                            title="Sync with Calendar"
-                                            onClick={() => window.open(generateCalendarUrl(doc.name, doc.expiryDate, doc.priority), '_blank')}
-                                            style={{
-                                                fontSize: '0.8rem', padding: '0.5rem 1rem', gap: '0.4rem',
-                                                background: 'rgba(124, 58, 237, 0.15)', color: '#c084fc',
-                                                borderColor: 'rgba(124, 58, 237, 0.3)',
-                                                fontWeight: 700
-                                            }}
-                                        >
-                                            CAL SYNC
-                                        </button>
-                                        <button onClick={() => handleEdit(doc)} className="btn-action" title="Edit Vault"><Pencil size={18} /></button>
-                                        <button onClick={() => handleDelete(doc.id, doc.name)} className="btn-action" style={{ color: '#f87171' }} title="Remove"><Trash2 size={18} /></button>
-                                    </div>
-                                </div>
-                            );
-                        }) : (
-                            <div style={{ textAlign: 'center', padding: '5rem 2rem', color: 'var(--text-dim)' }}>
-                                <LayoutDashboard size={64} style={{ opacity: 0.05, marginBottom: '1.5rem' }} />
-                                <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>No documents secured in vault.</p>
-                            </div>
-                        )}
-                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius)' }}>
+                            <CheckCircle size={48} style={{ marginBottom: '1rem', opacity: 0.2 }} />
+                            <p>No documents found.</p>
+                        </div>
+                    )}
                 </div>
 
-                {/* Quick Access Central */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                    <div className="card glass-panel" style={{ padding: '2rem' }}>
-                        <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Quick Access</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-                            <div className="quick-action-card" onClick={() => navigate('/calendar')}>
-                                <div className="quick-action-icon" style={{ color: '#818cf8', background: 'rgba(129, 140, 248, 0.1)' }}>
-                                    <CalendarIcon size={24} />
-                                </div>
-                                <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>CALENDAR</span>
+                <div className="card" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Quick Actions</h3>
+                    <div className="grid-cols-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                        <div
+                            className="card"
+                            onClick={() => navigate('/calendar')}
+                            style={{
+                                padding: '1.5rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem',
+                                cursor: 'pointer',
+                                background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                transition: 'all 0.3s ease'
+                            }}
+                        >
+                            <div style={{
+                                padding: '12px',
+                                borderRadius: '12px',
+                                background: 'rgba(129, 140, 248, 0.15)',
+                                color: '#818cf8',
+                                marginBottom: '0.5rem'
+                            }}>
+                                <Clock size={24} />
                             </div>
-                            <div className="quick-action-card" onClick={() => navigate('/alerts')}>
-                                <div className="quick-action-icon" style={{ color: '#fbbf24', background: 'rgba(251, 191, 36, 0.1)' }}>
-                                    <AlertTriangle size={24} />
-                                </div>
-                                <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>ALERTS</span>
-                            </div>
-                            <div className="quick-action-card" onClick={() => navigate('/profile')}>
-                                <div className="quick-action-icon" style={{ color: '#34d399', background: 'rgba(52, 211, 153, 0.1)' }}>
-                                    <User size={24} />
-                                </div>
-                                <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>PROFILE</span>
-                            </div>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Calendar</span>
                         </div>
-                    </div>
 
-                    <div className="card" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.1), transparent)' }}>
-                        <h4 style={{ margin: '0 0 1rem', fontSize: '1.1rem', fontWeight: 700 }}>System Status</h4>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--success)', fontSize: '0.9rem', fontWeight: 600 }}>
-                            <div style={{ width: '8px', height: '8px', background: 'var(--success)', borderRadius: '50%', boxShadow: '0 0 10px var(--success)' }}></div>
-                            ALL PROTOCOLS ACTIVE
+                        <div
+                            className="card"
+                            onClick={() => navigate('/alerts')}
+                            style={{
+                                padding: '1.5rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem',
+                                cursor: 'pointer',
+                                background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                transition: 'all 0.3s ease'
+                            }}
+                        >
+                            <div style={{
+                                padding: '12px',
+                                borderRadius: '12px',
+                                background: 'rgba(251, 191, 36, 0.15)',
+                                color: '#fbbf24',
+                                marginBottom: '0.5rem'
+                            }}>
+                                <AlertTriangle size={24} />
+                            </div>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Alerts</span>
                         </div>
-                        <p style={{ margin: '0.75rem 0 0', fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                            IDET is monitoring your documents for upcoming expiry dates.
-                        </p>
+
+                        <div
+                            className="card"
+                            onClick={() => navigate('/profile')}
+                            style={{
+                                padding: '1.5rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '1rem',
+                                cursor: 'pointer',
+                                background: 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                transition: 'all 0.3s ease'
+                            }}
+                        >
+                            <div style={{
+                                padding: '12px',
+                                borderRadius: '12px',
+                                background: 'rgba(52, 211, 153, 0.15)',
+                                color: '#34d399',
+                                marginBottom: '0.5rem'
+                            }}>
+                                <FileText size={24} />
+                            </div>
+                            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Profile</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <style>{`
-                .dashboard-wrapper {
-                    padding-bottom: 4rem;
-                }
-                .filter-chip {
-                    padding: 0.5rem 1.25rem;
-                    border-radius: 999px;
-                    font-size: 0.85rem;
-                    cursor: pointer;
-                    background: rgba(255, 255, 255, 0.04);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                    color: var(--text-dim);
-                    transition: all 0.3s var(--spring);
-                    font-weight: 600;
-                    text-transform: uppercase;
-                    letter-spacing: 0.03em;
-                }
-                .filter-chip:hover {
-                    background: rgba(124, 58, 237, 0.15);
-                    border-color: rgba(124, 58, 237, 0.3);
-                    color: white;
-                    transform: translateY(-2px);
-                }
-                .filter-chip.active {
-                    background: linear-gradient(135deg, var(--primary), #a855f7);
-                    color: white;
-                    border-color: transparent;
-                    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
-                    transform: translateY(-2px);
-                }
-                .doc-item {
-                    background: rgba(255, 255, 255, 0.02);
-                    border: 1px solid rgba(255, 255, 255, 0.06);
-                    border-radius: 16px;
-                    padding: 1.5rem;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    transition: all 0.4s var(--spring);
-                    position: relative;
-                    overflow: hidden;
-                }
-                .doc-item::before {
-                    content: '';
-                    position: absolute;
-                    left: 0; top: 0;
-                    width: 4px; height: 100%;
-                    background: var(--primary);
-                    opacity: 0;
-                    transition: all 0.3s ease;
-                }
-                .doc-item:hover {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-color: rgba(124, 58, 237, 0.2);
-                    transform: translateX(6px);
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                }
-                .doc-item:hover::before { opacity: 1; }
-                .doc-item.critical {
-                    border-color: rgba(244, 63, 94, 0.2);
-                    background: linear-gradient(90deg, rgba(244, 63, 94, 0.06) 0%, transparent 100%);
-                }
-                .doc-item.critical::before { background: var(--accent); opacity: 1; }
-                
-                .btn-action {
-                    background: rgba(255, 255, 255, 0.04);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                    border-radius: 12px;
-                    padding: 0.6rem;
-                    color: var(--text-dim);
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.25s var(--spring);
-                }
-                .btn-action:hover {
-                    color: white;
-                    background: rgba(255, 255, 255, 0.1);
-                    transform: translateY(-2px);
-                    border-color: rgba(255, 255, 255, 0.15);
-                }
-                .quick-action-card {
-                    background: rgba(255, 255, 255, 0.03);
-                    border: 1px solid rgba(255, 255, 255, 0.07);
-                    border-radius: 16px;
-                    padding: 1.5rem 1rem;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 0.75rem;
-                    cursor: pointer;
-                    transition: all 0.4s var(--spring);
-                    text-align: center;
-                }
-                .quick-action-card:hover {
-                    background: rgba(255, 255, 255, 0.06);
-                    border-color: var(--primary);
-                    transform: translateY(-6px);
-                    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
-                }
-                .quick-action-icon {
-                    padding: 1rem;
-                    border-radius: 14px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: all 0.3s var(--bounce);
-                }
-                .quick-action-card:hover .quick-action-icon {
-                    transform: scale(1.15) rotate(5deg);
-                }
-            `}</style>
         </div>
     );
 };
