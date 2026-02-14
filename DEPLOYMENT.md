@@ -34,10 +34,12 @@ Go to the **Environment** tab in your new Render service and add:
 | Key | Value (See `RENDER_SETUP.txt` for your secrets) |
 | :--- | :--- |
 | `NODE_VERSION` | `20` |
-| `VITE_SUPABASE_URL` | *(Copy from RENDER_SETUP.txt)* |
-| `VITE_SUPABASE_ANON_KEY` | *(Copy from RENDER_SETUP.txt)* |
-| `GMAIL_USER` | *(Copy from RENDER_SETUP.txt)* |
-| `GMAIL_APP_PASSWORD` | *(Copy from RENDER_SETUP.txt)* |
+| `VITE_SUPABASE_URL` | *(Copy from Supabase)* |
+| `VITE_SUPABASE_ANON_KEY` | *(Copy from Supabase)* |
+| `GMAIL_USER` | `your-email@gmail.com` |
+| `GMAIL_REFRESH_TOKEN` | *(From OAuth Playground)* |
+| `GOOGLE_CLIENT_ID` | *(From Google Cloud Console)* |
+| `GOOGLE_CLIENT_SECRET` | *(From Google Cloud Console)* |
 
 ## Step 5: Post-Deployment Config (CRITICAL)
 Your LIVE URL is: **`https://idet-app-1.onrender.com`**

@@ -66,21 +66,34 @@ const getGmailClient = async () => {
  */
 const createRawMessage = (from, to, subject, body) => {
     const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
-    const messageId = `<${Date.now()}.${Math.random().toString(36).substring(2)}@idet-app.render.com>`;
+    const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).substring(2)}`;
     const date = new Date().toUTCString();
-    const base64Body = Buffer.from(body).toString('base64');
+
+    // We treat 'body' as HTML since that's what our frontend sends
+    const htmlBody = body;
+    const textBody = body.replace(/<[^>]*>?/gm, ''); // Simple strip for plain text fallback
 
     const message = [
         `From: "IDET Alerts" <${from}>`,
         `To: ${to}`,
         `Subject: ${utf8Subject}`,
         `Date: ${date}`,
-        `Message-ID: ${messageId}`,
         `MIME-Version: 1.0`,
+        `Content-Type: multipart/alternative; boundary="${boundary}"`,
+        '',
+        `--${boundary}`,
+        `Content-Type: text/plain; charset=utf-8`,
+        `Content-Transfer-Encoding: 7bit`,
+        '',
+        textBody,
+        '',
+        `--${boundary}`,
         `Content-Type: text/html; charset=utf-8`,
         `Content-Transfer-Encoding: base64`,
         '',
-        base64Body
+        Buffer.from(htmlBody).toString('base64'),
+        '',
+        `--${boundary}--`
     ].join('\r\n');
 
     return Buffer.from(message).toString('base64url');
@@ -91,15 +104,15 @@ app.post('/api/send-email', async (req, res) => {
     const timestamp = new Date().toISOString();
     const { to, subject, html, text } = req.body;
 
-    console.log(`[${timestamp}] [Gmail API] SEND Attempt to: ${to}`);
-
+    console.log(`[${timestamp}] [Gmail API] SEND Attempt to: ${to} (Subject: ${subject})`);
     if (!to) return res.status(400).json({ success: false, error: "Recipient missing" });
 
     try {
         const { gmail, user } = await getGmailClient();
         const raw = createRawMessage(user, to, subject, html || text);
+        const rawLength = raw.length;
 
-        console.log(`[Gmail API] Dispatching message...`);
+        console.log(`[Gmail API] Dispatching message (Length: ${rawLength} bytes)...`);
         const response = await gmail.users.messages.send({
             userId: 'me',
             requestBody: { raw }
@@ -117,8 +130,35 @@ app.post('/api/send-email', async (req, res) => {
         res.status(500).json({
             success: false,
             error: error.message,
-            hint: error.message === 'invalid_client' ? 'Check your Client ID and Secret for typos.' : 'Check your Refresh Token.',
-            details: error.response?.data
+            hint: error.message === 'invalid_client' ? 'Check your Client ID and Secret.' : 'Check your Refresh Token.',
+            details: error.response?.data,
+            credentialsDiagnostic: {
+                hasId: !!process.env.GOOGLE_CLIENT_ID,
+                hasSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+                hasToken: !!process.env.GMAIL_REFRESH_TOKEN
+            }
+        });
+    }
+});
+
+// Diagnostic Route: Verifies token explicitly without sending mail
+app.get('/api/diagnose-gmail', async (req, res) => {
+    try {
+        const { oauth2Client } = await getGmailClient();
+        console.log('[Diagnostic] Attempting token refresh...');
+        const { token } = await oauth2Client.getAccessToken();
+        res.json({
+            success: true,
+            status: 'Token is valid',
+            tokenType: typeof token,
+            message: 'Your Google API credentials are CORRECT.'
+        });
+    } catch (error) {
+        console.error('[Diagnostic] Failure:', error.message);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            details: error.response?.data || 'No extra details'
         });
     }
 });

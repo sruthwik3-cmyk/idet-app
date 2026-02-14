@@ -237,7 +237,7 @@ const AddDocument: React.FC = () => {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
                             <small style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <CheckCircle size={12} color="var(--success)" />
-                                Alerts scheduled for 7 days before expiry
+                                Alerts scheduled for 30 and 7 days before expiry
                             </small>
                             {formData.expiryDate && (
                                 <small style={{ color: 'var(--primary)', fontWeight: 'bold' }}>

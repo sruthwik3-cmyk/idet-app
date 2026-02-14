@@ -60,9 +60,11 @@ const UserSettings: React.FC = () => {
         if (!userProfile?.email) return showNotification('Save email first', 'error');
         setIsTesting(true);
         try {
+            // Play sound IMMEDIATELY for instant feedback
+            playAlertSound();
+
             const res = await sendExpiryAlert(userProfile.email, `Test ${days}-Day`, days, new Date().toISOString());
             if (res.success) {
-                playAlertSound();
                 showNotification(`${days}-day test sent!`, 'success');
             } else { showNotification('Failed to send test.', 'error'); }
         } finally { setIsTesting(false); }

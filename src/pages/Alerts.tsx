@@ -19,8 +19,31 @@ const Alerts: React.FC = () => {
                         Track your document security lifecycle and notification history.
                     </p>
                 </div>
-                <div style={{ padding: '0.75rem 1.5rem', background: 'var(--primary-soft)', borderRadius: '12px', border: '1px solid var(--primary-glow)', color: '#c084fc', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Bell size={18} /> {alertDocs.length} ACTIVE TRAILS
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <button
+                        onClick={() => useApp().refreshAlerts()}
+                        style={{
+                            padding: '0.75rem 1.25rem',
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '12px',
+                            color: 'var(--text-primary)',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            transition: 'all 0.2s ease'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                    >
+                        <History size={16} /> Force Check Alerts
+                    </button>
+                    <div style={{ padding: '0.75rem 1.5rem', background: 'var(--primary-soft)', borderRadius: '12px', border: '1px solid var(--primary-glow)', color: '#c084fc', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Bell size={18} /> {alertDocs.length} ACTIVE TRAILS
+                    </div>
                 </div>
             </div>
 

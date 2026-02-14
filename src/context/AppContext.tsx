@@ -85,6 +85,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     dob: profile.dob,
                     userGroup: profile.user_group
                 });
+            } else {
+                // New user: Set a shell profile to allow navigation to setup-profile
+                setUserProfile({
+                    fullName: '',
+                    email: authEmail || '',
+                    phone: '',
+                    dob: '',
+                    userGroup: 'Self'
+                });
             }
             const { data: docs } = await supabase.from('documents').select('*').order('expiry_date', { ascending: true });
             if (docs) {
@@ -107,7 +116,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 }
 
                 // Immediate check 2 seconds after fetching data
-                setTimeout(() => checkAndSendAlerts(mappedDocs as Document[], userProfileRef.current), 2000);
+                // Pass the newly created profile object directly to avoid ref race conditions
+                const newProfile: UserProfile = {
+                    fullName: profile?.full_name || '',
+                    email: profile?.email || authEmail || '',
+                    phone: profile?.phone || '',
+                    dob: profile?.dob || '',
+                    userGroup: profile?.user_group || 'Self'
+                };
+                setTimeout(() => checkAndSendAlerts(mappedDocs as Document[], newProfile), 2000);
             }
         } catch (error) {
             console.error('Fetch error:', error);
@@ -151,84 +168,96 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             const docsToCheck = currentDocs || documents;
             const userToCheck = currentUser || userProfile;
 
-            if (!userToCheck?.email || docsToCheck.length === 0) {
-                console.log('[Alert] No user email or no documents, skipping');
+            if (!userToCheck?.email) {
+                console.log('[Alert] No user email yet, skipping check');
+                return;
+            }
+
+            if (docsToCheck.length === 0) {
+                console.log('[Alert] No documents to check');
                 return;
             }
 
             const now = new Date();
-            const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+            // Set both dates to noon to avoid edge-of-day timezone issues
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
 
             for (const doc of docsToCheck) {
-                const expiry = new Date(doc.expiryDate);
-                const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
-                const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
+                try {
+                    const expiryRaw = new Date(doc.expiryDate);
+                    const expiry = new Date(expiryRaw.getFullYear(), expiryRaw.getMonth(), expiryRaw.getDate(), 12, 0, 0);
+                    const diffDays = Math.round((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-                // STRICT: Only alert for 0-30 days. Skip everything else.
-                if (diffDays > 30 || diffDays < 0) continue;
+                    // STRICT: Only alert for 0-30 days. Skip everything else.
+                    if (diffDays > 30 || diffDays < 0) continue;
 
-                let updatedAlerts = { ...doc.alerts };
-                let triggerUpdate = false;
+                    let updatedAlerts = { ...doc.alerts };
+                    let triggerUpdate = false;
 
-                // ===== 30-DAY ALERT (8-30 days remaining) =====
-                const key30 = `${doc.id}-30`;
-                if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30 && !alertedThisSession.has(key30)) {
-                    console.log(`[Alert] *** 30-DAY TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
+                    // ===== 30-DAY ALERT (8-30 days remaining) =====
+                    const key30 = `${doc.id}-30`;
+                    if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30 && !alertedThisSession.has(key30)) {
+                        console.log(`[Alert] *** 30-DAY TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
 
-                    // Mark in session immediately to prevent re-trigger
-                    alertedThisSession.add(key30);
+                        // Mark in session immediately to prevent re-trigger
+                        alertedThisSession.add(key30);
 
-                    // Play sound
-                    playAlertSound();
+                        // Play sound IMMEDIATELY (Non-blocking)
+                        playAlertSound();
 
-                    // Send email
-                    const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                    console.log(`[Alert] Email result for "${doc.name}":`, JSON.stringify(emailRes));
+                        // Send email (Wait for result to update DB)
+                        const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                        console.log(`[Alert] Email result for "${doc.name}":`, JSON.stringify(emailRes));
 
-                    if (emailRes.success) {
-                        showNotification(`30-day alert: ${doc.name} - Email sent!`, 'success');
-                    } else {
-                        showNotification(`30-day alert: ${doc.name} (email issue: ${emailRes.error || 'unknown'})`, 'error');
+                        if (emailRes.success) {
+                            showNotification(`30-day alert: ${doc.name} - Email sent!`, 'success');
+                            updatedAlerts.emailSent30 = true;
+                            triggerUpdate = true;
+                        } else {
+                            showNotification(`30-day alert: ${doc.name} (email issue: ${emailRes.error || 'unknown'})`, 'error');
+                            // DO NOT set emailSent30 to true, allow retry on next check
+                            alertedThisSession.delete(key30);
+                        }
                     }
 
-                    updatedAlerts.emailSent30 = true;
-                    triggerUpdate = true;
-                }
+                    // ===== 7-DAY ALERT (0-7 days remaining) =====
+                    const key7 = `${doc.id}-7`;
+                    if (diffDays <= 7 && !doc.alerts.emailSent7 && !alertedThisSession.has(key7)) {
+                        console.log(`[Alert] *** 7-DAY URGENT TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
 
-                // ===== 7-DAY ALERT (0-7 days remaining) =====
-                const key7 = `${doc.id}-7`;
-                if (diffDays <= 7 && !doc.alerts.emailSent7 && !alertedThisSession.has(key7)) {
-                    console.log(`[Alert] *** 7-DAY URGENT TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
+                        // Mark in session immediately
+                        alertedThisSession.add(key7);
 
-                    // Mark in session immediately
-                    alertedThisSession.add(key7);
+                        // Play sound IMMEDIATELY
+                        playAlertSound();
 
-                    // Play sound
-                    playAlertSound();
+                        // Send email
+                        const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                        console.log(`[Alert] Email result for "${doc.name}":`, JSON.stringify(emailRes));
 
-                    // Send email
-                    const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                    console.log(`[Alert] Email result for "${doc.name}":`, JSON.stringify(emailRes));
-
-                    if (emailRes.success) {
-                        showNotification(`URGENT 7-day alert: ${doc.name} - Email sent!`, 'success');
-                    } else {
-                        showNotification(`URGENT: ${doc.name} expires in ${diffDays}d (email issue: ${emailRes.error || 'unknown'})`, 'error');
+                        if (emailRes.success) {
+                            showNotification(`URGENT 7-day alert: ${doc.name} - Email sent!`, 'success');
+                            updatedAlerts.emailSent7 = true;
+                            triggerUpdate = true;
+                        } else {
+                            showNotification(`URGENT: ${doc.name} expires in ${diffDays}d (email issue: ${emailRes.error || 'unknown'})`, 'error');
+                            // DO NOT set emailSent7 to true, allow retry
+                            alertedThisSession.delete(key7);
+                        }
                     }
 
-                    updatedAlerts.emailSent7 = true;
-                    triggerUpdate = true;
-                }
-
-                // Update DB so it persists across sessions
-                if (triggerUpdate) {
-                    const { error: dbError } = await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
-                    if (dbError) {
-                        console.error(`[Alert] DB update FAILED for "${doc.name}":`, dbError.message);
-                    } else {
-                        console.log(`[Alert] DB updated OK for "${doc.name}"`);
+                    // Update DB so it persists across sessions
+                    if (triggerUpdate) {
+                        const { error: dbError } = await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
+                        if (dbError) {
+                            console.error(`[Alert] DB update FAILED for "${doc.name}":`, dbError.message);
+                        } else {
+                            console.log(`[Alert] DB updated OK for "${doc.name}"`);
+                        }
+                        setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
                     }
-                    setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
+                } catch (docError) {
+                    console.error(`[Alert] Error processing document "${doc.name}":`, docError);
                 }
             }
         } finally {

@@ -48,28 +48,30 @@ export const stopAlertSound = () => {
  * Returns true if sound started, false otherwise.
  */
 export const playAlertSound = (): boolean => {
-    console.log("[Sound] playAlertSound() called");
-
-    // Always try to unlock first
     const ctx = getAudioContext();
     if (!ctx) {
-        console.warn("[Sound] AudioContext not supported on this browser");
+        console.error("[Sound] AudioContext NOT supported");
         return false;
     }
 
-    // Resume if suspended
+    console.log(`[Sound] playAlertSound called. Current state: ${ctx.state}`);
+
     if (ctx.state === 'suspended') {
-        console.log("[Sound] AudioContext is suspended, attempting resume...");
+        console.log("[Sound] Attempting to resume suspended context...");
         ctx.resume().then(() => {
-            console.log("[Sound] AudioContext resumed, replaying...");
-            _playMelody(ctx);
-        }).catch(e => console.error("[Sound] Auto-resume failed:", e));
+            console.log(`[Sound] Context resumed successfully. New state: ${ctx.state}`);
+            if (ctx.state === 'running') {
+                _playMelody(ctx);
+            } else {
+                console.warn("[Sound] Context still suspended after resume attempt. Likely browser block.");
+            }
+        }).catch(err => {
+            console.error("[Sound] Context resume failed:", err);
+        });
         return false;
     }
 
-    // Stop any previous sound before starting a new one
     stopAlertSound();
-
     _playMelody(ctx);
     return true;
 };
