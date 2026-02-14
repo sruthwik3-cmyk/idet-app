@@ -74,38 +74,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [userProfile]);
 
     const fetchUserData = async (userId: string, authEmail?: string | null) => {
-        console.log(`[Auth] fetchUserData started for ${userId} (${authEmail})`);
-
-        // Phase 1: Ensure we have at least a shell profile immediately
-        // This stops the redirect loop from login to dashboard
-        setUserProfile(prev => {
-            if (prev) return prev; // Keep existing if we have it
-            return {
-                fullName: '',
-                email: authEmail || '',
-                phone: '',
-                dob: '',
-                userGroup: 'Self'
-            };
-        });
-
+        setLoading(true);
         try {
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .single();
-
-            if (profileError) {
-                if (profileError.code === 'PGRST116') {
-                    console.log('[Auth] Profile record not in DB yet (New User)');
-                } else {
-                    console.error('[Auth] Profile fetch error:', profileError);
-                }
-            }
-
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
             if (profile) {
-                console.log('[Auth] Profile found, updating state');
                 setUserProfile({
                     fullName: profile.full_name,
                     email: profile.email || authEmail || '',
@@ -113,19 +85,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     dob: profile.dob,
                     userGroup: profile.user_group
                 });
+            } else {
+                // New user: Set a shell profile to allow navigation to setup-profile
+                setUserProfile({
+                    fullName: '',
+                    email: authEmail || '',
+                    phone: '',
+                    dob: '',
+                    userGroup: 'Self'
+                });
             }
-
-            // Phase 2: Fetch documents
-            console.log('[Auth] Fetching documents...');
-            const { data: docs, error: docsError } = await supabase
-                .from('documents')
-                .select('*')
-                .order('expiry_date', { ascending: true });
-
-            if (docsError) {
-                console.error('[Auth] Documents fetch error:', docsError);
-            }
-
+            const { data: docs } = await supabase.from('documents').select('*').order('expiry_date', { ascending: true });
             if (docs) {
                 const mappedDocs = docs.map((d: any) => ({
                     id: d.id,
@@ -164,33 +134,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     useEffect(() => {
-        console.log('[Auth] Main useEffect mounting');
-
-        let isInitial = true;
-
         supabase.auth.getSession().then(({ data: { session } }) => {
-            console.log('[Auth] getSession checked:', session ? 'User present' : 'No session');
-            if (session?.user) {
-                fetchUserData(session.user.id, session.user.email);
-            } else if (isInitial) {
-                setLoading(false);
-            }
+            if (session?.user) fetchUserData(session.user.id, session.user.email);
+            else setLoading(false);
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            console.log(`[Auth] onAuthStateChange: ${event}`);
-            isInitial = false;
-
-            if (session?.user) {
-                fetchUserData(session.user.id, session.user.email);
-            } else if (event === 'SIGNED_OUT') {
-                setDocuments([]);
-                setUserProfile(null);
-                setLoading(false);
-            } else {
-                // For INITIAL_SESSION or other non-user events
-                setLoading(false);
-            }
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session?.user) fetchUserData(session.user.id, session.user.email);
+            else { setDocuments([]); setUserProfile(null); setLoading(false); }
         });
 
         // Check every 60 seconds

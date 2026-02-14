@@ -36,19 +36,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function AppRoutes() {
-    const { userProfile, loading } = useApp();
-
-    // Prevent rendering ANY route until initial auth check is finished
-    if (loading) {
-        return <div style={{ height: '100vh', background: '#09090b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="btn-pulse" style={{ width: '40px', height: '40px', background: 'var(--primary)', borderRadius: '50%' }}></div>
-        </div>;
-    }
+    const { userProfile } = useApp();
 
     return (
         <Routes>
             <Route path="/" element={userProfile ? <Navigate to="/dashboard" replace /> : <Landing />} />
-            <Route path="/login" element={userProfile ? <Navigate to="/dashboard" replace /> : <Login />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
 
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

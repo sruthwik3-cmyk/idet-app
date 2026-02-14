@@ -63,16 +63,11 @@ const Login: React.FC = () => {
 
     const handleGoogleLogin = async () => {
         setLoading(true);
-        setError(null);
-        console.log('[Auth] Google Login requested');
         try {
-            const redirectTo = window.location.origin + '/dashboard';
-            console.log(`[Auth] Redirecting to: ${redirectTo}`);
-
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo,
+                    redirectTo: window.location.origin + '/dashboard',
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'consent',
@@ -82,7 +77,7 @@ const Login: React.FC = () => {
             if (error) throw error;
         } catch (error: any) {
             console.error('Google Login Error:', error);
-            setError(`Google Login Failed: ${error.message || 'Unknown error'}. Please check if your browser blocks popups or cookies.`);
+            setError(`Google Login Failed: ${error.message || 'Unknown error'}. Check console for details.`);
             setLoading(false);
         }
     };
