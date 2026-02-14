@@ -66,10 +66,9 @@ const Profile: React.FC = () => {
 
         if (res?.success) {
             playAlertSound();
-            showNotification(res.isSimulation ? `[Simulation] ${days}-day alert sent to log.` : `${days}-day alert sent to Gmail!`, 'success');
+            showNotification(`${days}-day alert sent successfully!`, 'success');
         } else {
-            const errorRes = res as any;
-            const errorMsg = errorRes?.error?.message || errorRes?.error?.details || 'Failed to send test.';
+            const errorMsg = (res as any)?.error?.message || (res as any)?.error?.details || 'Failed to send test.';
             showNotification(`Error: ${errorMsg}`, 'error');
         }
         setIsTesting(false);
