@@ -15,3 +15,8 @@ This project introduces **IDET (Important Documents Expiry Tracker)**, a modern,
 *   **User-Centric Design:** Features a responsive interface with specialized mobile views and an interactive calendar to visualize upcoming expirations effortlessly.
 
 By automating the monitoring process and providing a unified view of all important documentation, IDET significantly reduces the administrative burden on users, offering peace of mind and preventing the consequences of missed renewals.
+
+## Milestones
+
+- **Feb 12, 2026:** Successfully verified the multi-channel alert system (Sound, Gmail, and Google Calendar) for 7-day and 30-day thresholds, and isolated Calendar-only sync for windows exceeding 30 days.
+- **Feb 14, 2026:** Implemented alert protocol documentation and refined sound notification logic to prevent redundant triggers.
