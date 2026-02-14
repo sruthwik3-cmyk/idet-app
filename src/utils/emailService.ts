@@ -17,30 +17,50 @@ export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft
     `;
 
     try {
+        // 20-second timeout to prevent hanging on slow SMTP connections
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+
         const response = await fetch('/api/send-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ to: toEmail, subject, html, text: `Alert: ${docName} expires soon!` }),
+            body: JSON.stringify({ to: toEmail, subject, html, text: `Alert: ${docName} expires in ${daysLeft} days!` }),
+            signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         const data = await response.json();
         if (!response.ok) return { success: false, ...data };
         return { success: true, ...data };
     } catch (error: any) {
-        return { success: false, error: "Network Error", details: error.message };
+        if (error.name === 'AbortError') {
+            console.error('[Email] Request timed out after 20s');
+            return { success: false, error: 'Email request timed out (server may be slow)' };
+        }
+        return { success: false, error: 'Network Error', details: error.message };
     }
 };
 
 export const testBackendConnectivity = async (email: string) => {
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+
         const response = await fetch('/api/test-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email }),
+            signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
         const data = await response.json();
         return { success: response.ok, ...data };
     } catch (error: any) {
+        if (error.name === 'AbortError') {
+            return { success: false, error: 'Email test timed out (server may be slow)' };
+        }
         return { success: false, error: error.message };
     }
 };

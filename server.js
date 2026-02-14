@@ -46,7 +46,12 @@ const createTransporter = async () => {
             const { token } = await oauth2Client.getAccessToken();
             console.log('[Email Service] OAuth2 Access Token retrieved.');
             return nodemailer.createTransport({
-                service: 'gmail',
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true,
+                connectionTimeout: 10000,
+                greetingTimeout: 10000,
+                socketTimeout: 15000,
                 auth: {
                     type: 'OAuth2',
                     user: gmailUser,
@@ -66,7 +71,12 @@ const createTransporter = async () => {
     if (appPassword) {
         console.log('[Email Service] Using Gmail App Password authentication.');
         return nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
             auth: {
                 user: gmailUser,
                 pass: appPassword
