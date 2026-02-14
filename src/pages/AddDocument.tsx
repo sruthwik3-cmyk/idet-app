@@ -79,12 +79,35 @@ const AddDocument: React.FC = () => {
         }
     };
 
+    const getSuccessMessage = () => {
+        const now = new Date();
+        const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        const expiry = new Date(formData.expiryDate);
+        const expiryUTC = Date.UTC(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
+        const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 30) {
+            return (
+                <>
+                    Reminders will activate once your document is within 30 days of expiry.<br />
+                    We've opened Google Calendar to save your primary deadline.
+                </>
+            );
+        }
+        return (
+            <>
+                We've automated 30-day and 7-day Gmail reminders for you.<br />
+                We've also opened Google Calendar to save your final deadline.
+            </>
+        );
+    };
+
     if (showSuccess) {
         return (
             <div className="animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
                 <CheckCircle size={64} color="var(--success)" style={{ marginBottom: '1rem' }} />
                 <h1>Document Saved!</h1>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>We've automated 30-day and 7-day Gmail reminders for you.<br />We've also opened Google Calendar to save your final deadline.</p>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>{getSuccessMessage()}</p>
 
                 <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '400px' }}>
                     <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: '1px solid var(--success)', textAlign: 'left', background: 'rgba(52, 211, 153, 0.05)' }}>

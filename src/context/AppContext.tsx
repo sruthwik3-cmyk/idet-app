@@ -181,6 +181,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 // Sound suppression (once per day per doc)
                 const soundKey = `sound-30-${doc.id}-${new Date().toDateString()}`;
                 if (!localStorage.getItem(soundKey)) {
+                    console.log(`[Alert] Playing 30-day sound for ${doc.name}`);
                     playAlertSound();
                     localStorage.setItem(soundKey, 'true');
                 }
@@ -218,6 +219,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 // Sound suppression (once per day per doc)
                 const soundKey = `sound-7-${doc.id}-${new Date().toDateString()}`;
                 if (!localStorage.getItem(soundKey)) {
+                    console.log(`[Alert] Playing 7-day urgent sound for ${doc.name}`);
                     playAlertSound();
                     localStorage.setItem(soundKey, 'true');
                 }
@@ -247,6 +249,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     console.error(`[Alert] Gmail Error for "${doc.name}":`, err);
                     showNotification(`❌ Error sending 7-day alert for ${doc.name}`, 'error');
                 }
+            }
+
+            // Explicitly NO Sound/Gmail for > 30 days
+            if (diffDays > 30) {
+                console.log(`[Alert] "${doc.name}" is > 30 days out (${diffDays}d). Skipping sound and Gmail.`);
             }
         }
         console.log('[AlertCheck] Check complete');
@@ -324,8 +331,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             // 30-Day Rule (Manual Entry)
             if (diffDays <= 30 && diffDays > 7) {
                 console.log(`[AddDoc] 🔔 Within 30-day window.`);
-                playAlertSound();
-                localStorage.setItem(`sound-30-${data.id}-${new Date().toDateString()}`, 'true');
+
+                // Sound suppression check
+                const soundKey = `sound-30-${data.id}-${new Date().toDateString()}`;
+                if (!localStorage.getItem(soundKey)) {
+                    console.log(`[AddDoc] Playing 30-day sound for ${docData.name}`);
+                    playAlertSound();
+                    localStorage.setItem(soundKey, 'true');
+                }
 
                 if (userProfile?.email) {
                     try {
@@ -348,8 +361,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             // 7-Day Rule (Manual Entry)
             if (diffDays <= 7 && diffDays >= 0) {
                 console.log(`[AddDoc] 🚨 Within 7-day window.`);
-                playAlertSound();
-                localStorage.setItem(`sound-7-${data.id}-${new Date().toDateString()}`, 'true');
+
+                // Sound suppression check
+                const soundKey = `sound-7-${data.id}-${new Date().toDateString()}`;
+                if (!localStorage.getItem(soundKey)) {
+                    console.log(`[AddDoc] Playing 7-day urgent sound for ${docData.name}`);
+                    playAlertSound();
+                    localStorage.setItem(soundKey, 'true');
+                }
 
                 if (userProfile?.email) {
                     try {
