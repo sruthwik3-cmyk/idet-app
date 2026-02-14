@@ -195,6 +195,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 // Send Gmail alert
                 try {
                     const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                    console.log(`[Alert] Email result for "${doc.name}":`, res);
                     if (res?.success) {
                         const nextAlerts = { ...doc.alerts, emailSent30: true };
                         await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id);
@@ -205,7 +206,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                         showNotification(`⚠️ Gmail alert failed for "${doc.name}". Check server config.`, 'error');
                     }
                 } catch (err) {
-                    console.error(`[Alert] Gmail Error:`, err);
+                    console.error(`[Alert] Gmail Error for "${doc.name}":`, err);
+                    showNotification(`❌ Error sending 30-day alert for ${doc.name}`, 'error');
                 }
             }
 
@@ -231,6 +233,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 // Send Gmail alert
                 try {
                     const res = await sendExpiryAlert(userProfile.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                    console.log(`[Alert] Email result for "${doc.name}":`, res);
                     if (res?.success) {
                         const nextAlerts = { ...doc.alerts, emailSent7: true };
                         await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', doc.id);
@@ -241,7 +244,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                         showNotification(`⚠️ Urgent alert failed for "${doc.name}". Check server config.`, 'error');
                     }
                 } catch (err) {
-                    console.error(`[Alert] Gmail Error:`, err);
+                    console.error(`[Alert] Gmail Error for "${doc.name}":`, err);
+                    showNotification(`❌ Error sending 7-day alert for ${doc.name}`, 'error');
                 }
             }
         }
@@ -324,17 +328,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 localStorage.setItem(`sound-30-${data.id}-${new Date().toDateString()}`, 'true');
 
                 if (userProfile?.email) {
-                    sendExpiryAlert(userProfile.email, docData.name, diffDays, docData.expiryDate, docData.priority).then(res => {
+                    try {
+                        const res = await sendExpiryAlert(userProfile.email, docData.name, diffDays, docData.expiryDate, docData.priority);
                         if (res?.success) {
                             const nextAlerts = { ...newAlerts, emailSent30: true };
-                            supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', data.id).then(() => {
-                                setDocuments(prev => prev.map(d => d.id === data.id ? { ...d, alerts: nextAlerts } : d));
-                                showNotification(`✅ 30-day alert sent to Gmail`, 'success');
-                            });
+                            await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', data.id);
+                            setDocuments(prev => prev.map(d => d.id === data.id ? { ...d, alerts: nextAlerts } : d));
+                            showNotification(`✅ 30-day alert sent to Gmail`, 'success');
                         } else {
                             showNotification(`⚠️ Gmail failed. Check server configuration.`, 'error');
                         }
-                    });
+                    } catch (err) {
+                        console.error('[AddDoc] Email error:', err);
+                        showNotification(`❌ Email error for "${docData.name}"`, 'error');
+                    }
                 }
             }
 
@@ -345,17 +352,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 localStorage.setItem(`sound-7-${data.id}-${new Date().toDateString()}`, 'true');
 
                 if (userProfile?.email) {
-                    sendExpiryAlert(userProfile.email, docData.name, diffDays, docData.expiryDate, docData.priority).then(res => {
+                    try {
+                        const res = await sendExpiryAlert(userProfile.email, docData.name, diffDays, docData.expiryDate, docData.priority);
                         if (res?.success) {
                             const nextAlerts = { ...newAlerts, emailSent7: true };
-                            supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', data.id).then(() => {
-                                setDocuments(prev => prev.map(d => d.id === data.id ? { ...d, alerts: nextAlerts } : d));
-                                showNotification(`🚨 Urgent 7-day alert sent to Gmail`, 'success');
-                            });
+                            await supabase.from('documents').update({ alerts_json: nextAlerts }).eq('id', data.id);
+                            setDocuments(prev => prev.map(d => d.id === data.id ? { ...d, alerts: nextAlerts } : d));
+                            showNotification(`🚨 Urgent 7-day alert sent to Gmail`, 'success');
                         } else {
                             showNotification(`⚠️ Gmail failed. Check server configuration.`, 'error');
                         }
-                    });
+                    } catch (err) {
+                        console.error('[AddDoc] Email error:', err);
+                        showNotification(`❌ Email error for "${docData.name}"`, 'error');
+                    }
                 }
             }
 
