@@ -135,19 +135,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, []);
 
     useEffect(() => {
-        const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-        const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-        const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-
-        if (!serviceId || !templateId || !publicKey) {
-            console.error("[Config] EmailJS keys missing! Build did not pick up VITE_ keys.", {
-                serviceId: !!serviceId,
-                templateId: !!templateId,
-                publicKey: !!publicKey
-            });
-        } else {
-            console.log("[Config] EmailJS keys detected successfully.");
-        }
+        console.log("[Config] System is using Backend Gmail API (REST) mode.");
     }, []);
 
     const checkAndSendAlerts = async (currentDocs: Document[] | null = null, currentUser: UserProfile | null = null) => {
