@@ -142,20 +142,37 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
                 // 30-Day Alert
                 if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30) {
-                    playAlertSound();
-                    await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                    updatedAlerts.emailSent30 = true;
-                    triggerUpdate = true;
-                    showNotification(`30-day alert for ${doc.name}`, 'success');
+                    console.log(`[Alert] Attempting 30-day email for ${doc.name}`);
+                    const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+
+                    if (emailRes.success) {
+                        console.log(`[Alert] 30-day email success for ${doc.name}`);
+                        playAlertSound();
+                        updatedAlerts.emailSent30 = true;
+                        triggerUpdate = true;
+                        showNotification(`30-day alert sent for ${doc.name}`, 'success');
+                    } else {
+                        console.error(`[Alert] 30-day email failed for ${doc.name}:`, emailRes);
+                        // Do not play sound, do not update DB (so it retries), but warn user
+                        showNotification(`Failed to send 30-day alert: ${emailRes.error || 'Unknown error'}`, 'error');
+                    }
                 }
 
                 // 7-Day Alert (Urgent)
                 if (diffDays <= 7 && !doc.alerts.emailSent7) {
-                    playAlertSound();
-                    await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                    updatedAlerts.emailSent7 = true;
-                    triggerUpdate = true;
-                    showNotification(`URGENT 7-day alert for ${doc.name}`, 'error');
+                    console.log(`[Alert] Attempting 7-day email for ${doc.name}`);
+                    const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+
+                    if (emailRes.success) {
+                        console.log(`[Alert] 7-day email success for ${doc.name}`);
+                        playAlertSound();
+                        updatedAlerts.emailSent7 = true;
+                        triggerUpdate = true;
+                        showNotification(`URGENT 7-day alert sent for ${doc.name}`, 'info');
+                    } else {
+                        console.error(`[Alert] 7-day email failed for ${doc.name}:`, emailRes);
+                        showNotification(`Failed to send 7-day alert: ${emailRes.error || 'Unknown error'}`, 'error');
+                    }
                 }
 
                 if (triggerUpdate) {
