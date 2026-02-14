@@ -31,7 +31,13 @@ const getGmailClient = async () => {
     const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
 
     if (!gmailUser || !clientId || !clientSecret || !refreshToken) {
-        throw new Error('Missing Google API credentials (CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, or GMAIL_USER).');
+        console.error('[Gmail API] Missing credentials in environment:', {
+            hasUser: !!gmailUser,
+            hasClientId: !!clientId,
+            hasSecret: !!clientSecret,
+            hasToken: !!refreshToken
+        });
+        throw new Error('Missing Google API credentials.');
     }
 
     const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
@@ -42,19 +48,29 @@ const getGmailClient = async () => {
 
 /**
  * Creates a raw RFC822 message for Gmail API.
+ * Uses base64url encoding.
  */
 const createRawMessage = (to, subject, html, text) => {
-    const str = [
-        `Content-Type: text/html; charset="UTF-8"\n`,
-        `MIME-Version: 1.0\n`,
-        `Content-Transfer-Encoding: 7bit\n`,
-        `to: ${to}\n`,
-        `from: "IDET Alerts" <${process.env.GMAIL_USER}>\n`,
-        `subject: ${subject}\n\n`,
-        html || text
-    ].join('');
+    const from = process.env.GMAIL_USER;
+    const body = html || text;
 
-    return Buffer.from(str)
+    // RFC 822 format requires specific headers and boundaries for complex emails, 
+    // but for simple HTML/Text, this format works well.
+    const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
+
+    // Use \r\n as per RFC 822
+    const messageParts = [
+        `From: "IDET Alerts" <${from}>`,
+        `To: ${to}`,
+        `Content-Type: text/html; charset=utf-8`,
+        `MIME-Version: 1.0`,
+        `Subject: ${utf8Subject}`,
+        '',
+        body
+    ];
+    const message = messageParts.join('\r\n');
+
+    return Buffer.from(message)
         .toString('base64')
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
@@ -66,29 +82,48 @@ app.post('/api/send-email', async (req, res) => {
     const timestamp = new Date().toISOString();
     const { to, subject, html, text } = req.body;
 
-    console.log(`[${timestamp}] [Gmail API] Request for: ${to}`);
+    console.log(`[${timestamp}] [Gmail API] Send Request to: ${to}`);
 
     try {
         const gmail = await getGmailClient();
         const raw = createRawMessage(to, subject, html, text);
+
+        // Verification log (safe version)
+        console.log(`[Gmail API] Preparing to send via: ${process.env.GMAIL_USER}`);
 
         const response = await gmail.users.messages.send({
             userId: 'me',
             requestBody: { raw }
         });
 
-        console.log(`[${timestamp}] [Gmail API] Success! Message ID: ${response.data.id}`);
+        console.log(`[${timestamp}] [Gmail API] SEND SUCCESS! ID: ${response.data.id}`);
         res.json({ success: true, messageId: response.data.id });
     } catch (error) {
-        console.error(`[${timestamp}] [Gmail API] CRITICAL ERROR:`, error.message);
-        res.status(500).json({ success: false, error: error.message });
+        console.error(`[${timestamp}] [Gmail API] SEND FAILURE:`, error.message);
+        // Provide more detail if it's an auth error
+        const isAuthError = error.message.includes('401') || error.message.includes('invalid_grant');
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            hint: isAuthError ? "Check if GMAIL_REFRESH_TOKEN is correct and not expired." : "Check logs for details."
+        });
     }
 });
 
 // App health/status endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+    let gmailStatus = 'checking';
+    try {
+        const gmail = await getGmailClient();
+        const profile = await gmail.users.getProfile({ userId: 'me' });
+        gmailStatus = `connected as ${profile.data.emailAddress}`;
+    } catch (err) {
+        gmailStatus = `error: ${err.message}`;
+    }
+
     res.json({
         status: 'ok',
+        gmailStatus,
         mode: 'gmail-api-rest',
         timestamp: new Date().toISOString()
     });
