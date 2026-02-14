@@ -86,12 +86,6 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
                                 </NavLink>
                             </li>
                         ))}
-                        <li>
-                            <NavLink to="/profile" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                                <User size={20} />
-                                <span>Profile</span>
-                            </NavLink>
-                        </li>
                     </ul>
                 </nav>
 

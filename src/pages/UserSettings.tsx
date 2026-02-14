@@ -100,7 +100,7 @@ const UserSettings: React.FC = () => {
                     </button>
                 </div>
 
-                <div className="grid-2">
+                <div className="grid-cols-2">
                     <div className="input-group">
                         <label>Full Name</label>
                         <input
@@ -123,7 +123,7 @@ const UserSettings: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="grid-2">
+                <div className="grid-cols-2">
                     <div className="input-group">
                         <label>Date of Birth</label>
                         <input

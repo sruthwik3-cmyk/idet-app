@@ -139,14 +139,15 @@ app.get('/api/health', async (req, res) => {
 
     try {
         const { gmail, oauth2Client } = await getGmailClient();
-        console.log('[Health Check] Attempting to refresh access token...');
+        console.log('[Health Check] Verification: Attempting token refresh...');
         const { token } = await oauth2Client.getAccessToken();
         const profile = await gmail.users.getProfile({ userId: 'me' });
         gmailStatus = `connected as ${profile.data.emailAddress}`;
     } catch (err) {
-        console.error('[Health Check] Verification Failure:', {
-            message: err.message,
-            response: err.response?.data
+        console.error('[Health Check] Auth Failure:', {
+            msg: err.message,
+            code: err.code,
+            details: err.response?.data
         });
         gmailStatus = `error: ${err.message}${err.response?.data?.error_description ? ' (' + err.response.data.error_description + ')' : ''}`;
         diagnostics = {
