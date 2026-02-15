@@ -37,6 +37,8 @@ interface AppContextType {
     deleteDocument: (id: string) => void;
     stats: { total: number; active: number; expiringSoon: number; expired: number; };
     loading: boolean;
+    session: any | null;
+    authError: string | null;
     notification: { message: string, type: 'success' | 'info' | 'error' } | null;
     showNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
     refreshAlerts: () => Promise<void>;
@@ -389,7 +391,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 }).length,
                 expired: documents.filter(d => new Date(d.expiryDate) < new Date()).length
             },
-            loading, notification, showNotification, refreshAlerts
+            loading, notification, showNotification, refreshAlerts,
+            session, authError
         }}>
             {children}
         </AppContext.Provider>
