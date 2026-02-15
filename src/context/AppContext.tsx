@@ -183,15 +183,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         let isMounted = true;
 
         const initAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!isMounted) return;
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!isMounted) return;
 
-            console.log("[AppContext] Initial session check:", session ? "User logged in" : "No session");
-            setSession(session);
-            if (session?.user) {
-                await fetchUserData(session.user.id, session.user.email);
-            } else {
-                setLoading(false);
+                console.log("[AppContext] Initial session check:", session ? "User logged in" : "No session");
+                setSession(session);
+                if (session?.user) {
+                    await fetchUserData(session.user.id, session.user.email);
+                } else {
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error("[AppContext] initAuth error:", err);
+                if (isMounted) setLoading(false);
             }
         };
 

@@ -1,18 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Bell, Clock, Calendar, ArrowRight, CheckCircle2, Siren } from 'lucide-react';
-import { useApp } from '../context/AppContext';
 
 const Landing: React.FC = () => {
     const navigate = useNavigate();
-    const { session, userProfile } = useApp();
-
-    React.useEffect(() => {
-        if (session || userProfile) {
-            console.log("[Landing] Active session/profile detected, redirecting to dashboard...");
-            navigate('/dashboard');
-        }
-    }, [session, userProfile, navigate]);
 
     return (
         <div className="animate-fade-in" style={{

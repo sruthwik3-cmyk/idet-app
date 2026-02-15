@@ -16,40 +16,45 @@ import NotFound from './pages/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    const { userProfile, loading, session } = useApp();
-    const navigate = useNavigate();
+const { loading, session, userProfile } = useApp();
 
-    React.useEffect(() => {
-        if (!loading && !session && !userProfile) {
-            navigate('/login');
-        }
-    }, [userProfile, loading, session, navigate]);
+if (loading) {
+    return <div style={{ height: '100vh', background: '#09090b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="animate-pulse text-white">Loading...</div></div>;
+}
 
-    if (loading) {
-        return <div style={{ height: '100vh', background: '#09090b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="animate-pulse text-white">Loading...</div></div>;
-    }
+if (!session) {
+    return <Navigate to="/login" replace />;
+}
 
-    if (!session && !userProfile) {
-        return null;
-    }
+if (userProfile && !userProfile.fullName && window.location.pathname !== '/setup-profile') {
+    return <Navigate to="/setup-profile" replace />;
+}
 
-    if (userProfile && !userProfile.fullName && window.location.pathname !== '/setup-profile') {
-        return <Navigate to="/setup-profile" replace />;
-    }
-
-    return <Layout>{children}</Layout>;
+return <Layout>{children}</Layout>;
 };
 
 const AppRoutes = () => {
-    const { userProfile, session, loading } = useApp();
+    const { session, loading } = useApp();
+    const navigate = useNavigate();
+    const location = window.location.pathname;
 
-    if (loading) return null;
+    React.useEffect(() => {
+        if (!loading && session && (location === '/' || location === '/login')) {
+            console.log("[AppRoutes] User has session, redirecting to dashboard...");
+            navigate('/dashboard', { replace: true });
+        }
+    }, [session, loading, location, navigate]);
+
+    if (loading) return (
+        <div style={{ height: '100vh', background: '#09090b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="animate-pulse text-white">Initializing IDET...</div>
+        </div>
+    );
 
     return (
         <Routes>
-            <Route path="/" element={(session || userProfile) ? <Navigate to="/dashboard" replace /> : <Landing />} />
-            <Route path="/login" element={(session || userProfile) ? <Navigate to="/dashboard" replace /> : <Login />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
 
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

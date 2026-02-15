@@ -14,58 +14,20 @@ const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [configError, setConfigError] = useState<string | null>(null);
-    const { userProfile, authError } = useApp();
+    const { authError } = useApp();
 
-    // Environment & Session Check
+    // Environment Check
     React.useEffect(() => {
         const checkConfig = () => {
             const url = import.meta.env.VITE_SUPABASE_URL;
             const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-            console.log("[Login] Config Check:", {
-                hasUrl: !!url,
-                urlValue: url?.substring(0, 10),
-                hasKey: !!key,
-                keyLen: key?.length
-            });
-
             if (!url || url.includes('your-project-url') || !key || key.length < 20) {
                 setConfigError("Database keys missing. Please check your .env file or Render environment variables.");
             }
         };
-
-        const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                console.log("[Login] Session found in background, redirecting...");
-                navigate('/dashboard');
-            }
-        };
-
         checkConfig();
-        checkSession();
-    }, [navigate]);
-
-    // Auto-redirect if profile is detected
-    React.useEffect(() => {
-        if (userProfile) {
-            console.log("[Login] userProfile sync detected, redirecting...");
-            navigate('/dashboard');
-        }
-    }, [userProfile, navigate]);
-
-    // Stuck check
-    React.useEffect(() => {
-        let timer: any;
-        if (loading) {
-            timer = setTimeout(() => {
-                if (loading) {
-                    setError("Login is taking longer than usual. Please refresh the page if this persists.");
-                }
-            }, 8000);
-        }
-        return () => clearTimeout(timer);
-    }, [loading]);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,7 +84,7 @@ const Login: React.FC = () => {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin + '/dashboard',
+                    redirectTo: window.location.origin,
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'consent',
