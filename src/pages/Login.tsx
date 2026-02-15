@@ -14,7 +14,7 @@ const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [configError, setConfigError] = useState<string | null>(null);
-    const { userProfile } = useApp();
+    const { userProfile, session, authError } = useApp();
 
     // Environment & Session Check
     React.useEffect(() => {
@@ -224,9 +224,9 @@ const Login: React.FC = () => {
                             </div>
                         )}
 
-                        {error && (
+                        {(error || authError) && (
                             <div style={{ padding: '0.75rem', background: 'rgba(248, 113, 113, 0.2)', color: '#fca5a5', borderRadius: '8px', fontSize: '0.875rem' }}>
-                                {error}
+                                {error || authError}
                             </div>
                         )}
 

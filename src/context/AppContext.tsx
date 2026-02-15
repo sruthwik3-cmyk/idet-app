@@ -52,6 +52,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [documents, setDocuments] = useState<Document[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [session, setSession] = useState<any | null>(null);
+    const [authError, setAuthError] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'info' | 'error' } | null>(null);
 
     const showNotification = (message: string, type: 'success' | 'info' | 'error' = 'info') => {
@@ -84,11 +86,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         console.log(`[AppContext] Fetching data for user: ${userId} (${authEmail})`);
         isFetchingRef.current = true;
         setLoading(true);
+        setAuthError(null);
         try {
             const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
             if (profileError && profileError.code !== 'PGRST116') {
                 console.error('[AppContext] Profile fetch error:', profileError);
+                if (profileError.message.includes('relation "public.profiles" does not exist')) {
+                    setAuthError("Database table 'profiles' is missing. Please run the SQL schema in your Supabase SQL Editor.");
+                } else {
+                    setAuthError(`Database Error: ${profileError.message}`);
+                }
             }
 
             if (profile) {
@@ -117,6 +125,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
             if (docsError) {
                 console.error('[AppContext] Documents fetch error:', docsError);
+                if (docsError.message.includes('relation "public.documents" does not exist')) {
+                    setAuthError("Database table 'documents' is missing. Please run the SQL schema in your Supabase SQL Editor.");
+                }
             }
 
             if (docs) {
@@ -156,8 +167,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
                 setTimeout(() => checkAndSendAlerts(mappedDocs as Document[], finalProfile), 2000);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('[AppContext] Critical fetch error:', error);
+            setAuthError(`Critical Error: ${error.message || 'Unknown network error'}`);
         } finally {
             console.log('[AppContext] Loading finished.');
             isFetchingRef.current = false;
@@ -173,6 +185,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             if (!isMounted) return;
 
             console.log("[AppContext] Initial session check:", session ? "User logged in" : "No session");
+            setSession(session);
             if (session?.user) {
                 await fetchUserData(session.user.id, session.user.email);
             } else {
@@ -185,6 +198,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (!isMounted) return;
             console.log(`[AppContext] Auth State Change Event: ${event}`);
+            setSession(session);
 
             if (session?.user) {
                 fetchUserData(session.user.id, session.user.email);

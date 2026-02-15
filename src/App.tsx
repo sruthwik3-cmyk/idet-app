@@ -16,32 +16,24 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    const { userProfile, loading } = useApp();
+    const { userProfile, loading, session } = useApp();
+    const navigate = useNavigate();
 
-    // While loading auth state, show nothing or a splash screen
+    React.useEffect(() => {
+        if (!loading && !session && !userProfile) {
+            navigate('/login');
+        }
+    }, [userProfile, loading, session, navigate]);
+
     if (loading) {
-        return (
-            <div style={{
-                height: '100vh',
-                background: '#09090b',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontFamily: 'sans-serif'
-            }}>
-                <div className="animate-pulse">Loading IDET...</div>
-            </div>
-        );
+        return <div style={{ height: '100vh', background: '#09090b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="animate-pulse text-white">Loading...</div></div>;
     }
 
-    if (!userProfile) {
-        // Double check session to prevent accidental login-loops during slow profile loads
-        return <Navigate to="/login" replace />;
+    if (!session && !userProfile) {
+        return null;
     }
 
-    // If profile exists but is missing essential info, force setup
-    if (!userProfile.fullName || !userProfile.userGroup) {
+    if (userProfile && !userProfile.fullName && window.location.pathname !== '/setup-profile') {
         return <Navigate to="/setup-profile" replace />;
     }
 
@@ -53,8 +45,8 @@ function AppRoutes() {
 
     return (
         <Routes>
-            <Route path="/" element={userProfile ? <Navigate to="/dashboard" replace /> : <Landing />} />
-            <Route path="/login" element={userProfile ? <Navigate to="/dashboard" replace /> : <Login />} />
+            <Route path="/" element={(userProfile && session) ? <Navigate to="/dashboard" replace /> : <Landing />} />
+            <Route path="/login" element={(userProfile && session) ? <Navigate to="/dashboard" replace /> : <Login />} />
             <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
 
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
