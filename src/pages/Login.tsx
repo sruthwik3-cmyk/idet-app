@@ -14,7 +14,7 @@ const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [configError, setConfigError] = useState<string | null>(null);
-    const { userProfile, session, authError } = useApp();
+    const { userProfile, authError } = useApp();
 
     // Environment & Session Check
     React.useEffect(() => {
