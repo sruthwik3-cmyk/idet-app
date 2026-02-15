@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import Layout from './components/Layout';
 
@@ -40,13 +41,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Layout>{children}</Layout>;
 };
 
-function AppRoutes() {
-    const { userProfile } = useApp();
+const AppRoutes = () => {
+    const { userProfile, session, loading } = useApp();
+
+    if (loading) return null;
 
     return (
         <Routes>
-            <Route path="/" element={(userProfile && session) ? <Navigate to="/dashboard" replace /> : <Landing />} />
-            <Route path="/login" element={(userProfile && session) ? <Navigate to="/dashboard" replace /> : <Login />} />
+            <Route path="/" element={(session || userProfile) ? <Navigate to="/dashboard" replace /> : <Landing />} />
+            <Route path="/login" element={(session || userProfile) ? <Navigate to="/dashboard" replace /> : <Login />} />
             <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
 
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
