@@ -15,22 +15,22 @@ import CalendarView from './pages/CalendarView';
 import NotFound from './pages/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Protected Route Component
-const { loading, session, userProfile } = useApp();
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { loading, session, userProfile } = useApp();
 
-if (loading) {
-    return <div style={{ height: '100vh', background: '#09090b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="animate-pulse text-white">Loading...</div></div>;
-}
+    if (loading) {
+        return <div style={{ height: '100vh', background: '#09090b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="animate-pulse text-white">Loading...</div></div>;
+    }
 
-if (!session) {
-    return <Navigate to="/login" replace />;
-}
+    if (!session) {
+        return <Navigate to="/login" replace />;
+    }
 
-if (userProfile && !userProfile.fullName && window.location.pathname !== '/setup-profile') {
-    return <Navigate to="/setup-profile" replace />;
-}
+    if (userProfile && !userProfile.fullName && window.location.pathname !== '/setup-profile') {
+        return <Navigate to="/setup-profile" replace />;
+    }
 
-return <Layout>{children}</Layout>;
+    return <Layout>{children}</Layout>;
 };
 
 const AppRoutes = () => {
