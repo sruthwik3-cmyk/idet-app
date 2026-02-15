@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowRight } from 'lucide-react';
 import { supabase } from '../utils/supabaseClient';
+import { useApp } from '../context/AppContext';
 
 const Login: React.FC = () => {
     // We don't really need updateUserProfile from context anymore for login, 
@@ -12,18 +13,15 @@ const Login: React.FC = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { userProfile } = useApp();
 
-    // Auto-redirect if already logged in
+    // Auto-redirect if profile is detected (indicates successful login)
     React.useEffect(() => {
-        const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                console.log("[Login] Found existing session, redirecting to dashboard...");
-                navigate('/dashboard');
-            }
-        };
-        checkSession();
-    }, [navigate]);
+        if (userProfile) {
+            console.log("[Login] userProfile detected, redirecting to dashboard...");
+            navigate('/dashboard');
+        }
+    }, [userProfile, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

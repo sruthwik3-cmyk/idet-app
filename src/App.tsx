@@ -53,7 +53,7 @@ function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={userProfile ? <Navigate to="/dashboard" replace /> : <Landing />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={userProfile ? <Navigate to="/dashboard" replace /> : <Login />} />
             <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
 
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
