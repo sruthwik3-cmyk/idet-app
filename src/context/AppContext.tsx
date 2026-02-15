@@ -74,10 +74,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [userProfile]);
 
     const fetchUserData = async (userId: string, authEmail?: string | null) => {
+        console.log(`[AppContext] Fetching data for user: ${userId} (${authEmail})`);
         setLoading(true);
         try {
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+            const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', userId).single();
+
+            if (profileError && profileError.code !== 'PGRST116') {
+                console.error('[AppContext] Profile fetch error:', profileError);
+            }
+
             if (profile) {
+                console.log('[AppContext] Profile found:', profile.full_name);
                 setUserProfile({
                     fullName: profile.full_name,
                     email: profile.email || authEmail || '',
@@ -86,6 +93,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     userGroup: profile.user_group
                 });
             } else {
+                console.log('[AppContext] No profile found, setting shell profile for:', authEmail);
                 // New user: Set a shell profile to allow navigation to setup-profile
                 setUserProfile({
                     fullName: '',
@@ -95,8 +103,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     userGroup: 'Self'
                 });
             }
-            const { data: docs } = await supabase.from('documents').select('*').order('expiry_date', { ascending: true });
+
+            console.log('[AppContext] Fetching documents...');
+            const { data: docs, error: docsError } = await supabase.from('documents').select('*').order('expiry_date', { ascending: true });
+
+            if (docsError) {
+                console.error('[AppContext] Documents fetch error:', docsError);
+            }
+
             if (docs) {
+                console.log(`[AppContext] Loaded ${docs.length} documents.`);
                 const mappedDocs = docs.map((d: any) => ({
                     id: d.id,
                     name: d.name,
@@ -109,39 +125,53 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 }));
                 setDocuments(mappedDocs as Document[]);
 
-                // Pre-populate session dedup set for docs that already have flags set in DB
+                // Pre-populate session dedup set
                 for (const doc of mappedDocs) {
                     if (doc.alerts.emailSent30) alertedThisSession.add(`${doc.id}-30`);
                     if (doc.alerts.emailSent7) alertedThisSession.add(`${doc.id}-7`);
                 }
 
-                // Immediate check 2 seconds after fetching data
-                // Pass the newly created profile object directly to avoid ref race conditions
-                const newProfile: UserProfile = {
-                    fullName: profile?.full_name || '',
-                    email: profile?.email || authEmail || '',
-                    phone: profile?.phone || '',
-                    dob: profile?.dob || '',
-                    userGroup: profile?.user_group || 'Self'
+                // Immediate check after fetching
+                const finalProfile: UserProfile = profile ? {
+                    fullName: profile.full_name,
+                    email: profile.email || authEmail || '',
+                    phone: profile.phone,
+                    dob: profile.dob,
+                    userGroup: profile.user_group
+                } : {
+                    fullName: '',
+                    email: authEmail || '',
+                    phone: '',
+                    dob: '',
+                    userGroup: 'Self'
                 };
-                setTimeout(() => checkAndSendAlerts(mappedDocs as Document[], newProfile), 2000);
+
+                setTimeout(() => checkAndSendAlerts(mappedDocs as Document[], finalProfile), 2000);
             }
         } catch (error) {
-            console.error('Fetch error:', error);
+            console.error('[AppContext] Critical fetch error:', error);
         } finally {
+            console.log('[AppContext] Loading finished.');
             setLoading(false);
         }
     };
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
+            console.log("[AppContext] Initial session check:", session ? "User logged in" : "No session");
             if (session?.user) fetchUserData(session.user.id, session.user.email);
             else setLoading(false);
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session?.user) fetchUserData(session.user.id, session.user.email);
-            else { setDocuments([]); setUserProfile(null); setLoading(false); }
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log(`[AppContext] Auth State Change Event: ${event}`);
+            if (session?.user) {
+                fetchUserData(session.user.id, session.user.email);
+            } else {
+                setDocuments([]);
+                setUserProfile(null);
+                setLoading(false);
+            }
         });
 
         // Check every 60 seconds

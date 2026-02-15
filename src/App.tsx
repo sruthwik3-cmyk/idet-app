@@ -20,7 +20,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     // While loading auth state, show nothing or a splash screen
     if (loading) {
-        return <div style={{ height: '100vh', background: '#09090b' }}></div>;
+        return (
+            <div style={{
+                height: '100vh',
+                background: '#09090b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontFamily: 'sans-serif'
+            }}>
+                <div className="animate-pulse">Loading IDET...</div>
+            </div>
+        );
     }
 
     if (!userProfile) {

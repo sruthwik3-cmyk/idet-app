@@ -13,6 +13,18 @@ const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Auto-redirect if already logged in
+    React.useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                console.log("[Login] Found existing session, redirecting to dashboard...");
+                navigate('/dashboard');
+            }
+        };
+        checkSession();
+    }, [navigate]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -64,6 +76,7 @@ const Login: React.FC = () => {
     const handleGoogleLogin = async () => {
         setLoading(true);
         try {
+            console.log("[Login] Starting Google OAuth flow...");
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
@@ -74,7 +87,11 @@ const Login: React.FC = () => {
                     },
                 }
             });
-            if (error) throw error;
+            if (error) {
+                console.error("[Login] OAuth dispatch failed:", error.message);
+                throw error;
+            }
+            console.log("[Login] OAuth flow dispatched to browser.");
         } catch (error: any) {
             console.error('Google Login Error:', error);
             setError(`Google Login Failed: ${error.message || 'Unknown error'}. Check console for details.`);
