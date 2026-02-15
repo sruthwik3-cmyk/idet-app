@@ -13,15 +13,59 @@ const Login: React.FC = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [configError, setConfigError] = useState<string | null>(null);
     const { userProfile } = useApp();
 
-    // Auto-redirect if profile is detected (indicates successful login)
+    // Environment & Session Check
+    React.useEffect(() => {
+        const checkConfig = () => {
+            const url = import.meta.env.VITE_SUPABASE_URL;
+            const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+            console.log("[Login] Config Check:", {
+                hasUrl: !!url,
+                urlValue: url?.substring(0, 10),
+                hasKey: !!key,
+                keyLen: key?.length
+            });
+
+            if (!url || url.includes('your-project-url') || !key || key.length < 20) {
+                setConfigError("Database keys missing. Please check your .env file or Render environment variables.");
+            }
+        };
+
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                console.log("[Login] Session found in background, redirecting...");
+                navigate('/dashboard');
+            }
+        };
+
+        checkConfig();
+        checkSession();
+    }, [navigate]);
+
+    // Auto-redirect if profile is detected
     React.useEffect(() => {
         if (userProfile) {
-            console.log("[Login] userProfile detected, redirecting to dashboard...");
+            console.log("[Login] userProfile sync detected, redirecting...");
             navigate('/dashboard');
         }
     }, [userProfile, navigate]);
+
+    // Stuck check
+    React.useEffect(() => {
+        let timer: any;
+        if (loading) {
+            timer = setTimeout(() => {
+                if (loading) {
+                    setError("Login is taking longer than usual. Please refresh the page if this persists.");
+                }
+            }, 8000);
+        }
+        return () => clearTimeout(timer);
+    }, [loading]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -174,6 +218,12 @@ const Login: React.FC = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {configError && (
+                            <div style={{ padding: '0.75rem', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', borderRadius: '8px', fontSize: '0.875rem', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
+                                <strong>Config Error:</strong> {configError}
+                            </div>
+                        )}
+
                         {error && (
                             <div style={{ padding: '0.75rem', background: 'rgba(248, 113, 113, 0.2)', color: '#fca5a5', borderRadius: '8px', fontSize: '0.875rem' }}>
                                 {error}

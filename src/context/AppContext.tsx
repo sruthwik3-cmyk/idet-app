@@ -64,6 +64,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const userProfileRef = React.useRef(userProfile);
     // Guard to prevent concurrent alert checks
     const isCheckingRef = React.useRef(false);
+    // Guard to prevent concurrent fetches
+    const isFetchingRef = React.useRef(false);
 
     useEffect(() => {
         documentsRef.current = documents;
@@ -74,7 +76,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, [userProfile]);
 
     const fetchUserData = async (userId: string, authEmail?: string | null) => {
+        if (isFetchingRef.current) {
+            console.log('[AppContext] Already fetching data, skipping...');
+            return;
+        }
+
         console.log(`[AppContext] Fetching data for user: ${userId} (${authEmail})`);
+        isFetchingRef.current = true;
         setLoading(true);
         try {
             const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', userId).single();
@@ -131,7 +139,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     if (doc.alerts.emailSent7) alertedThisSession.add(`${doc.id}-7`);
                 }
 
-                // Immediate check after fetching
+                // Internal profile object for immediate check
                 const finalProfile: UserProfile = profile ? {
                     fullName: profile.full_name,
                     email: profile.email || authEmail || '',
@@ -152,19 +160,32 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             console.error('[AppContext] Critical fetch error:', error);
         } finally {
             console.log('[AppContext] Loading finished.');
+            isFetchingRef.current = false;
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        let isMounted = true;
+
+        const initAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!isMounted) return;
+
             console.log("[AppContext] Initial session check:", session ? "User logged in" : "No session");
-            if (session?.user) fetchUserData(session.user.id, session.user.email);
-            else setLoading(false);
-        });
+            if (session?.user) {
+                await fetchUserData(session.user.id, session.user.email);
+            } else {
+                setLoading(false);
+            }
+        };
+
+        initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (!isMounted) return;
             console.log(`[AppContext] Auth State Change Event: ${event}`);
+
             if (session?.user) {
                 fetchUserData(session.user.id, session.user.email);
             } else {

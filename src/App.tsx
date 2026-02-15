@@ -36,6 +36,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (!userProfile) {
+        // Double check session to prevent accidental login-loops during slow profile loads
         return <Navigate to="/login" replace />;
     }
 
