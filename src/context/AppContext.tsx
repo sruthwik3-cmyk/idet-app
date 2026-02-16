@@ -322,6 +322,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         console.log('[AddDocument] User authenticated:', user.id);
 
         const newAlerts = { emailSent30: false, emailSent7: false, scheduledAt: new Date().toISOString(), calendarEventId: uuidv4() };
+        // Try with user_group first, fallback to without it
         let insertPayload: any = {
             user_id: user.id,
             name: docData.name,
@@ -329,21 +330,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             expiry_date: docData.expiryDate,
             priority: docData.priority,
             notes: docData.notes,
-            alerts_json: newAlerts,
-            user_group: docData.userGroup
+            alerts_json: newAlerts
         };
         
-        console.log('[AddDocument] Insert payload:', insertPayload);
+        console.log('[AddDocument] Insert payload (without user_group):', insertPayload);
 
         let { data, error } = await supabase.from('documents').insert(insertPayload).select().single();
-
-        if (error && error.message.includes('column "user_group"')) {
-            console.log('[AddDocument] Retrying without user_group column...');
-            const { user_group: _group, ...minimalPayload } = insertPayload;
-            const retry = await supabase.from('documents').insert(minimalPayload).select().single();
-            data = retry.data;
-            error = retry.error;
-        }
 
         if (error) {
             console.error('[AddDocument] Database error:', error);
