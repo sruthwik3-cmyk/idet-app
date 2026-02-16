@@ -130,7 +130,9 @@ app.post('/api/send-email', async (req, res) => {
         res.status(500).json({
             success: false,
             error: error.message,
-            hint: error.message === 'invalid_client' ? 'Check your Client ID and Secret.' : 'Check your Refresh Token.',
+            hint: error.message.includes('invalid_client')
+                ? 'Check your Google Client ID and Secret in Render/Supabase.'
+                : (error.message.includes('invalid_grant') ? 'Your Refresh Token is invalid or expired. Please re-generate it.' : 'Check your Google Cloud settings.'),
             details: error.response?.data,
             credentialsDiagnostic: {
                 hasId: !!process.env.GOOGLE_CLIENT_ID,
