@@ -270,159 +270,161 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 return;
             }
 
-            // STRICT: Only alert for 0-30 days. Use UTC for stability.
-            const expiryDate = new Date(doc.expiryDate);
-            const expiryUTC = Date.UTC(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
-            const now = new Date();
-            const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-            const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
+            for (const doc of docsToCheck) {
+                try {
+                    // STRICT: Only alert for 0-30 days. Use UTC for stability.
+                    const expiryDate = new Date(doc.expiryDate);
+                    const expiryUTC = Date.UTC(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+                    const now = new Date();
+                    const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+                    const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
-            if (diffDays > 30 || diffDays < 0) continue;
+                    if (diffDays > 30 || diffDays < 0) continue;
 
-            let updatedAlerts = { ...doc.alerts };
-            let triggerUpdate = false;
+                    let updatedAlerts = { ...doc.alerts };
+                    let triggerUpdate = false;
 
-            // ===== 30-DAY ALERT (8-30 days remaining) =====
-            const key30 = `${doc.id}-30`;
-            if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30 && !alertedThisSession.has(key30)) {
-                console.log(`[Alert] *** 30-DAY TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
+                    // ===== 30-DAY ALERT (8-30 days remaining) =====
+                    const key30 = `${doc.id}-30`;
+                    if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30 && !alertedThisSession.has(key30)) {
+                        console.log(`[Alert] *** 30-DAY TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
 
-                // Mark in session immediately to prevent re-trigger
-                alertedThisSession.add(key30);
+                        // Mark in session immediately to prevent re-trigger
+                        alertedThisSession.add(key30);
 
-                // Play sound IMMEDIATELY (Non-blocking)
-                playAlertSound();
+                        // Play sound IMMEDIATELY (Non-blocking)
+                        playAlertSound();
 
-                // Send email (Wait for result to update DB)
-                const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                console.log(`[Alert] Email result for "${doc.name}":`, JSON.stringify(emailRes));
+                        // Send email (Wait for result to update DB)
+                        const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                        console.log(`[Alert] Email result for "${doc.name}":`, JSON.stringify(emailRes));
 
-                if (emailRes.success) {
-                    showNotification(`30-day alert: ${doc.name} - Email sent!`, 'success');
-                    updatedAlerts.emailSent30 = true;
-                    triggerUpdate = true;
-                } else {
-                    showNotification(`30-day alert: ${doc.name} (email issue: ${emailRes.error || 'unknown'})`, 'error');
-                    // DO NOT set emailSent30 to true, allow retry on next check
-                    alertedThisSession.delete(key30);
+                        if (emailRes.success) {
+                            showNotification(`30-day alert: ${doc.name} - Email sent!`, 'success');
+                            updatedAlerts.emailSent30 = true;
+                            triggerUpdate = true;
+                        } else {
+                            showNotification(`30-day alert: ${doc.name} (email issue: ${emailRes.error || 'unknown'})`, 'error');
+                            // DO NOT set emailSent30 to true, allow retry on next check
+                            alertedThisSession.delete(key30);
+                        }
+                    }
+
+                    // ===== 7-DAY ALERT (0-7 days remaining) =====
+                    const key7 = `${doc.id}-7`;
+                    if (diffDays <= 7 && !doc.alerts.emailSent7 && !alertedThisSession.has(key7)) {
+                        console.log(`[Alert] *** 7-DAY URGENT TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
+
+                        // Mark in session immediately
+                        alertedThisSession.add(key7);
+
+                        // Play sound IMMEDIATELY
+                        playAlertSound();
+
+                        // Send email
+                        const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                        console.log(`[Alert] Email result for "${doc.name}":`, JSON.stringify(emailRes));
+
+                        if (emailRes.success) {
+                            showNotification(`URGENT 7-day alert: ${doc.name} - Email sent!`, 'success');
+                            updatedAlerts.emailSent7 = true;
+                            triggerUpdate = true;
+                        } else {
+                            showNotification(`URGENT: ${doc.name} expires in ${diffDays}d (email issue: ${emailRes.error || 'unknown'})`, 'error');
+                            // DO NOT set emailSent7 to true, allow retry
+                            alertedThisSession.delete(key7);
+                        }
+                    }
+
+                    // Update DB so it persists across sessions
+                    if (triggerUpdate) {
+                        const { error: dbError } = await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
+                        if (dbError) {
+                            console.error(`[Alert] DB update FAILED for "${doc.name}":`, dbError.message);
+                        } else {
+                            console.log(`[Alert] DB updated OK for "${doc.name}"`);
+                        }
+                        setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
+                    }
+                } catch (docError) {
+                    console.error(`[Alert] Error processing document "${doc.name}":`, docError);
                 }
             }
-
-            // ===== 7-DAY ALERT (0-7 days remaining) =====
-            const key7 = `${doc.id}-7`;
-            if (diffDays <= 7 && !doc.alerts.emailSent7 && !alertedThisSession.has(key7)) {
-                console.log(`[Alert] *** 7-DAY URGENT TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
-
-                // Mark in session immediately
-                alertedThisSession.add(key7);
-
-                // Play sound IMMEDIATELY
-                playAlertSound();
-
-                // Send email
-                const emailRes = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
-                console.log(`[Alert] Email result for "${doc.name}":`, JSON.stringify(emailRes));
-
-                if (emailRes.success) {
-                    showNotification(`URGENT 7-day alert: ${doc.name} - Email sent!`, 'success');
-                    updatedAlerts.emailSent7 = true;
-                    triggerUpdate = true;
-                } else {
-                    showNotification(`URGENT: ${doc.name} expires in ${diffDays}d (email issue: ${emailRes.error || 'unknown'})`, 'error');
-                    // DO NOT set emailSent7 to true, allow retry
-                    alertedThisSession.delete(key7);
-                }
-            }
-
-            // Update DB so it persists across sessions
-            if (triggerUpdate) {
-                const { error: dbError } = await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
-                if (dbError) {
-                    console.error(`[Alert] DB update FAILED for "${doc.name}":`, dbError.message);
-                } else {
-                    console.log(`[Alert] DB updated OK for "${doc.name}"`);
-                }
-                setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
-            }
-        } catch (docError) {
-            console.error(`[Alert] Error processing document "${doc.name}":`, docError);
+        } finally {
+            isCheckingRef.current = false;
         }
-    }
-} finally {
-    isCheckingRef.current = false;
-}
     };
 
-const addDocument = async (docData: Omit<Document, 'id' | 'alerts'>) => {
-    const user = (await supabase.auth.getUser()).data.user;
-    if (!user) return null;
-    const newAlerts = { emailSent30: false, emailSent7: false, scheduledAt: new Date().toISOString(), calendarEventId: uuidv4() };
-    const { data, error } = await supabase.from('documents').insert({
-        user_id: user.id,
-        name: docData.name,
-        category: docData.category,
-        expiry_date: docData.expiryDate,
-        priority: docData.priority,
-        notes: docData.notes,
-        user_group: docData.userGroup, // Requires DB column update
-        alerts_json: newAlerts
-    }).select().single();
+    const addDocument = async (docData: Omit<Document, 'id' | 'alerts'>) => {
+        const user = (await supabase.auth.getUser()).data.user;
+        if (!user) return null;
+        const newAlerts = { emailSent30: false, emailSent7: false, scheduledAt: new Date().toISOString(), calendarEventId: uuidv4() };
+        const { data, error } = await supabase.from('documents').insert({
+            user_id: user.id,
+            name: docData.name,
+            category: docData.category,
+            expiry_date: docData.expiryDate,
+            priority: docData.priority,
+            notes: docData.notes,
+            user_group: docData.userGroup, // Requires DB column update
+            alerts_json: newAlerts
+        }).select().single();
 
-    if (error) {
-        console.error(`[AppContext] addDocument FAILED:`, error);
-        showNotification(`Failed to save document: ${error.message}`, 'error');
-        return null;
-    }
-    const saved = { ...docData, id: data.id, alerts: newAlerts };
-    setDocuments(prev => [...prev, saved]);
-    // Trigger check with new state
-    checkAndSendAlerts([...documents, saved], userProfileRef.current);
-    return saved;
-};
+        if (error) {
+            console.error(`[AppContext] addDocument FAILED:`, error);
+            showNotification(`Failed to save document: ${error.message}`, 'error');
+            return null;
+        }
+        const saved = { ...docData, id: data.id, alerts: newAlerts };
+        setDocuments(prev => [...prev, saved]);
+        // Trigger check with new state
+        checkAndSendAlerts([...documents, saved], userProfileRef.current);
+        return saved;
+    };
 
-const updateDocument = async (id: string, updates: Partial<Document>) => {
-    const { error } = await supabase.from('documents').update(updates).eq('id', id);
-    if (error) return false;
-    setDocuments(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
-    return true;
-};
+    const updateDocument = async (id: string, updates: Partial<Document>) => {
+        const { error } = await supabase.from('documents').update(updates).eq('id', id);
+        if (error) return false;
+        setDocuments(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
+        return true;
+    };
 
-const updateUserProfile = async (profile: UserProfile) => {
-    const user = (await supabase.auth.getUser()).data.user;
-    if (!user) return;
-    setUserProfile(profile);
-    await supabase.from('profiles').upsert({ id: user.id, full_name: profile.fullName, email: profile.email, phone: profile.phone, user_group: profile.userGroup, dob: profile.dob });
-};
+    const updateUserProfile = async (profile: UserProfile) => {
+        const user = (await supabase.auth.getUser()).data.user;
+        if (!user) return;
+        setUserProfile(profile);
+        await supabase.from('profiles').upsert({ id: user.id, full_name: profile.fullName, email: profile.email, phone: profile.phone, user_group: profile.userGroup, dob: profile.dob });
+    };
 
-const deleteDocument = async (id: string) => {
-    await supabase.from('documents').delete().eq('id', id);
-    setDocuments(prev => prev.filter(d => d.id !== id));
-};
+    const deleteDocument = async (id: string) => {
+        await supabase.from('documents').delete().eq('id', id);
+        setDocuments(prev => prev.filter(d => d.id !== id));
+    };
 
-const refreshAlerts = async () => {
-    showNotification('Checking for alerts...', 'info');
-    await checkAndSendAlerts(documents, userProfile);
-    showNotification('Alert check complete', 'success');
-};
+    const refreshAlerts = async () => {
+        showNotification('Checking for alerts...', 'info');
+        await checkAndSendAlerts(documents, userProfile);
+        showNotification('Alert check complete', 'success');
+    };
 
-return (
-    <AppContext.Provider value={{
-        documents, userProfile, addDocument, updateDocument, updateUserProfile, deleteDocument,
-        stats: {
-            total: documents.length,
-            active: documents.filter(d => new Date(d.expiryDate) >= new Date()).length,
-            expiringSoon: documents.filter(d => {
-                const diffDays = Math.ceil((new Date(d.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                return diffDays >= 0 && diffDays <= 7;
-            }).length,
-            expired: documents.filter(d => new Date(d.expiryDate) < new Date()).length
-        },
-        loading, notification, showNotification, refreshAlerts,
-        session, authError
-    }}>
-        {children}
-    </AppContext.Provider>
-);
+    return (
+        <AppContext.Provider value={{
+            documents, userProfile, addDocument, updateDocument, updateUserProfile, deleteDocument,
+            stats: {
+                total: documents.length,
+                active: documents.filter(d => new Date(d.expiryDate) >= new Date()).length,
+                expiringSoon: documents.filter(d => {
+                    const diffDays = Math.ceil((new Date(d.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                    return diffDays >= 0 && diffDays <= 7;
+                }).length,
+                expired: documents.filter(d => new Date(d.expiryDate) < new Date()).length
+            },
+            loading, notification, showNotification, refreshAlerts,
+            session, authError
+        }}>
+            {children}
+        </AppContext.Provider>
+    );
 };
 
 export const useApp = () => {
