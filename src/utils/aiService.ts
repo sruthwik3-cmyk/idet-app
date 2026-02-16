@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 
 // Toggle between FREE (Option 1) and AI-POWERED (Option 2)
-export const AI_MODE_ENABLED = false; // Set to true to enable OpenAI
+export const AI_MODE_ENABLED = true; // Set to true to enable OpenAI
 
 // Initialize OpenAI client (only if API key is provided)
 let openai: OpenAI | null = null;
