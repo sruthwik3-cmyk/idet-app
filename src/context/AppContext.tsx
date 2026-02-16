@@ -178,13 +178,30 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, []);
 
     const checkAndSendAlerts = async (currentDocs: Document[] | null = null, currentUser: UserProfile | null = null) => {
-        if (isCheckingRef.current) return;
+        if (isCheckingRef.current) {
+            console.log('[Alert] Skipping - already checking');
+            return;
+        }
         isCheckingRef.current = true;
 
         try {
             const docsToCheck = currentDocs || documentsRef.current;
             const userToCheck = currentUser || userProfileRef.current;
-            if (!userToCheck?.email || docsToCheck.length === 0) return;
+            
+            console.log('[Alert] Starting alert check...');
+            console.log('[Alert] Documents to check:', docsToCheck.length);
+            console.log('[Alert] User email:', userToCheck?.email);
+            
+            if (!userToCheck?.email) {
+                console.warn('[Alert] No user email - skipping alert check');
+                showNotification('Please set your email in Profile to receive alerts', 'info');
+                return;
+            }
+            
+            if (docsToCheck.length === 0) {
+                console.log('[Alert] No documents to check');
+                return;
+            }
 
             for (const doc of docsToCheck) {
                 const expiryDate = new Date(doc.expiryDate);
@@ -193,55 +210,116 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
                 const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
-                if (diffDays > 30 || diffDays < 0) continue;
+                console.log(`[Alert] Checking "${doc.name}": ${diffDays} days until expiry`);
+
+                // STRICT: Only alert for 0-30 days. Skip everything else.
+                if (diffDays > 30) {
+                    console.log(`[Alert] "${doc.name}" is ${diffDays} days away - no alert needed (>30 days)`);
+                    continue;
+                }
+                
+                if (diffDays < 0) {
+                    console.log(`[Alert] "${doc.name}" expired ${Math.abs(diffDays)} days ago - skipping`);
+                    continue;
+                }
 
                 let updatedAlerts = { ...doc.alerts };
                 let triggerUpdate = false;
 
+                // ===== 30-DAY ALERT (8-30 days remaining) =====
                 const key30 = `${doc.id}-30`;
                 if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30 && !alertedThisSession.has(key30)) {
+                    console.log(`[Alert] *** 30-DAY TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
+                    
+                    // Mark in session immediately to prevent re-trigger
                     alertedThisSession.add(key30);
-                    playAlertSound();
+
+                    // Play sound IMMEDIATELY (Non-blocking)
+                    console.log('[Alert] Playing 15-second sound...');
+                    const soundPlayed = playAlertSound();
+                    if (!soundPlayed) {
+                        console.warn('[Alert] Sound blocked - user needs to interact with page first');
+                        showNotification('Click anywhere to enable sound alerts', 'info');
+                    }
+
+                    // Send email (Wait for result to update DB)
+                    console.log('[Alert] Sending 30-day email...');
                     const res = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                    
                     if (res.success) {
+                        console.log(`[Alert] ✅ 30-day email sent successfully for "${doc.name}"`);
                         showNotification(`30-day alert: ${doc.name} sent!`, 'success');
                         updatedAlerts.emailSent30 = true;
                         triggerUpdate = true;
                     } else {
+                        console.error(`[Alert] ❌ 30-day email failed for "${doc.name}":`, res.error);
+                        showNotification(`Email failed: ${res.error}`, 'error');
                         alertedThisSession.delete(key30);
                     }
                 }
 
+                // ===== 7-DAY ALERT (0-7 days remaining) =====
                 const key7 = `${doc.id}-7`;
-                if (diffDays <= 7 && !doc.alerts.emailSent7 && !alertedThisSession.has(key7)) {
+                if (diffDays <= 7 && diffDays >= 0 && !doc.alerts.emailSent7 && !alertedThisSession.has(key7)) {
+                    console.log(`[Alert] *** 7-DAY URGENT TRIGGER for "${doc.name}" (${diffDays} days left) ***`);
+                    
+                    // Mark in session immediately to prevent re-trigger
                     alertedThisSession.add(key7);
-                    playAlertSound();
+
+                    // Play sound IMMEDIATELY (Non-blocking)
+                    console.log('[Alert] Playing 15-second URGENT sound...');
+                    const soundPlayed = playAlertSound();
+                    if (!soundPlayed) {
+                        console.warn('[Alert] Sound blocked - user needs to interact with page first');
+                        showNotification('Click anywhere to enable sound alerts', 'info');
+                    }
+
+                    // Send email (Wait for result to update DB)
+                    console.log('[Alert] Sending 7-day URGENT email...');
                     const res = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                    
                     if (res.success) {
+                        console.log(`[Alert] ✅ 7-day URGENT email sent successfully for "${doc.name}"`);
                         showNotification(`URGENT: ${doc.name} alert sent!`, 'success');
                         updatedAlerts.emailSent7 = true;
                         triggerUpdate = true;
                     } else {
+                        console.error(`[Alert] ❌ 7-day email failed for "${doc.name}":`, res.error);
+                        showNotification(`Email failed: ${res.error}`, 'error');
                         alertedThisSession.delete(key7);
                     }
                 }
 
                 if (triggerUpdate) {
+                    console.log(`[Alert] Updating database for "${doc.name}"...`);
                     await supabase.from('documents').update({ alerts_json: updatedAlerts }).eq('id', doc.id);
                     setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
+                    console.log(`[Alert] Database updated for "${doc.name}"`);
                 }
             }
+            
+            console.log('[Alert] Alert check complete');
         } catch (err) {
             console.error('[Alert] Check error:', err);
+            showNotification('Alert check failed - see console for details', 'error');
         } finally {
             isCheckingRef.current = false;
         }
     };
 
     const addDocument = async (docData: Omit<Document, 'id' | 'alerts'>) => {
+        console.log('[AddDocument] Starting document save...', docData);
+        
         const userRes = await supabase.auth.getUser();
         const user = userRes.data.user;
-        if (!user) return null;
+        
+        if (!user) {
+            console.error('[AddDocument] No authenticated user found!');
+            showNotification('Please log in to add documents', 'error');
+            return null;
+        }
+        
+        console.log('[AddDocument] User authenticated:', user.id);
 
         const newAlerts = { emailSent30: false, emailSent7: false, scheduledAt: new Date().toISOString(), calendarEventId: uuidv4() };
         let insertPayload: any = {
@@ -254,10 +332,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             alerts_json: newAlerts,
             user_group: docData.userGroup
         };
+        
+        console.log('[AddDocument] Insert payload:', insertPayload);
 
         let { data, error } = await supabase.from('documents').insert(insertPayload).select().single();
 
         if (error && error.message.includes('column "user_group"')) {
+            console.log('[AddDocument] Retrying without user_group column...');
             const { user_group: _group, ...minimalPayload } = insertPayload;
             const retry = await supabase.from('documents').insert(minimalPayload).select().single();
             data = retry.data;
@@ -265,13 +346,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
 
         if (error) {
+            console.error('[AddDocument] Database error:', error);
             showNotification(`Save failed: ${error.message}`, 'error');
             return null;
         }
+        
+        console.log('[AddDocument] Document saved successfully:', data);
 
         const saved: Document = { ...docData, id: data.id, alerts: newAlerts };
-        setDocuments(prev => [...prev, saved]);
-        checkAndSendAlerts([...documentsRef.current, saved], userProfileRef.current);
+        setDocuments(prev => {
+            const updated = [...prev, saved];
+            console.log('[AddDocument] Updated documents list:', updated.length, 'documents');
+            return updated;
+        });
+        
+        showNotification(`Document "${docData.name}" saved successfully!`, 'success');
+        
+        // Trigger alert check immediately
+        console.log('[AddDocument] Triggering alert check...');
+        setTimeout(() => {
+            checkAndSendAlerts([...documentsRef.current, saved], userProfileRef.current);
+        }, 1000);
+        
         return saved;
     };
 

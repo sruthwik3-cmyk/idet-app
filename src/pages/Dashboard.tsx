@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download, RefreshCw } from 'lucide-react';
+import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download, RefreshCw, Volume2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
+import { unlockAudioContext } from '../utils/soundUtils';
 
 const Dashboard: React.FC = () => {
     const { stats, documents, deleteDocument, loading, refreshAlerts } = useApp();
@@ -12,6 +13,23 @@ const Dashboard: React.FC = () => {
     // Initialize search from Voice Command if present
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
+    const [audioUnlocked, setAudioUnlocked] = useState(false);
+
+    // Unlock audio on mount
+    useEffect(() => {
+        const handleClick = async () => {
+            await unlockAudioContext();
+            setAudioUnlocked(true);
+            console.log('[Dashboard] Audio context unlocked');
+        };
+        
+        // Try to unlock on first click
+        document.addEventListener('click', handleClick, { once: true });
+        
+        return () => {
+            document.removeEventListener('click', handleClick);
+        };
+    }, []);
 
 
     if (loading) {
@@ -161,6 +179,11 @@ const Dashboard: React.FC = () => {
             <div className="page-header">
                 <div>
                     <h1 className="page-title">Dashboard</h1>
+                    {!audioUnlocked && (
+                        <p style={{ color: 'var(--warning)', fontSize: '0.875rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Volume2 size={16} /> Click anywhere to enable sound alerts
+                        </p>
+                    )}
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <button
