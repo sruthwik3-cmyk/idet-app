@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { google } from 'googleapis';
+import { existsSync } from 'fs';
 
 dotenv.config();
 
@@ -27,7 +28,6 @@ const distPath = path.join(__dirname, 'dist');
 console.log('[Startup] Dist path:', distPath);
 
 // Check if dist folder exists
-import { existsSync } from 'fs';
 if (!existsSync(distPath)) {
     console.error('[ERROR] dist folder not found! Build may have failed.');
     console.error('[ERROR] Please run "npm run build" before starting the server.');
