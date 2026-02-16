@@ -1,3 +1,7 @@
+/**
+ * IDET Server - Document Expiry Tracking System
+ * Handles Gmail API alerts and serves the React frontend
+ */
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
