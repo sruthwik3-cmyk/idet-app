@@ -79,23 +79,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (isFetchingRef.current) return;
         isFetchingRef.current = true;
         setLoading(true);
+        setAuthError(null);
         try {
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
             if (profile) {
-                setUserProfile({
+                const p = {
                     fullName: profile.full_name,
                     email: profile.email || authEmail || '',
                     phone: profile.phone,
                     dob: profile.dob,
                     userGroup: profile.user_group
-                });
+                };
+                setUserProfile(p);
+                userProfileRef.current = p;
             } else {
-                setUserProfile({ fullName: '', email: authEmail || '', phone: '', dob: '', userGroup: 'Self' });
+                const shell = { fullName: '', email: authEmail || '', phone: '', dob: '', userGroup: 'Self' as const };
+                setUserProfile(shell);
+                userProfileRef.current = shell;
             }
 
             const { data: docs } = await supabase.from('documents').select('*').order('expiry_date', { ascending: true });
             if (docs) {
-                const mappedDocs = docs.map((d: any) => ({
+                const mappedDocs: Document[] = docs.map((d: any) => ({
                     id: d.id,
                     name: d.name,
                     category: d.category,
@@ -105,14 +110,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     userGroup: d.user_group || 'Self',
                     alerts: d.alerts_json || { emailSent30: false, emailSent7: false, scheduledAt: '', calendarEventId: '' }
                 }));
-                setDocuments(mappedDocs as Document[]);
+                setDocuments(mappedDocs);
+                documentsRef.current = mappedDocs;
                 for (const doc of mappedDocs) {
                     if (doc.alerts.emailSent30) alertedThisSession.add(`${doc.id}-30`);
                     if (doc.alerts.emailSent7) alertedThisSession.add(`${doc.id}-7`);
                 }
+                setTimeout(() => checkAndSendAlerts(mappedDocs, userProfileRef.current), 2000);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('[AppContext] Fetch error:', error);
+            setAuthError(error.message || 'Data fetch failed');
         } finally {
             isFetchingRef.current = false;
             setLoading(false);
@@ -133,7 +141,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         };
         initAuth();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (!isMounted) return;
             setSession(session);
             if (session?.user) {
@@ -142,11 +150,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 setDocuments([]);
                 setUserProfile(null);
                 setLoading(false);
+                setAuthError(null);
             }
         });
 
         const channel = supabase.channel('db_changes').on('postgres_changes', { event: '*', schema: 'public', table: 'documents' }, () => {
-            if (session?.user?.id) fetchUserData(session.user.id, session.user.email);
+            if (isMounted) {
+                supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+                    if (currentSession?.user?.id) fetchUserData(currentSession.user.id, currentSession.user.email);
+                });
+            }
         }).subscribe();
 
         const interval = setInterval(() => {
@@ -164,11 +177,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const checkAndSendAlerts = async (currentDocs: Document[] | null = null, currentUser: UserProfile | null = null) => {
         if (isCheckingRef.current) return;
         isCheckingRef.current = true;
-        console.log('[Alert] Starting background check...');
 
         try {
-            const docsToCheck = currentDocs || documents;
-            const userToCheck = currentUser || userProfile;
+            const docsToCheck = currentDocs || documentsRef.current;
+            const userToCheck = currentUser || userProfileRef.current;
             if (!userToCheck?.email || docsToCheck.length === 0) return;
 
             for (const doc of docsToCheck) {
@@ -183,10 +195,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 let updatedAlerts = { ...doc.alerts };
                 let triggerUpdate = false;
 
-                // 30-Day Alert
                 const key30 = `${doc.id}-30`;
                 if (diffDays <= 30 && diffDays > 7 && !doc.alerts.emailSent30 && !alertedThisSession.has(key30)) {
-                    console.log(`[Alert] Triggering 30-day alert for ${doc.name}`);
                     alertedThisSession.add(key30);
                     playAlertSound();
                     const res = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
@@ -199,10 +209,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     }
                 }
 
-                // 7-Day Alert
                 const key7 = `${doc.id}-7`;
                 if (diffDays <= 7 && !doc.alerts.emailSent7 && !alertedThisSession.has(key7)) {
-                    console.log(`[Alert] Triggering 7-day alert for ${doc.name}`);
                     alertedThisSession.add(key7);
                     playAlertSound();
                     const res = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
@@ -220,14 +228,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, alerts: updatedAlerts } : d));
                 }
             }
+        } catch (err) {
+            console.error('[Alert] Check error:', err);
         } finally {
             isCheckingRef.current = false;
         }
     };
 
     const addDocument = async (docData: Omit<Document, 'id' | 'alerts'>) => {
-        const user = (await supabase.auth.getUser()).data.user;
+        const userRes = await supabase.auth.getUser();
+        const user = userRes.data.user;
         if (!user) return null;
+
         const newAlerts = { emailSent30: false, emailSent7: false, scheduledAt: new Date().toISOString(), calendarEventId: uuidv4() };
         let insertPayload: any = {
             user_id: user.id,
@@ -242,23 +254,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         let { data, error } = await supabase.from('documents').insert(insertPayload).select().single();
 
-        if (error && error.message.includes('column "user_group" of relation "documents"')) {
-            console.warn("[AppContext] Relational mismatch, retrying without user_group...");
-            delete insertPayload.user_group;
-            const retry = await supabase.from('documents').insert(insertPayload).select().single();
+        if (error && error.message.includes('column "user_group"')) {
+            const { user_group: _group, ...minimalPayload } = insertPayload;
+            const retry = await supabase.from('documents').insert(minimalPayload).select().single();
             data = retry.data;
             error = retry.error;
         }
 
         if (error) {
-            console.error('[AppContext] Final Add Error:', error.message);
             showNotification(`Save failed: ${error.message}`, 'error');
             return null;
         }
 
         const saved: Document = { ...docData, id: data.id, alerts: newAlerts };
         setDocuments(prev => [...prev, saved]);
-        checkAndSendAlerts([...documents, saved], userProfileRef.current);
+        checkAndSendAlerts([...documentsRef.current, saved], userProfileRef.current);
         return saved;
     };
 
@@ -270,10 +280,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     const updateUserProfile = async (profile: UserProfile) => {
-        const user = (await supabase.auth.getUser()).data.user;
+        const userRes = await supabase.auth.getUser();
+        const user = userRes.data.user;
         if (!user) return;
         setUserProfile(profile);
-        await supabase.from('profiles').upsert({ id: user.id, full_name: profile.fullName, email: profile.email, phone: profile.phone, user_group: profile.userGroup, dob: profile.dob });
+        await supabase.from('profiles').upsert({
+            id: user.id,
+            full_name: profile.fullName,
+            email: profile.email,
+            phone: profile.phone,
+            user_group: profile.userGroup,
+            dob: profile.dob
+        });
     };
 
     const deleteDocument = async (id: string) => {
@@ -283,7 +301,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const refreshAlerts = async () => {
         showNotification('Checking...', 'info');
-        await checkAndSendAlerts(documents, userProfile);
+        await checkAndSendAlerts(documentsRef.current, userProfileRef.current);
     };
 
     return (
