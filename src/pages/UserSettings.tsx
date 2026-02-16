@@ -13,7 +13,6 @@ const UserSettings: React.FC = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [isTesting, setIsTesting] = useState(false);
     const [emailStatus, setEmailStatus] = useState<'checking' | 'configured' | 'error'>('checking');
-    const [diagnostics, setDiagnostics] = useState<any>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({ fullName: '', phone: '', dob: '', userGroup: 'Self' as any });
 
@@ -36,7 +35,6 @@ const UserSettings: React.FC = () => {
                 // If it contains "connected", it's configured
                 const isOnline = data.gmailStatus && data.gmailStatus.includes('connected');
                 setEmailStatus(isOnline ? 'configured' : 'error');
-                setDiagnostics(data.diagnostics);
 
                 if (!isOnline && data.gmailStatus) {
                     console.error("[Health Check] Gmail Error:", data.gmailStatus);
@@ -189,19 +187,6 @@ const UserSettings: React.FC = () => {
                             <Send size={14} /> Test 7-Day Alert
                         </button>
                     </div>
-
-                    {diagnostics && emailStatus === 'error' && (
-                        <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(248,113,113,0.1)', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.2)', fontSize: '0.85rem' }}>
-                            <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold', color: '#f87171' }}>Diagnostic Info (Check your Render Keys):</p>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                <div>Client ID: <strong>{diagnostics.idLen} chars</strong> ({diagnostics.idPrefix}...)</div>
-                                <div>Secret: <strong>{diagnostics.secretLen} chars</strong> ({diagnostics.secretPrefix}...)</div>
-                            </div>
-                            <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>
-                                * If lengths don't match my values, you have a typo!
-                            </p>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
