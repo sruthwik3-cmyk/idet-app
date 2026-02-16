@@ -23,7 +23,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (!session) {
-        return <Navigate to="/login" replace />;
+        const search = window.location.search;
+        return <Navigate to={`/login${search}`} replace />;
     }
 
     if (userProfile && !userProfile.fullName && window.location.pathname !== '/setup-profile') {
@@ -39,6 +40,13 @@ const AppRoutes = () => {
     const location = window.location.pathname;
 
     React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('error') && location !== '/login') {
+            console.log("[AppRoutes] Error detected in URL, redirecting to login...");
+            navigate('/login' + window.location.search, { replace: true });
+            return;
+        }
+
         if (!loading && session && (location === '/' || location === '/login')) {
             console.log("[AppRoutes] User has session, redirecting to dashboard...");
             navigate('/dashboard', { replace: true });

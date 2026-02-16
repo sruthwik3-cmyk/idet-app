@@ -29,6 +29,21 @@ const Login: React.FC = () => {
         checkConfig();
     }, []);
 
+    // URL Error Parsing
+    React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const errorMsg = params.get('error_description');
+        const errorCode = params.get('error_code');
+
+        if (errorMsg) {
+            console.error("[Login] URL Error Detected:", errorMsg, errorCode);
+            setError(`${errorMsg.replace(/\+/g, ' ')} (Code: ${errorCode})`);
+
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -84,7 +99,7 @@ const Login: React.FC = () => {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin,
+                    redirectTo: window.location.origin + '/dashboard',
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'consent',
