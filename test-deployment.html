@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDET Deployment Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #4f46e5; }
+        .test-section {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .success { background: #10b981; color: white; }
+        .error { background: #ef4444; color: white; }
+        .info { background: #3b82f6; color: white; }
+        .warning { background: #f59e0b; color: white; }
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { background: #4338ca; }
+        pre {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .dot-green { background: #10b981; }
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+    </style>
+</head>
+<body>
+    <h1>🔍 IDET Deployment Diagnostic Tool</h1>
+    <p>Test your deployment at: <strong id="app-url">https://idet-app-1.onrender.com</strong></p>
+
+    <div class="test-section">
+        <h2>Test 1: Server Health Check</h2>
+        <button onclick="testHealth()">Run Health Check</button>
+        <div id="health-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Gmail API Connection</h2>
+        <button onclick="testGmail()">Test Gmail API</button>
+        <div id="gmail-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Supabase Connection</h2>
+        <button onclick="testSupabase()">Test Database</button>
+        <div id="supabase-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Send Test Email</h2>
+        <input type="email" id="test-email" placeholder="Enter your email" style="padding: 10px; width: 300px; margin-right: 10px; background: #0f172a; border: 1px solid #0f3460; color: white; border-radius: 4px;">
+        <button onclick="sendTestEmail()">Send Test Email</button>
+        <div id="email-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: Sound Alert</h2>
+        <button onclick="testSound()">Play 15-Second Alert</button>
+        <div id="sound-result"></div>
+    </div>
+
+    <script>
+        const APP_URL = 'https://idet-app-1.onrender.com';
+
+        function showResult(elementId, message, type = 'info') {
+            const el = document.getElementById(elementId);
+            el.innerHTML = `<div class="test-result ${type}">${message}</div>`;
+        }
+
+        async function testHealth() {
+            showResult('health-result', '⏳ Testing server health...', 'info');
+            try {
+                const response = await fetch(`${APP_URL}/api/health`);
+                const data = await response.json();
+                
+                let html = '<div class="test-result success">✅ Server is running!</div>';
+                html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                if (data.gmailStatus && data.gmailStatus.includes('connected')) {
+                    html += '<div class="test-result success"><span class="status-dot dot-green"></span>Gmail API: Connected</div>';
+                } else {
+                    html += '<div class="test-result error"><span class="status-dot dot-red"></span>Gmail API: ' + data.gmailStatus + '</div>';
+                }
+                
+                document.getElementById('health-result').innerHTML = html;
+            } catch (error) {
+                showResult('health-result', '❌ Server health check failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testGmail() {
+            showResult('gmail-result', '⏳ Testing Gmail API...', 'info');
+            try {
+                const response = await fetch(`${APP_URL}/api/diagnose-gmail`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult('gmail-result', '✅ Gmail API is working! Token is valid.', 'success');
+                } else {
+                    showResult('gmail-result', '❌ Gmail API Error: ' + data.error + '<br><pre>' + JSON.stringify(data, null, 2) + '</pre>', 'error');
+                }
+            } catch (error) {
+                showResult('gmail-result', '❌ Gmail test failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testSupabase() {
+            showResult('supabase-result', '⏳ Testing Supabase connection...', 'info');
+            
+            const SUPABASE_URL = 'https://egnajcexpflszsgjarzt.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmFqY2V4cGZsc3pzZ2phcnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODMyNTYsImV4cCI6MjA4NjA1OTI1Nn0.72fP2YWQ-UA2d0FozeJu0EqmP6wTr2Ro-0gZXQ7JmRw';
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?select=count`, {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                
+                if (response.ok) {
+                    showResult('supabase-result', '✅ Supabase connection successful!', 'success');
+                } else {
+                    showResult('supabase-result', '❌ Supabase error: ' + response.statusText, 'error');
+                }
+            } catch (error) {
+                showResult('supabase-result', '❌ Supabase test failed: ' + error.message, 'error');
+            }
+        }
+
+        async function sendTestEmail() {
+            const email = document.getElementById('test-email').value;
+            if (!email) {
+                showResult('email-result', '⚠️ Please enter an email address', 'warning');
+                return;
+            }
+            
+            showResult('email-result', '⏳ Sending test email to ' + email + '...', 'info');
+            
+            try {
+                const response = await fetch(`${APP_URL}/api/send-email`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to: email,
+                        subject: 'IDET Test Email',
+                        html: '<h2>Test Successful!</h2><p>Your IDET app can send emails via Gmail API.</p>',
+                        text: 'Test Successful! Your IDET app can send emails.'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult('email-result', '✅ Test email sent successfully! Check your inbox (and spam folder).', 'success');
+                } else {
+                    showResult('email-result', '❌ Email failed: ' + data.error + '<br><small>' + (data.hint || '') + '</small><br><pre>' + JSON.stringify(data, null, 2) + '</pre>', 'error');
+                }
+            } catch (error) {
+                showResult('email-result', '❌ Email test failed: ' + error.message, 'error');
+            }
+        }
+
+        function testSound() {
+            showResult('sound-result', '🔊 Playing 15-second alert sound...', 'info');
+            
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) {
+                showResult('sound-result', '❌ Your browser does not support Web Audio API', 'error');
+                return;
+            }
+            
+            const ctx = new AudioContext();
+            
+            const melody = [
+                { note: 523.25, duration: 0.15, time: 0 },
+                { note: 659.25, duration: 0.15, time: 0.15 },
+                { note: 783.99, duration: 0.15, time: 0.30 },
+                { note: 1046.50, duration: 0.30, time: 0.45 },
+                { note: 783.99, duration: 0.15, time: 0.75 },
+                { note: 659.25, duration: 0.15, time: 0.90 },
+                { note: 523.25, duration: 0.30, time: 1.05 },
+                { note: 587.33, duration: 0.15, time: 1.50 },
+                { note: 698.46, duration: 0.15, time: 1.65 },
+                { note: 880.00, duration: 0.15, time: 1.80 },
+                { note: 1174.66, duration: 0.40, time: 1.95 }
+            ];
+            
+            const playTune = () => {
+                const now = ctx.currentTime;
+                melody.forEach(({ note, duration, time }) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(note, now + time);
+                    
+                    gain.gain.setValueAtTime(0, now + time);
+                    gain.gain.linearRampToValueAtTime(0.25, now + time + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + time + duration);
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.start(now + time);
+                    osc.stop(now + time + duration + 0.1);
+                });
+            };
+            
+            playTune();
+            let loopCount = 0;
+            const interval = setInterval(() => {
+                loopCount++;
+                if (loopCount >= 5) {
+                    clearInterval(interval);
+                    showResult('sound-result', '✅ Sound test complete! (15 seconds)', 'success');
+                    return;
+                }
+                playTune();
+            }, 2800);
+            
+            setTimeout(() => {
+                clearInterval(interval);
+            }, 15000);
+        }
+
+        // Auto-run health check on load
+        window.onload = () => {
+            testHealth();
+        };
+    </script>
+</body>
+</html>
