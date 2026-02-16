@@ -716,9 +716,10 @@ textarea.input-field {
 }
 
 /* ═══════════════════════════════════════════════════
-   MOBILE RESPONSIVE
+   MOBILE RESPONSIVE - Enhanced for All Devices
    ═══════════════════════════════════════════════════ */
 
+/* Mobile Phones (up to 768px) */
 @media (max-width: 768px) {
   .app-container {
     flex-direction: column;
@@ -811,10 +812,26 @@ textarea.input-field {
     overflow-y: auto;
   }
 
-  .grid-cols-4 {
-    display: flex;
+  .page-header {
     flex-direction: column;
+    align-items: flex-start !important;
     gap: 1rem;
+  }
+
+  .page-header > div:last-child {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .grid-cols-4 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
 
   .grid-cols-2 {
@@ -830,7 +847,7 @@ textarea.input-field {
     margin-top: 0.5rem;
   }
 
-  .sidebar-footer .user-info p {
+  .sidebar-footer .user-info .email {
     display: none;
   }
 
@@ -853,11 +870,73 @@ textarea.input-field {
     animation: pulseGlow 2s infinite;
   }
 
-  .page-title {
-    font-size: 1.75rem;
+  .card {
+    padding: 1.25rem;
+  }
+
+  .btn-secondary,
+  .btn-primary-full {
+    font-size: 0.85rem;
+    padding: 0.65rem 1rem;
   }
 }
 
+/* Tablets (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 240px;
+  }
+
+  .main-content {
+    padding: 1.5rem;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+}
+
+/* Large Tablets and Small Laptops (1025px to 1366px) */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .sidebar {
+    width: 260px;
+  }
+
+  .main-content {
+    padding: 1.75rem;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Desktop and Large Screens (1367px+) */
+@media (min-width: 1367px) {
+  .sidebar {
+    width: 280px;
+  }
+
+  .main-content {
+    padding: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Hide FAB on desktop */
 @media (min-width: 769px) {
   .fab-mobile {
     display: none;

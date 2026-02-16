@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download, RefreshCw, Volume2 } from 'lucide-react';
+import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download, RefreshCw, Volume2, Upload } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
 import { unlockAudioContext } from '../utils/soundUtils';
 
 const Dashboard: React.FC = () => {
-    const { stats, documents, deleteDocument, loading, refreshAlerts } = useApp();
+    const { stats, documents, deleteDocument, loading, refreshAlerts, addDocument, showNotification } = useApp();
     const navigate = useNavigate();
     const location = useLocation();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Initialize search from Voice Command if present
     const [searchTerm, setSearchTerm] = useState(location.state?.searchQuery || '');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [audioUnlocked, setAudioUnlocked] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
+    const [importResults, setImportResults] = useState<{ success: number; errors: string[] } | null>(null);
 
     // Unlock audio on mount
     useEffect(() => {
@@ -93,6 +96,111 @@ const Dashboard: React.FC = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const handleImport = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.name.endsWith('.csv')) {
+            showNotification('Please upload a CSV file', 'error');
+            return;
+        }
+
+        setIsImporting(true);
+        setImportResults(null);
+
+        try {
+            const text = await file.text();
+            const lines = text.split('\n').filter(line => line.trim());
+            
+            if (lines.length < 2) {
+                showNotification('CSV file is empty', 'error');
+                setIsImporting(false);
+                return;
+            }
+
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            const errors: string[] = [];
+            let successCount = 0;
+
+            // Validate headers
+            const requiredHeaders = ['Name', 'Category', 'Expiry Date', 'Priority'];
+            const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
+            
+            if (missingHeaders.length > 0) {
+                showNotification(`Missing required columns: ${missingHeaders.join(', ')}`, 'error');
+                setIsImporting(false);
+                return;
+            }
+
+            // Process each row
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                const row: any = {};
+                
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+
+                // Validate required fields
+                if (!row['Name'] || !row['Category'] || !row['Expiry Date'] || !row['Priority']) {
+                    errors.push(`Row ${i + 1}: Missing required fields`);
+                    continue;
+                }
+
+                // Validate date format
+                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                if (!dateRegex.test(row['Expiry Date'])) {
+                    errors.push(`Row ${i + 1}: Invalid date format (use YYYY-MM-DD)`);
+                    continue;
+                }
+
+                // Validate priority
+                if (!['Critical', 'Important', 'Optional'].includes(row['Priority'])) {
+                    errors.push(`Row ${i + 1}: Invalid priority (use Critical, Important, or Optional)`);
+                    continue;
+                }
+
+                // Import document
+                try {
+                    await addDocument({
+                        name: row['Name'],
+                        category: row['Category'],
+                        expiryDate: row['Expiry Date'],
+                        priority: row['Priority'] as 'Critical' | 'Important' | 'Optional',
+                        notes: row['Notes'] || '',
+                        userGroup: 'Self'
+                    });
+                    successCount++;
+                } catch (error) {
+                    errors.push(`Row ${i + 1}: Failed to import - ${error}`);
+                }
+            }
+
+            setImportResults({ success: successCount, errors });
+            
+            if (successCount > 0) {
+                showNotification(`Successfully imported ${successCount} document${successCount > 1 ? 's' : ''}!`, 'success');
+            }
+            
+            if (errors.length > 0) {
+                showNotification(`${errors.length} row${errors.length > 1 ? 's' : ''} had errors`, 'error');
+            }
+
+        } catch (error) {
+            showNotification('Failed to read CSV file', 'error');
+            console.error('Import error:', error);
+        } finally {
+            setIsImporting(false);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
     };
 
     const StatCard = ({ title, value, icon: Icon, color, gradient }: any) => (
@@ -185,7 +293,7 @@ const Dashboard: React.FC = () => {
                         </p>
                     )}
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button
                         className="btn-secondary"
                         onClick={refreshAlerts}
@@ -193,6 +301,21 @@ const Dashboard: React.FC = () => {
                     >
                         <RefreshCw size={16} /> Sync Alerts
                     </button>
+                    <button
+                        className="btn-secondary"
+                        onClick={handleImport}
+                        disabled={isImporting}
+                        title="Import documents from CSV file"
+                    >
+                        <Upload size={16} /> {isImporting ? 'Importing...' : 'Import CSV'}
+                    </button>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                    />
                     <button
                         className="btn-secondary"
                         onClick={handleExport}
@@ -498,6 +621,73 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Import Results Modal */}
+            {importResults && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.8)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '1rem'
+                }} onClick={() => setImportResults(null)}>
+                    <div className="card" style={{
+                        maxWidth: '600px',
+                        width: '100%',
+                        maxHeight: '80vh',
+                        overflow: 'auto',
+                        padding: '2rem'
+                    }} onClick={(e) => e.stopPropagation()}>
+                        <h2 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <CheckCircle size={28} color="var(--success)" />
+                            Import Results
+                        </h2>
+                        
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <p style={{ fontSize: '1.1rem', margin: '0.5rem 0' }}>
+                                <strong style={{ color: 'var(--success)' }}>{importResults.success}</strong> document{importResults.success !== 1 ? 's' : ''} imported successfully
+                            </p>
+                            {importResults.errors.length > 0 && (
+                                <p style={{ fontSize: '1.1rem', margin: '0.5rem 0' }}>
+                                    <strong style={{ color: 'var(--danger)' }}>{importResults.errors.length}</strong> error{importResults.errors.length !== 1 ? 's' : ''}
+                                </p>
+                            )}
+                        </div>
+
+                        {importResults.errors.length > 0 && (
+                            <div style={{
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                border: '1px solid rgba(239, 68, 68, 0.2)',
+                                borderRadius: '12px',
+                                padding: '1rem',
+                                marginBottom: '1.5rem'
+                            }}>
+                                <h3 style={{ marginTop: 0, fontSize: '1rem', color: 'var(--danger)' }}>Errors:</h3>
+                                <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
+                                    {importResults.errors.map((error, index) => (
+                                        <li key={index} style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>{error}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        <button
+                            className="btn-primary-full"
+                            onClick={() => setImportResults(null)}
+                            style={{ marginBottom: 0 }}
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
