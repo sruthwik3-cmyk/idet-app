@@ -99,7 +99,7 @@ const Login: React.FC = () => {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin + '/dashboard',
+                    redirectTo: window.location.origin,
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'consent',
@@ -203,7 +203,13 @@ const Login: React.FC = () => {
 
                         {(error || authError) && (
                             <div style={{ padding: '0.75rem', background: 'rgba(248, 113, 113, 0.2)', color: '#fca5a5', borderRadius: '8px', fontSize: '0.875rem' }}>
+                                <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>Authentication Issue</div>
                                 {error || authError}
+                                {(error?.includes('exchange external code') || authError?.includes('exchange external code')) && (
+                                    <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', opacity: 0.8 }}>
+                                        This usually means the Google OAuth keys in Supabase don't match your project. Please verify your Google Client ID and Secret in the Supabase Dashboard.
+                                    </div>
+                                )}
                             </div>
                         )}
 
