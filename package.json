@@ -20,6 +20,7 @@
     "express": "^4.22.1",
     "googleapis": "^134.0.0",
     "lucide-react": "^0.564.0",
+    "openai": "^6.22.0",
     "path-to-regexp": "0.1.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

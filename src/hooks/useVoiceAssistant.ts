@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { getAIResponse, isAIModeEnabled } from '../utils/aiService';
 
 // Extend Window interface for Web Speech API
 declare global {
@@ -189,13 +190,28 @@ export const useVoiceAssistant = () => {
         return "Good evening";
     };
 
-    const processCommand = useCallback((command: string) => {
+    const processCommand = useCallback(async (command: string) => {
         const lowerCmd = command.toLowerCase();
         const smartAction = parseSmartCommand(command);
         const isAddressedToJarvis = lowerCmd.includes('jarvis');
 
         // Log what was heard for debugging
         console.log('[Jarvis] Heard:', command);
+        console.log('[Jarvis] AI Mode:', isAIModeEnabled() ? 'ENABLED' : 'DISABLED');
+
+        // Try AI response first if enabled
+        if (isAIModeEnabled()) {
+            try {
+                speak("Processing your request, sir...");
+                const aiResponse = await getAIResponse(command, stats);
+                if (aiResponse) {
+                    speak(aiResponse);
+                    return;
+                }
+            } catch (error) {
+                console.error('[Jarvis] AI Error, falling back to smart responses:', error);
+            }
+        }
 
         // Check for smart responses first
         const smartResponse = getSmartResponse(command);
