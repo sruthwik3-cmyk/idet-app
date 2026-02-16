@@ -12,37 +12,22 @@ const Alerts: React.FC = () => {
 
     return (
         <div className="animate-fade-in alerts-wrapper">
-            <div className="page-header">
+            <div className="page-header" style={{ marginBottom: '2rem', alignItems: 'flex-start' }}>
                 <div>
-                    <h1 className="page-title">Alerts & History</h1>
-                    <p style={{ color: 'var(--text-dim)', margin: '0.5rem 0 0', fontSize: '1rem' }}>
-                        Track your document security lifecycle and notification history.
+                    <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Alerts & History</h1>
+                    <p style={{ color: 'var(--text-dim)', margin: 0, fontSize: '0.95rem' }}>
+                        Track your document notifications and alert history
                     </p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <button
                         onClick={() => useApp().refreshAlerts()}
-                        style={{
-                            padding: '0.75rem 1.25rem',
-                            background: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '12px',
-                            color: 'var(--text-primary)',
-                            fontSize: '0.85rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            transition: 'all 0.2s ease'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                        className="btn-secondary"
                     >
-                        <History size={16} /> Force Check Alerts
+                        <History size={16} /> Force Check
                     </button>
-                    <div style={{ padding: '0.75rem 1.5rem', background: 'var(--primary-soft)', borderRadius: '12px', border: '1px solid var(--primary-glow)', color: '#c084fc', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Bell size={18} /> {alertDocs.length} ACTIVE TRAILS
+                    <div style={{ padding: '0.75rem 1.25rem', background: 'var(--primary-soft)', borderRadius: '12px', border: '1px solid var(--primary-glow)', color: '#c084fc', fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Bell size={18} /> {alertDocs.length} Active
                     </div>
                 </div>
             </div>

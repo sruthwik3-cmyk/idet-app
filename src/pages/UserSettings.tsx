@@ -84,21 +84,23 @@ const UserSettings: React.FC = () => {
 
     return (
         <div className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <div className="page-header"><h1 className="page-title">Profile Settings</h1></div>
+            <div className="page-header" style={{ marginBottom: '2rem' }}>
+                <h1 className="page-title">Profile Settings</h1>
+            </div>
 
             <div className="card" style={{ marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.5rem' }}>
+                        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '1.5rem', fontWeight: 700, boxShadow: '0 0 20px rgba(124, 58, 237, 0.3)' }}>
                             {userProfile?.fullName?.charAt(0) || 'U'}
                         </div>
                         <div>
-                            <h2 style={{ margin: 0 }}>{userProfile?.fullName || 'User'}</h2>
-                            <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{userProfile?.email}</p>
+                            <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>{userProfile?.fullName || 'User'}</h2>
+                            <p style={{ margin: '0.25rem 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{userProfile?.email}</p>
                         </div>
                     </div>
-                    <button onClick={() => setIsEditing(!isEditing)} className="btn-secondary" style={{ padding: '0.5rem' }}>
-                        {isEditing ? <X size={20} /> : <Edit2 size={20} />}
+                    <button onClick={() => setIsEditing(!isEditing)} className="btn-secondary">
+                        {isEditing ? <><X size={18} /> Cancel</> : <><Edit2 size={18} /> Edit Profile</>}
                     </button>
                 </div>
 
@@ -165,21 +167,26 @@ const UserSettings: React.FC = () => {
             </div>
 
             <div className="card">
-                <h3>System Verification</h3>
-                <div style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem' }}>
-                        <strong>Email Status:</strong>
-                        <span className={`badge badge-${emailStatus === 'configured' ? 'success' : 'danger'}`}>
-                            {emailStatus === 'configured' ? 'ONLINE' : 'OFFLINE'}
-                        </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        <button onClick={handleVerify} className="btn-secondary"><RefreshCw size={14} style={{ marginRight: '6px' }} /> Check Connection</button>
-                        <button onClick={() => handleTest(30)} disabled={isTesting} className="btn-secondary">
-                            <Send size={14} style={{ marginRight: '6px' }} /> Test 30d
+                <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.25rem', fontWeight: 700 }}>System Verification</h3>
+                <div style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <strong style={{ fontSize: '0.95rem' }}>Email Status:</strong>
+                            <span className={`badge badge-${emailStatus === 'configured' ? 'success' : 'danger'}`}>
+                                {emailStatus === 'configured' ? '✓ ONLINE' : '✗ OFFLINE'}
+                            </span>
+                        </div>
+                        <button onClick={handleVerify} className="btn-secondary" style={{ padding: '0.5rem 1rem' }}>
+                            <RefreshCw size={14} /> Check Connection
                         </button>
-                        <button onClick={() => handleTest(7)} disabled={isTesting} className="btn-secondary">
-                            <Send size={14} style={{ marginRight: '6px' }} /> Test 7d
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <button onClick={() => handleTest(30)} disabled={isTesting} className="btn-secondary" style={{ flex: 1, minWidth: '140px' }}>
+                            <Send size={14} /> Test 30-Day Alert
+                        </button>
+                        <button onClick={() => handleTest(7)} disabled={isTesting} className="btn-secondary" style={{ flex: 1, minWidth: '140px' }}>
+                            <Send size={14} /> Test 7-Day Alert
                         </button>
                     </div>
 

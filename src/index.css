@@ -887,3 +887,20 @@ textarea.input-field {
   border-radius: 8px;
   animation: skeletonPulse 1.5s ease-in-out infinite;
 }
+
+/* ═══════════════════════════════════════════════════
+   ACTION BUTTONS
+   ═══════════════════════════════════════════════════ */
+
+.action-btn {
+  transition: all 0.2s var(--spring);
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: scale(1.1);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}

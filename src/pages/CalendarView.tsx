@@ -66,28 +66,28 @@ const CalendarView: React.FC = () => {
 
     return (
         <div className="animate-fade-in calendar-wrapper" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div className="page-header" style={{ marginBottom: 0 }}>
+            <div className="page-header" style={{ marginBottom: 0, alignItems: 'flex-start' }}>
                 <div>
-                    <h1 className="page-title">Temporal Monitoring</h1>
-                    <p style={{ color: 'var(--text-dim)', margin: '0.5rem 0 0', fontSize: '1rem' }}>
-                        Visualizing document expiry vectors across the time-stream.
+                    <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Calendar View</h1>
+                    <p style={{ color: 'var(--text-dim)', margin: 0, fontSize: '0.95rem' }}>
+                        Visualize document expiry dates across the timeline
                     </p>
                 </div>
 
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '1.5rem',
+                    gap: '1rem',
                     background: 'rgba(255,255,255,0.03)',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '16px',
+                    padding: '0.75rem 1.25rem',
+                    borderRadius: '14px',
                     border: '1px solid rgba(255,255,255,0.08)',
                     backdropFilter: 'blur(10px)'
                 }}>
                     <button onClick={prevMonth} className="nav-btn">
                         <ChevronLeft size={20} />
                     </button>
-                    <h2 style={{ margin: 0, fontSize: '1.2rem', width: '160px', textAlign: 'center', fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.1rem', minWidth: '160px', textAlign: 'center', fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>
                         {format(currentMonth, 'MMMM yyyy').toUpperCase()}
                     </h2>
                     <button onClick={nextMonth} className="nav-btn">

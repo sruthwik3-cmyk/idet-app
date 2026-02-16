@@ -176,33 +176,31 @@ const Dashboard: React.FC = () => {
                     background: rgba(255,255,255,0.1);
                 }
             `}</style>
-            <div className="page-header">
+            <div className="page-header" style={{ marginBottom: '2rem', alignItems: 'flex-start' }}>
                 <div>
-                    <h1 className="page-title">Dashboard</h1>
+                    <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Dashboard</h1>
                     {!audioUnlocked && (
-                        <p style={{ color: 'var(--warning)', fontSize: '0.875rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <p style={{ color: 'var(--warning)', fontSize: '0.875rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Volume2 size={16} /> Click anywhere to enable sound alerts
                         </p>
                     )}
                 </div>
-                <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                     <button
                         className="btn-secondary"
                         onClick={refreshAlerts}
                         title="Check for due alerts now"
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
                     >
                         <RefreshCw size={16} /> Sync Alerts
                     </button>
                     <button
                         className="btn-secondary"
                         onClick={handleExport}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
                     >
-                        <Download size={16} /> Export CSV
+                        <Download size={16} /> Export
                     </button>
-                    <button className="btn-primary-full btn-pulse" style={{ width: 'auto', marginBottom: 0 }} onClick={() => navigate('/add-document')}>
-                        + Add New
+                    <button className="btn-primary-full btn-pulse" style={{ width: 'auto', marginBottom: 0, padding: '0.75rem 1.5rem' }} onClick={() => navigate('/add-document')}>
+                        + Add Document
                     </button>
                 </div>
             </div>
@@ -366,17 +364,24 @@ const Dashboard: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                                                {doc.alerts.emailSent30 && <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>30d Alert</span>}
-                                                {doc.alerts.emailSent7 && <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>7d Alert</span>}
-                                                <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(96, 165, 250, 0.1)', color: '#60a5fa', border: '1px solid rgba(96, 165, 250, 0.2)' }}>Cal Event</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                {doc.alerts.emailSent30 && (
+                                                    <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
+                                                        30d Alert
+                                                    </span>
+                                                )}
+                                                {doc.alerts.emailSent7 && (
+                                                    <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
+                                                        7d Alert
+                                                    </span>
+                                                )}
                                             </div>
 
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '0.5rem' }}>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleEdit(doc); }}
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '4px', borderRadius: '4px', transition: 'background 0.2s' }}
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}
                                                     className="action-btn"
                                                     title="Edit Document"
                                                 >
@@ -384,7 +389,7 @@ const Dashboard: React.FC = () => {
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleDelete(doc.id, doc.name); }}
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', padding: '4px', borderRadius: '4px', transition: 'background 0.2s' }}
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}
                                                     className="action-btn"
                                                     title="Delete Document"
                                                 >
