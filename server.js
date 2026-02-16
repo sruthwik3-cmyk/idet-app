@@ -13,6 +13,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+console.log('[Startup] IDET Server initializing...');
+console.log('[Startup] Node Version:', process.version);
+console.log('[Startup] Path-to-regexp version check:', typeof path);
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -215,7 +219,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // SPA routing catch-all
-app.get('*', (req, res) => {
+app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

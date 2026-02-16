@@ -1,4 +1,4 @@
-// Version: 1.2.1 - Build Stabilization
+// Version: 1.2.2 - Final Server Stability & Interface Polish
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../utils/supabaseClient';
@@ -22,6 +22,7 @@ export interface Document {
 }
 
 export interface UserProfile {
+    id?: string;
     fullName: string;
     phone: string;
     email: string;
@@ -84,7 +85,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         try {
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
             if (profile) {
-                const p = {
+                const p: UserProfile = {
+                    id: userId,
                     fullName: profile.full_name,
                     email: profile.email || authEmail || '',
                     phone: profile.phone,
@@ -94,7 +96,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 setUserProfile(p);
                 userProfileRef.current = p;
             } else {
-                const shell = { fullName: '', email: authEmail || '', phone: '', dob: '', userGroup: 'Self' as const };
+                const shell: UserProfile = { id: userId, fullName: '', email: authEmail || '', phone: '', dob: '', userGroup: 'Self' as const };
                 setUserProfile(shell);
                 userProfileRef.current = shell;
             }

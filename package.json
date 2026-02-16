@@ -20,7 +20,6 @@
     "express": "^4.22.1",
     "googleapis": "^171.4.0",
     "lucide-react": "^0.564.0",
-    "path-to-regexp": "0.1.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.1",
