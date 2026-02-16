@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../utils/supabaseClient';
-import { sendExpiryAlert } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 
 export interface Document {
@@ -216,12 +215,32 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             }
         });
 
+        // REAL-TIME: Subscribe to changes in the 'documents' table
+        const channel = supabase
+            .channel('db_changes')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'documents' },
+                (payload) => {
+                    console.log('[Real-time] Change detected:', payload.eventType);
+                    if (session?.user?.id) {
+                        // Re-fetch to ensure local state matches DB exactly
+                        fetchUserData(session.user.id, session.user.email);
+                    }
+                }
+            )
+            .subscribe();
+
         // Check every 60 seconds
         const interval = setInterval(() => {
             checkAndSendAlerts(documentsRef.current, userProfileRef.current);
         }, 60000);
 
-        return () => { subscription.unsubscribe(); clearInterval(interval); };
+        return () => {
+            subscription.unsubscribe();
+            supabase.removeChannel(channel);
+            clearInterval(interval);
+        };
     }, []);
 
     useEffect(() => {

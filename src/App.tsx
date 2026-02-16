@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import Layout from './components/Layout';
+import { unlockAudioContext } from './utils/soundUtils';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -79,9 +80,11 @@ function App() {
     return (
         <ErrorBoundary>
             <AppProvider>
-                <Router>
-                    <AppRoutes />
-                </Router>
+                <div onClick={() => unlockAudioContext()} style={{ minHeight: '100vh' }}>
+                    <Router>
+                        <AppRoutes />
+                    </Router>
+                </div>
             </AppProvider>
         </ErrorBoundary>
     );

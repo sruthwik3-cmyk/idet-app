@@ -127,6 +127,17 @@ const Dashboard: React.FC = () => {
                     animation: pulse-red 2s infinite;
                     background: linear-gradient(90deg, rgba(248, 113, 113, 0.05) 0%, rgba(0,0,0,0) 100%);
                 }
+                .recent-alert-badge {
+                    background: rgba(248, 113, 113, 0.2);
+                    color: #f87171;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    font-size: 0.7rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    border: 1px solid rgba(248, 113, 113, 0.3);
+                }
                 .filter-chip {
                     padding: 0.25rem 0.75rem;
                     border-radius: 20px;
@@ -283,9 +294,14 @@ const Dashboard: React.FC = () => {
                                                             display: 'flex',
                                                             alignItems: 'center',
                                                             gap: '4px',
-                                                            animation: 'none' // Override pulse for the badge text itself
+                                                            animation: 'none'
                                                         }}>
                                                             <Siren size={12} /> CRITICAL
+                                                        </span>
+                                                    )}
+                                                    {strictDaysLeft <= 7 && strictDaysLeft >= 0 && (
+                                                        <span className="recent-alert-badge">
+                                                            <AlertTriangle size={10} /> Expiring Soon
                                                         </span>
                                                     )}
                                                 </div>
