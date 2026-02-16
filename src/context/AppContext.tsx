@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../utils/supabaseClient';
+import { sendExpiryAlert } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 
 export interface Document {
