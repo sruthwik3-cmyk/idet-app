@@ -15,7 +15,8 @@ const PORT = process.env.PORT || 3000;
 
 console.log('[Startup] IDET Server initializing...');
 console.log('[Startup] Node Version:', process.version);
-console.log('[Startup] Path-to-regexp version check:', typeof path);
+console.log('[Startup] Port:', PORT);
+console.log('[Startup] Environment:', process.env.NODE_ENV || 'development');
 
 // Middleware
 app.use(cors());
@@ -223,6 +224,8 @@ app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT} in GMAIL-API mode`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Gmail configured: ${!!process.env.GMAIL_USER}`);
 });
