@@ -23,7 +23,18 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static files from the 'dist' directory
-app.use(express.static(path.join(__dirname, 'dist')));
+const distPath = path.join(__dirname, 'dist');
+console.log('[Startup] Dist path:', distPath);
+
+// Check if dist folder exists
+import { existsSync } from 'fs';
+if (!existsSync(distPath)) {
+    console.error('[ERROR] dist folder not found! Build may have failed.');
+    console.error('[ERROR] Please run "npm run build" before starting the server.');
+    process.exit(1);
+}
+
+app.use(express.static(distPath));
 
 /**
  * Creates a Gmail API client.
