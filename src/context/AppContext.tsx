@@ -254,6 +254,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             console.log('[Alert] Skipping - already checking');
             return;
         }
+        console.log('[Alert] *** STARTING ALERT CHECK ***');
         isCheckingRef.current = true;
 
         try {
@@ -279,7 +280,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
                     const diffDays = Math.floor((expiryUTC - todayUTC) / (1000 * 60 * 60 * 24));
 
-                    if (diffDays > 30 || diffDays < 0) continue;
+                    if (diffDays > 30 || diffDays < 0) {
+                        console.log(`[Alert] Skipping "${doc.name}" - diffDays: ${diffDays}`);
+                        continue;
+                    }
 
                     let updatedAlerts = { ...doc.alerts };
                     let triggerUpdate = false;
@@ -355,76 +359,83 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
     };
 
-    const addDocument = async (docData: Omit<Document, 'id' | 'alerts'>) => {
-        const user = (await supabase.auth.getUser()).data.user;
-        if (!user) return null;
-        const newAlerts = { emailSent30: false, emailSent7: false, scheduledAt: new Date().toISOString(), calendarEventId: uuidv4() };
-        const { data, error } = await supabase.from('documents').insert({
-            user_id: user.id,
-            name: docData.name,
-            category: docData.category,
-            expiry_date: docData.expiryDate,
-            priority: docData.priority,
-            notes: docData.notes,
-            user_group: docData.userGroup, // Requires DB column update
-            alerts_json: newAlerts
-        }).select().single();
-
-        if (error) {
-            console.error(`[AppContext] addDocument FAILED:`, error);
-            showNotification(`Failed to save document: ${error.message}`, 'error');
-            return null;
-        }
-        const saved = { ...docData, id: data.id, alerts: newAlerts };
-        setDocuments(prev => [...prev, saved]);
-        // Trigger check with new state
-        checkAndSendAlerts([...documents, saved], userProfileRef.current);
-        return saved;
+    const newAlerts = { emailSent30: false, emailSent7: false, scheduledAt: new Date().toISOString(), calendarEventId: uuidv4() };
+    let insertPayload: any = {
+        user_id: user.id,
+        name: docData.name,
+        category: docData.category,
+        expiry_date: docData.expiryDate,
+        priority: docData.priority,
+        notes: docData.notes,
+        alerts_json: newAlerts,
+        user_group: docData.userGroup
     };
 
-    const updateDocument = async (id: string, updates: Partial<Document>) => {
-        const { error } = await supabase.from('documents').update(updates).eq('id', id);
-        if (error) return false;
-        setDocuments(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
-        return true;
-    };
+    let { data, error } = await supabase.from('documents').insert(insertPayload).select().single();
 
-    const updateUserProfile = async (profile: UserProfile) => {
-        const user = (await supabase.auth.getUser()).data.user;
-        if (!user) return;
-        setUserProfile(profile);
-        await supabase.from('profiles').upsert({ id: user.id, full_name: profile.fullName, email: profile.email, phone: profile.phone, user_group: profile.userGroup, dob: profile.dob });
-    };
+    if (error && error.message.includes('column "user_group" of relation "documents" does not exist')) {
+        console.warn("[AppContext] user_group column missing. Retrying without it...");
+        delete insertPayload.user_group;
+        const retry = await supabase.from('documents').insert(insertPayload).select().single();
+        data = retry.data;
+        error = retry.error;
+    }
 
-    const deleteDocument = async (id: string) => {
-        await supabase.from('documents').delete().eq('id', id);
-        setDocuments(prev => prev.filter(d => d.id !== id));
-    };
+    if (error) {
+        console.error(`[AppContext] addDocument FAILED:`, error);
+        showNotification(`Failed to save document: ${error.message}`, 'error');
+        return null;
+    }
+    const saved = { ...docData, id: data.id, alerts: newAlerts };
+    setDocuments(prev => [...prev, saved]);
+    // Trigger check with new state
+    checkAndSendAlerts([...documents, saved], userProfileRef.current);
+    return saved;
+};
 
-    const refreshAlerts = async () => {
-        showNotification('Checking for alerts...', 'info');
-        await checkAndSendAlerts(documents, userProfile);
-        showNotification('Alert check complete', 'success');
-    };
+const updateDocument = async (id: string, updates: Partial<Document>) => {
+    const { error } = await supabase.from('documents').update(updates).eq('id', id);
+    if (error) return false;
+    setDocuments(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
+    return true;
+};
 
-    return (
-        <AppContext.Provider value={{
-            documents, userProfile, addDocument, updateDocument, updateUserProfile, deleteDocument,
-            stats: {
-                total: documents.length,
-                active: documents.filter(d => new Date(d.expiryDate) >= new Date()).length,
-                expiringSoon: documents.filter(d => {
-                    const diffDays = Math.ceil((new Date(d.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                    return diffDays >= 0 && diffDays <= 7;
-                }).length,
-                expired: documents.filter(d => new Date(d.expiryDate) < new Date()).length
-            },
-            loading, notification, showNotification, refreshAlerts,
-            session, authError
-        }}>
-            {children}
-        </AppContext.Provider>
-    );
+const updateUserProfile = async (profile: UserProfile) => {
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) return;
+    setUserProfile(profile);
+    await supabase.from('profiles').upsert({ id: user.id, full_name: profile.fullName, email: profile.email, phone: profile.phone, user_group: profile.userGroup, dob: profile.dob });
+};
+
+const deleteDocument = async (id: string) => {
+    await supabase.from('documents').delete().eq('id', id);
+    setDocuments(prev => prev.filter(d => d.id !== id));
+};
+
+const refreshAlerts = async () => {
+    showNotification('Checking for alerts...', 'info');
+    await checkAndSendAlerts(documents, userProfile);
+    showNotification('Alert check complete', 'success');
+};
+
+return (
+    <AppContext.Provider value={{
+        documents, userProfile, addDocument, updateDocument, updateUserProfile, deleteDocument,
+        stats: {
+            total: documents.length,
+            active: documents.filter(d => new Date(d.expiryDate) >= new Date()).length,
+            expiringSoon: documents.filter(d => {
+                const diffDays = Math.ceil((new Date(d.expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                return diffDays >= 0 && diffDays <= 7;
+            }).length,
+            expired: documents.filter(d => new Date(d.expiryDate) < new Date()).length
+        },
+        loading, notification, showNotification, refreshAlerts,
+        session, authError
+    }}>
+        {children}
+    </AppContext.Provider>
+);
 };
 
 export const useApp = () => {

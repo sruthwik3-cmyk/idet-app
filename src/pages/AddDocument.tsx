@@ -68,14 +68,21 @@ const AddDocument: React.FC = () => {
             updateDocument(editDoc.id, docPayload);
             navigate('/dashboard');
         } else {
-            addDocument(docPayload);
-            // Generate Google Calendar Web Intent URL
-            const startDate = new Date(formData.expiryDate).toISOString().replace(/-|:|\.\d\d\d/g, "");
-            const endDate = new Date(new Date(formData.expiryDate).getTime() + 60 * 60 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
-            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Expiry: ${formData.name}`)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(`Document Category: ${finalCategory}\nNotes: ${formData.notes}\nPriority: ${formData.priority}`)}&sf=true&output=xml`;
-            setCalendarUrl(url);
-            setShowSuccess(true);
-            window.open(url, '_blank');
+            // Await the actual DB saving!
+            addDocument(docPayload).then(savedDoc => {
+                if (savedDoc) {
+                    // Generate Google Calendar Web Intent URL
+                    const startDate = new Date(formData.expiryDate).toISOString().replace(/-|:|\.\d\d\d/g, "");
+                    const endDate = new Date(new Date(formData.expiryDate).getTime() + 60 * 60 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
+                    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Expiry: ${formData.name}`)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(`Document Category: ${finalCategory}\nNotes: ${formData.notes}\nPriority: ${formData.priority}`)}&sf=true&output=xml`;
+                    setCalendarUrl(url);
+                    setShowSuccess(true);
+                    window.open(url, '_blank');
+                } else {
+                    // Fail state is handled by notify in AppContext, but we should not transition here
+                    console.error("Document save failed - staying on form.");
+                }
+            });
         }
     };
 
