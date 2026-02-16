@@ -96,16 +96,16 @@ const CalendarView: React.FC = () => {
                 </div>
             </div>
 
-            <div className="card glass-panel calendar-card" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className="card glass-panel calendar-card" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '600px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
                     {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
-                        <div key={day} style={{ textAlign: 'center', fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-dim)', letterSpacing: '0.1em' }}>
+                        <div key={day} style={{ textAlign: 'center', fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-dim)', letterSpacing: '0.1em', padding: '0.5rem 0' }}>
                             {day}
                         </div>
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.75rem', flex: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', flex: 1, gridAutoRows: '1fr' }}>
                     {calendarDays.map((day, idx) => {
                         const docs = getDocumentsForDay(day);
                         const isCurrentMonth = isSameMonth(day, monthStart);
@@ -164,7 +164,7 @@ const CalendarView: React.FC = () => {
                                         color: 'var(--text-dim)',
                                         marginTop: '2px'
                                     }}>
-                                        {docs.length} ASSET{docs.length > 1 ? 'S' : ''}
+                                        {docs.length} DOC{docs.length > 1 ? 'S' : ''}
                                     </div>
                                 )}
                             </div>

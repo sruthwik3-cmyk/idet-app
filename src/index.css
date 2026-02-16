@@ -53,6 +53,30 @@
   }
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes magneticFocus {
   0% {
     transform: scale(1);
@@ -94,6 +118,15 @@
   }
 }
 
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20px, 20px);
+  }
+}
+
 @keyframes shimmerExtreme {
   0% {
     left: -150%;
@@ -101,6 +134,16 @@
 
   100% {
     left: 150%;
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(200%);
   }
 }
 
@@ -113,6 +156,60 @@
   to {
     width: 100%;
     opacity: 1;
+  }
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.3), 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(124, 58, 237, 0.5), 0 8px 25px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes neonBorder {
+  0%, 100% {
+    border-color: rgba(124, 58, 237, 0.12);
+  }
+
+  50% {
+    border-color: rgba(124, 58, 237, 0.25);
+  }
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.3));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 15px rgba(124, 58, 237, 0.5));
   }
 }
 
@@ -441,6 +538,29 @@ body {
   opacity: 1;
 }
 
+/* Document Item Animations */
+.doc-item {
+  animation: fadeInUp 0.4s var(--spring) both;
+  animation-delay: calc(var(--doc-index, 0) * 0.05s);
+}
+
+.doc-item:nth-child(1) { --doc-index: 1; }
+.doc-item:nth-child(2) { --doc-index: 2; }
+.doc-item:nth-child(3) { --doc-index: 3; }
+.doc-item:nth-child(4) { --doc-index: 4; }
+.doc-item:nth-child(5) { --doc-index: 5; }
+.doc-item:nth-child(6) { --doc-index: 6; }
+.doc-item:nth-child(7) { --doc-index: 7; }
+.doc-item:nth-child(8) { --doc-index: 8; }
+.doc-item:nth-child(9) { --doc-index: 9; }
+.doc-item:nth-child(10) { --doc-index: 10; }
+
+.doc-item:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(124, 58, 237, 0.2) !important;
+}
+
 /* ═══════════════════════════════════════════════════
    FORM INPUTS — Glowing Focus
    ═══════════════════════════════════════════════════ */
@@ -687,6 +807,75 @@ textarea.input-field {
 }
 
 /* ═══════════════════════════════════════════════════
+   MODAL ANIMATIONS
+   ═══════════════════════════════════════════════════ */
+
+.modal-overlay {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-overlay .card {
+  animation: modalSlideUp 0.4s var(--bounce) forwards;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   LOADING STATES
+   ═══════════════════════════════════════════════════ */
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-dots::after {
+  content: '';
+  animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% {
+    content: '';
+  }
+  40% {
+    content: '.';
+  }
+  60% {
+    content: '..';
+  }
+  80%, 100% {
+    content: '...';
+  }
+}
+
+/* ═══════════════════════════════════════════════════
    MAIN CONTENT
    ═══════════════════════════════════════════════════ */
 
@@ -699,6 +888,70 @@ textarea.input-field {
   z-index: 1;
 }
 
+.main-content > * {
+  animation: fadeInUp 0.5s var(--spring) forwards;
+}
+
+/* ═══════════════════════════════════════════════════
+   CALENDAR SPECIFIC STYLES
+   ═══════════════════════════════════════════════════ */
+
+.calendar-wrapper {
+  animation: fadeInUp 0.6s var(--spring) forwards;
+}
+
+.calendar-card {
+  animation: cardEntrance 0.6s 0.1s var(--spring) both;
+}
+
+.calendar-day {
+  animation: cardEntrance 0.4s var(--spring) both;
+  animation-delay: calc(var(--delay, 0) * 0.02s);
+}
+
+.calendar-day:nth-child(1) { --delay: 1; }
+.calendar-day:nth-child(2) { --delay: 2; }
+.calendar-day:nth-child(3) { --delay: 3; }
+.calendar-day:nth-child(4) { --delay: 4; }
+.calendar-day:nth-child(5) { --delay: 5; }
+.calendar-day:nth-child(6) { --delay: 6; }
+.calendar-day:nth-child(7) { --delay: 7; }
+.calendar-day:nth-child(8) { --delay: 8; }
+.calendar-day:nth-child(9) { --delay: 9; }
+.calendar-day:nth-child(10) { --delay: 10; }
+.calendar-day:nth-child(11) { --delay: 11; }
+.calendar-day:nth-child(12) { --delay: 12; }
+.calendar-day:nth-child(13) { --delay: 13; }
+.calendar-day:nth-child(14) { --delay: 14; }
+.calendar-day:nth-child(15) { --delay: 15; }
+.calendar-day:nth-child(16) { --delay: 16; }
+.calendar-day:nth-child(17) { --delay: 17; }
+.calendar-day:nth-child(18) { --delay: 18; }
+.calendar-day:nth-child(19) { --delay: 19; }
+.calendar-day:nth-child(20) { --delay: 20; }
+.calendar-day:nth-child(21) { --delay: 21; }
+.calendar-day:nth-child(22) { --delay: 22; }
+.calendar-day:nth-child(23) { --delay: 23; }
+.calendar-day:nth-child(24) { --delay: 24; }
+.calendar-day:nth-child(25) { --delay: 25; }
+.calendar-day:nth-child(26) { --delay: 26; }
+.calendar-day:nth-child(27) { --delay: 27; }
+.calendar-day:nth-child(28) { --delay: 28; }
+.calendar-day:nth-child(29) { --delay: 29; }
+.calendar-day:nth-child(30) { --delay: 30; }
+.calendar-day:nth-child(31) { --delay: 31; }
+.calendar-day:nth-child(32) { --delay: 32; }
+.calendar-day:nth-child(33) { --delay: 33; }
+.calendar-day:nth-child(34) { --delay: 34; }
+.calendar-day:nth-child(35) { --delay: 35; }
+.calendar-day:nth-child(36) { --delay: 36; }
+.calendar-day:nth-child(37) { --delay: 37; }
+.calendar-day:nth-child(38) { --delay: 38; }
+.calendar-day:nth-child(39) { --delay: 39; }
+.calendar-day:nth-child(40) { --delay: 40; }
+.calendar-day:nth-child(41) { --delay: 41; }
+.calendar-day:nth-child(42) { --delay: 42; }
+
 /* ═══════════════════════════════════════════════════
    GRID LAYOUTS
    ═══════════════════════════════════════════════════ */
@@ -709,10 +962,47 @@ textarea.input-field {
   gap: 1.25rem;
 }
 
+.grid-cols-4 > * {
+  animation: cardEntrance 0.5s var(--spring) both;
+}
+
+.grid-cols-4 > *:nth-child(1) { animation-delay: 0.05s; }
+.grid-cols-4 > *:nth-child(2) { animation-delay: 0.1s; }
+.grid-cols-4 > *:nth-child(3) { animation-delay: 0.15s; }
+.grid-cols-4 > *:nth-child(4) { animation-delay: 0.2s; }
+
 .grid-cols-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
+}
+
+.grid-cols-2 > * {
+  animation: cardEntrance 0.5s var(--spring) both;
+}
+
+.grid-cols-2 > *:nth-child(1) { animation-delay: 0.25s; }
+.grid-cols-2 > *:nth-child(2) { animation-delay: 0.3s; }
+
+.grid-cols-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.grid-cols-3 > * {
+  animation: cardEntrance 0.4s var(--spring) both;
+  transition: all 0.3s var(--spring);
+}
+
+.grid-cols-3 > *:nth-child(1) { animation-delay: 0.05s; }
+.grid-cols-3 > *:nth-child(2) { animation-delay: 0.1s; }
+.grid-cols-3 > *:nth-child(3) { animation-delay: 0.15s; }
+
+.grid-cols-3 > *:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 25px rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.4) !important;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -982,4 +1272,58 @@ textarea.input-field {
 
 .action-btn:active {
   transform: scale(0.95);
+}
+
+/* ═══════════════════════════════════════════════════
+   FILTER CHIPS
+   ═══════════════════════════════════════════════════ */
+
+.filter-chip {
+  animation: fadeInUp 0.3s var(--spring) both;
+  animation-delay: calc(var(--chip-index, 0) * 0.03s);
+}
+
+.filter-chip:nth-child(1) { --chip-index: 1; }
+.filter-chip:nth-child(2) { --chip-index: 2; }
+.filter-chip:nth-child(3) { --chip-index: 3; }
+.filter-chip:nth-child(4) { --chip-index: 4; }
+.filter-chip:nth-child(5) { --chip-index: 5; }
+.filter-chip:nth-child(6) { --chip-index: 6; }
+.filter-chip:nth-child(7) { --chip-index: 7; }
+.filter-chip:nth-child(8) { --chip-index: 8; }
+.filter-chip:nth-child(9) { --chip-index: 9; }
+.filter-chip:nth-child(10) { --chip-index: 10; }
+
+.filter-chip.active {
+  animation: chipActivate 0.3s var(--bounce) forwards;
+}
+
+@keyframes chipActivate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   SEARCH INPUT ANIMATIONS
+   ═══════════════════════════════════════════════════ */
+
+input[type="text"]:focus,
+input[type="search"]:focus {
+  animation: inputFocusGlow 0.3s ease forwards;
+}
+
+@keyframes inputFocusGlow {
+  from {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
+  }
+  to {
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15), 0 0 25px rgba(124, 58, 237, 0.1);
+  }
 }
