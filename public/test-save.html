@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Document Save</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #4f46e5; }
+        .test-section {
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { background: #4338ca; }
+        pre {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>🔍 Test Document Save</h1>
+    
+    <div class="test-section">
+        <h2>Step 1: Check Authentication</h2>
+        <button onclick="checkAuth()">Check Auth Status</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 2: Test Database Connection</h2>
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="connection-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 3: Try to Save Document</h2>
+        <button onclick="testSave()">Save Test Document</button>
+        <div id="save-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 4: Check Existing Documents</h2>
+        <button onclick="checkDocuments()">List Documents</button>
+        <div id="docs-result"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://egnajcexpflszsgjarzt.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmFqY2V4cGZsc3pzZ2phcnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODMyNTYsImV4cCI6MjA4NjA1OTI1Nn0.72fP2YWQ-UA2d0FozeJu0EqmP6wTr2Ro-0gZXQ7JmRw';
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function checkAuth() {
+            const result = document.getElementById('auth-result');
+            result.innerHTML = '<p>Checking...</p>';
+            
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error) {
+                    result.innerHTML = `<pre class="error">Error: ${JSON.stringify(error, null, 2)}</pre>`;
+                    return;
+                }
+                
+                if (session) {
+                    result.innerHTML = `
+                        <pre class="success">✅ Authenticated!
+User ID: ${session.user.id}
+Email: ${session.user.email}
+Provider: ${session.user.app_metadata.provider}</pre>`;
+                } else {
+                    result.innerHTML = `<pre class="error">❌ Not authenticated. Please log in to the main app first.</pre>`;
+                }
+            } catch (err) {
+                result.innerHTML = `<pre class="error">Error: ${err.message}</pre>`;
+            }
+        }
+
+        async function testConnection() {
+            const result = document.getElementById('connection-result');
+            result.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const { data, error } = await supabase
+                    .from('documents')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    result.innerHTML = `<pre class="error">❌ Connection Error:
+${JSON.stringify(error, null, 2)}</pre>`;
+                } else {
+                    result.innerHTML = `<pre class="success">✅ Database connection successful!</pre>`;
+                }
+            } catch (err) {
+                result.innerHTML = `<pre class="error">Error: ${err.message}</pre>`;
+            }
+        }
+
+        async function testSave() {
+            const result = document.getElementById('save-result');
+            result.innerHTML = '<p>Attempting to save...</p>';
+            
+            try {
+                // First check if user is authenticated
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    result.innerHTML = `<pre class="error">❌ Not authenticated. Please log in to the main app first.</pre>`;
+                    return;
+                }
+                
+                // Try to insert a test document
+                const testDoc = {
+                    user_id: session.user.id,
+                    name: 'Test Document ' + new Date().toISOString(),
+                    category: 'Personal',
+                    expiry_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    priority: 'Critical',
+                    notes: 'Test document from diagnostic tool',
+                    alerts_json: {
+                        emailSent30: false,
+                        emailSent7: false,
+                        scheduledAt: new Date().toISOString(),
+                        calendarEventId: 'test-' + Date.now()
+                    },
+                    user_group: 'Self'
+                };
+                
+                console.log('Attempting to insert:', testDoc);
+                
+                const { data, error } = await supabase
+                    .from('documents')
+                    .insert(testDoc)
+                    .select()
+                    .single();
+                
+                if (error) {
+                    result.innerHTML = `<pre class="error">❌ Save Failed:
+${JSON.stringify(error, null, 2)}
+
+Attempted to insert:
+${JSON.stringify(testDoc, null, 2)}</pre>`;
+                } else {
+                    result.innerHTML = `<pre class="success">✅ Document saved successfully!
+${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (err) {
+                result.innerHTML = `<pre class="error">Error: ${err.message}
+${err.stack}</pre>`;
+            }
+        }
+
+        async function checkDocuments() {
+            const result = document.getElementById('docs-result');
+            result.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    result.innerHTML = `<pre class="error">❌ Not authenticated. Please log in to the main app first.</pre>`;
+                    return;
+                }
+                
+                const { data, error } = await supabase
+                    .from('documents')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    result.innerHTML = `<pre class="error">❌ Error loading documents:
+${JSON.stringify(error, null, 2)}</pre>`;
+                } else {
+                    result.innerHTML = `<pre class="success">✅ Found ${data.length} documents:
+${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (err) {
+                result.innerHTML = `<pre class="error">Error: ${err.message}</pre>`;
+            }
+        }
+
+        // Auto-check auth on load
+        window.onload = () => {
+            checkAuth();
+        };
+    </script>
+</body>
+</html>
