@@ -88,7 +88,7 @@ const AddDocument: React.FC = () => {
             const fileName = `${documentId}-${Date.now()}.${fileExt}`;
             const filePath = `documents/${fileName}`;
 
-            const { data, error } = await supabase.storage
+            const { error } = await supabase.storage
                 .from('document-files')
                 .upload(filePath, file);
 
