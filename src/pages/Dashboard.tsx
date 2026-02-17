@@ -462,7 +462,7 @@ const Dashboard: React.FC = () => {
                                     }} className={`doc-item ${isCritical ? 'high-alert' : ''}`}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
                                             <div>
-                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                                                     {doc.name}
                                                     {isCritical && (
                                                         <span className="badge" style={{
@@ -481,6 +481,20 @@ const Dashboard: React.FC = () => {
                                                     {strictDaysLeft <= 7 && strictDaysLeft >= 0 && (
                                                         <span className="recent-alert-badge">
                                                             <AlertTriangle size={10} /> Expiring Soon
+                                                        </span>
+                                                    )}
+                                                    {doc.fileUrl && (
+                                                        <span className="badge" style={{
+                                                            background: 'rgba(52, 211, 153, 0.15)',
+                                                            color: '#34d399',
+                                                            fontSize: '0.7rem',
+                                                            fontWeight: 'bold',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '4px',
+                                                            border: '1px solid rgba(52, 211, 153, 0.3)'
+                                                        }}>
+                                                            <FileText size={10} /> File Attached
                                                         </span>
                                                     )}
                                                 </div>

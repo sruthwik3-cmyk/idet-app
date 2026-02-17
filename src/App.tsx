@@ -13,6 +13,7 @@ import AddDocument from './pages/AddDocument';
 import Alerts from './pages/Alerts';
 import UserSettings from './pages/UserSettings';
 import CalendarView from './pages/CalendarView';
+import DocumentFiles from './pages/DocumentFiles';
 import NotFound from './pages/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -68,6 +69,7 @@ const AppRoutes = () => {
 
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/add-document" element={<ProtectedRoute><AddDocument /></ProtectedRoute>} />
+            <Route path="/files" element={<ProtectedRoute><DocumentFiles /></ProtectedRoute>} />
             <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><UserSettings /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><CalendarView /></ProtectedRoute>} />

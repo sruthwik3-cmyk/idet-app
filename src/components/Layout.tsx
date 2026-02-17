@@ -6,7 +6,8 @@ import {
     Bell,
     User,
     LogOut,
-    PlusCircle
+    PlusCircle,
+    FileText
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import VoiceOrb from './VoiceOrb';
@@ -49,6 +50,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
 
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+        { icon: FileText, label: 'Document Files', path: '/files' },
         { icon: CalendarIcon, label: 'Calendar', path: '/calendar' },
         { icon: Bell, label: 'Alerts & History', path: '/alerts' },
         { icon: User, label: 'Profile', path: '/profile' },
