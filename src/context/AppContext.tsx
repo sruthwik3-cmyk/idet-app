@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../utils/supabaseClient';
 import { sendExpiryAlert } from '../utils/emailService';
+import { sendSMSAlert, format30DaySMSMessage, format7DaySMSMessage, validatePhoneNumber } from '../utils/smsService';
 import { playAlertSound } from '../utils/soundUtils';
 
 export interface Document {
@@ -248,6 +249,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     console.log('[Alert] Sending 30-day email...');
                     const res = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
                     
+                    // Send SMS if phone number is available
+                    if (userToCheck.phone) {
+                        const phoneValidation = validatePhoneNumber(userToCheck.phone);
+                        if (phoneValidation.valid) {
+                            console.log('[Alert] Sending 30-day SMS to:', phoneValidation.formatted);
+                            const smsResult = await sendSMSAlert({
+                                to: phoneValidation.formatted,
+                                documentName: doc.name,
+                                daysLeft: diffDays,
+                                category: doc.category,
+                                priority: doc.priority
+                            });
+                            if (smsResult) {
+                                console.log('[Alert] ✅ 30-day SMS sent successfully');
+                            } else {
+                                console.warn('[Alert] ⚠️ 30-day SMS failed');
+                            }
+                        }
+                    }
+                    
                     if (res.success) {
                         console.log(`[Alert] ✅ 30-day email sent successfully for "${doc.name}"`);
                         showNotification(`30-day alert: ${doc.name} sent!`, 'success');
@@ -279,6 +300,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     // Send email (Wait for result to update DB)
                     console.log('[Alert] Sending 7-day URGENT email...');
                     const res = await sendExpiryAlert(userToCheck.email, doc.name, diffDays, doc.expiryDate, doc.priority);
+                    
+                    // Send SMS if phone number is available
+                    if (userToCheck.phone) {
+                        const phoneValidation = validatePhoneNumber(userToCheck.phone);
+                        if (phoneValidation.valid) {
+                            console.log('[Alert] Sending 7-day URGENT SMS to:', phoneValidation.formatted);
+                            const smsResult = await sendSMSAlert({
+                                to: phoneValidation.formatted,
+                                documentName: doc.name,
+                                daysLeft: diffDays,
+                                category: doc.category,
+                                priority: doc.priority
+                            });
+                            if (smsResult) {
+                                console.log('[Alert] ✅ 7-day SMS sent successfully');
+                            } else {
+                                console.warn('[Alert] ⚠️ 7-day SMS failed');
+                            }
+                        }
+                    }
                     
                     if (res.success) {
                         console.log(`[Alert] ✅ 7-day URGENT email sent successfully for "${doc.name}"`);
