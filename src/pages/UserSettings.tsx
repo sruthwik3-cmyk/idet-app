@@ -5,6 +5,7 @@ import { LogOut, Edit2, X, Send, RefreshCw } from 'lucide-react';
 import { testBackendConnectivity, sendExpiryAlert } from '../utils/emailService';
 import { playAlertSound } from '../utils/soundUtils';
 import { supabase } from '../utils/supabaseClient';
+import PushNotificationSettings from '../components/PushNotificationSettings';
 
 const UserSettings: React.FC = () => {
     const { userProfile, updateUserProfile, showNotification } = useApp();
@@ -163,6 +164,9 @@ const UserSettings: React.FC = () => {
                     <button onClick={handleLogout} className="btn-logout" style={{ width: '100%' }}><LogOut size={18} style={{ marginRight: '8px' }} />Logout</button>
                 </div>
             </div>
+
+            {/* Push Notification Settings */}
+            <PushNotificationSettings />
 
             <div className="card">
                 <h3 style={{ marginTop: 0, marginBottom: '1.5rem', fontSize: '1.25rem', fontWeight: 700 }}>System Verification</h3>

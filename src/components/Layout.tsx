@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import VoiceOrb from './VoiceOrb';
+import RenewalSuggestions from './RenewalSuggestions';
 import { useVoiceAssistant } from '../hooks/useVoiceAssistant';
 import { unlockAudioContext } from '../utils/soundUtils';
 
@@ -128,6 +129,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
             </button>
 
             <VoiceOrb isListening={isListening} isSpeaking={isSpeaking} toggleListening={toggleListening} />
+
+            {/* Smart Renewal Assistant */}
+            <RenewalSuggestions />
 
             {/* Notification Toast */}
             {notification && (
