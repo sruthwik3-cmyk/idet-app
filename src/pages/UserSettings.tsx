@@ -81,7 +81,7 @@ const UserSettings: React.FC = () => {
     };
 
     return (
-        <div className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', height: '100%', overflowY: 'auto', paddingBottom: '2rem' }}>
             <div className="page-header" style={{ marginBottom: '2rem' }}>
                 <h1 className="page-title">Profile Settings</h1>
             </div>

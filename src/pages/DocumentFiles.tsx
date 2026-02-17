@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { FileText, Download, ExternalLink, Search, Filter } from 'lucide-react';
+import { FileText, Download, ExternalLink, Search, Filter, Pencil, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const DocumentFiles: React.FC = () => {
-    const { documents } = useApp();
+    const { documents, deleteDocument } = useApp();
+    const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
@@ -30,6 +32,16 @@ const DocumentFiles: React.FC = () => {
         if (ext === 'pdf') return '📄';
         if (['jpg', 'jpeg', 'png', 'webp'].includes(ext)) return '🖼️';
         return '📎';
+    };
+
+    const handleEdit = (doc: any) => {
+        navigate('/add-document', { state: { document: doc } });
+    };
+
+    const handleDelete = async (id: string, name: string) => {
+        if (window.confirm(`Are you sure you want to delete "${name}"?\n\nThis will also remove the uploaded file.`)) {
+            deleteDocument(id);
+        }
     };
 
     return (
@@ -146,6 +158,12 @@ const DocumentFiles: React.FC = () => {
                                 <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', color: 'var(--text-primary)' }}>
                                     {doc.name}
                                 </h3>
+                                
+                                {/* Expiry Date */}
+                                <div style={{ marginBottom: '0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                    Expires: {new Date(doc.expiryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </div>
+
                                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                                     <span style={{
                                         fontSize: '0.75rem',
@@ -170,7 +188,7 @@ const DocumentFiles: React.FC = () => {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                     <button
                                         onClick={() => window.open(doc.fileUrl, '_blank')}
                                         style={{
@@ -231,6 +249,70 @@ const DocumentFiles: React.FC = () => {
                                         title="Download"
                                     >
                                         <Download size={16} />
+                                    </button>
+                                </div>
+
+                                {/* Edit and Delete Buttons */}
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button
+                                        onClick={() => handleEdit(doc)}
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.75rem',
+                                            background: 'rgba(129, 140, 248, 0.2)',
+                                            color: '#818cf8',
+                                            border: '1px solid rgba(129, 140, 248, 0.3)',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.5rem',
+                                            fontSize: '0.875rem',
+                                            fontWeight: '500',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(129, 140, 248, 0.3)';
+                                            e.currentTarget.style.transform = 'scale(1.05)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(129, 140, 248, 0.2)';
+                                            e.currentTarget.style.transform = 'scale(1)';
+                                        }}
+                                    >
+                                        <Pencil size={16} />
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(doc.id, doc.name)}
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.75rem',
+                                            background: 'rgba(239, 68, 68, 0.2)',
+                                            color: '#ef4444',
+                                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '0.5rem',
+                                            fontSize: '0.875rem',
+                                            fontWeight: '500',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.3)';
+                                            e.currentTarget.style.transform = 'scale(1.05)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)';
+                                            e.currentTarget.style.transform = 'scale(1)';
+                                        }}
+                                    >
+                                        <Trash2 size={16} />
+                                        Delete
                                     </button>
                                 </div>
                             </div>
