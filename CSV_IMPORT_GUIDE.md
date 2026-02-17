@@ -65,9 +65,17 @@ Health Insurance,Medical,2026-08-20,Critical,Policy #12345
 - Optional
 
 #### Expiry Date Format
-- Must be: YYYY-MM-DD
-- Example: 2026-12-31
-- ❌ Wrong: 31/12/2026, 12-31-2026, 2026/12/31
+- **Supported formats:**
+  - ✅ YYYY-MM-DD (e.g., 2026-12-31)
+  - ✅ M/D/YYYY (e.g., 2/17/2026)
+  - ✅ MM/DD/YYYY (e.g., 12/31/2026)
+  - ✅ D-M-YYYY (e.g., 17-2-2026)
+- **The system automatically converts all formats!**
+- Examples: 
+  - 2026-12-31 ✅
+  - 12/31/2026 ✅
+  - 2/17/2026 ✅
+  - 31-12-2026 ✅
 
 ---
 
@@ -129,15 +137,15 @@ Name,Category,Expiry Date,Priority,Notes
 
 ### Error: "Invalid date format"
 
-**Problem:** Date is not in YYYY-MM-DD format
+**Problem:** Date format is not recognized
 
-**Examples:**
-- ❌ Wrong: 31/12/2026
-- ❌ Wrong: 12-31-2026
-- ❌ Wrong: December 31, 2026
-- ✅ Correct: 2026-12-31
+**Supported formats:**
+- ✅ YYYY-MM-DD (2026-12-31)
+- ✅ M/D/YYYY (2/17/2026)
+- ✅ MM/DD/YYYY (12/31/2026)
+- ✅ D-M-YYYY (17-2-2026)
 
-**Solution:** Convert all dates to YYYY-MM-DD format
+**Solution:** Use any of the supported formats above. The system will automatically convert them!
 
 ### Error: "Invalid priority"
 

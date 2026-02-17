@@ -153,10 +153,45 @@ const Dashboard: React.FC = () => {
                     continue;
                 }
 
-                // Validate date format
-                const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-                if (!dateRegex.test(row['Expiry Date'])) {
-                    errors.push(`Row ${i + 1}: Invalid date format (use YYYY-MM-DD)`);
+                // Parse and validate date - accept multiple formats
+                let parsedDate = '';
+                const dateStr = row['Expiry Date'].trim();
+                
+                // Try YYYY-MM-DD format first
+                const isoRegex = /^\d{4}-\d{2}-\d{2}$/;
+                if (isoRegex.test(dateStr)) {
+                    parsedDate = dateStr;
+                } else {
+                    // Try M/D/YYYY or MM/DD/YYYY format
+                    const slashRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+                    const slashMatch = dateStr.match(slashRegex);
+                    
+                    if (slashMatch) {
+                        const month = slashMatch[1].padStart(2, '0');
+                        const day = slashMatch[2].padStart(2, '0');
+                        const year = slashMatch[3];
+                        parsedDate = `${year}-${month}-${day}`;
+                    } else {
+                        // Try DD/MM/YYYY format
+                        const ddmmRegex = /^(\d{1,2})-(\d{1,2})-(\d{4})$/;
+                        const ddmmMatch = dateStr.match(ddmmRegex);
+                        
+                        if (ddmmMatch) {
+                            const day = ddmmMatch[1].padStart(2, '0');
+                            const month = ddmmMatch[2].padStart(2, '0');
+                            const year = ddmmMatch[3];
+                            parsedDate = `${year}-${month}-${day}`;
+                        } else {
+                            errors.push(`Row ${i + 1}: Invalid date format (use YYYY-MM-DD, MM/DD/YYYY, or M/D/YYYY)`);
+                            continue;
+                        }
+                    }
+                }
+
+                // Validate the parsed date is valid
+                const testDate = new Date(parsedDate);
+                if (isNaN(testDate.getTime())) {
+                    errors.push(`Row ${i + 1}: Invalid date value`);
                     continue;
                 }
 
@@ -171,7 +206,7 @@ const Dashboard: React.FC = () => {
                     await addDocument({
                         name: row['Name'],
                         category: row['Category'],
-                        expiryDate: row['Expiry Date'],
+                        expiryDate: parsedDate,
                         priority: row['Priority'] as 'Critical' | 'Important' | 'Optional',
                         notes: row['Notes'] || '',
                         userGroup: 'Self'

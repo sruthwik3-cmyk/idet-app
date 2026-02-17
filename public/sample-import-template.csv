@@ -1,9 +1,9 @@
 Name,Category,Expiry Date,Priority,Notes
 Passport,Personal,2026-12-31,Critical,Renewal needed before travel
-Driver License,Personal,2027-06-15,Important,
+Driver License,Personal,6/15/2027,Important,
 Health Insurance Policy,Medical,2026-08-20,Critical,Policy #12345
-Car Insurance,Vehicle,2026-11-30,Important,Annual renewal
+Car Insurance,Vehicle,11/30/2026,Important,Annual renewal
 PAN Card,Financial,2030-01-01,Optional,Permanent document
-Aadhaar Card,Personal,2099-12-31,Critical,No expiry but keep updated
-Credit Card,Financial,2027-03-31,Important,VISA ending 1234
-Gym Membership,Personal,2026-05-15,Optional,Monthly auto-renewal
+Aadhaar Card,Personal,12/31/2099,Critical,No expiry but keep updated
+Credit Card,Financial,3/31/2027,Important,VISA ending 1234
+Gym Membership,Personal,5/15/2026,Optional,Monthly auto-renewal
