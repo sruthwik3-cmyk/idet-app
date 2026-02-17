@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download, RefreshCw, Volume2, Upload } from 'lucide-react';
+import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download, RefreshCw, Volume2, Upload, ExternalLink } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
 import { unlockAudioContext } from '../utils/soundUtils';
@@ -537,6 +537,16 @@ const Dashboard: React.FC = () => {
                                             </div>
 
                                             <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '0.5rem' }}>
+                                                {doc.fileUrl && (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); window.open(doc.fileUrl, '_blank'); }}
+                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--success)', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}
+                                                        className="action-btn"
+                                                        title="View/Download File"
+                                                    >
+                                                        <ExternalLink size={16} />
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleEdit(doc); }}
                                                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}

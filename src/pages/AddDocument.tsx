@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Calendar, CheckCircle, Bell } from 'lucide-react';
+import { Calendar, CheckCircle, Bell, Upload, FileText, X, Download } from 'lucide-react';
+import { supabase } from '../utils/supabaseClient';
 
 const AddDocument: React.FC = () => {
     const { addDocument, updateDocument, documents } = useApp();
@@ -31,6 +32,10 @@ const AddDocument: React.FC = () => {
     const [customCategory, setCustomCategory] = useState('');
     const [calendarUrl, setCalendarUrl] = useState('');
     const [showSuccess, setShowSuccess] = useState(false);
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [fileUrl, setFileUrl] = useState<string>(editDoc?.fileUrl || '');
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Check for Voice Command Data
     const voiceData = location.state?.voiceData;
@@ -59,17 +64,74 @@ const AddDocument: React.FC = () => {
         }
     }, [editDoc, voiceData]);
 
-    const handleFormSubmit = (e: React.FormEvent) => {
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            // Check file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                return;
+            }
+            // Check file type
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Only PDF and image files (JPG, PNG, WEBP) are allowed');
+                return;
+            }
+            setUploadedFile(file);
+        }
+    };
+
+    const uploadFileToStorage = async (file: File, documentId: string): Promise<string | null> => {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${documentId}-${Date.now()}.${fileExt}`;
+            const filePath = `documents/${fileName}`;
+
+            const { data, error } = await supabase.storage
+                .from('document-files')
+                .upload(filePath, file);
+
+            if (error) {
+                console.error('Upload error:', error);
+                return null;
+            }
+
+            // Get public URL
+            const { data: urlData } = supabase.storage
+                .from('document-files')
+                .getPublicUrl(filePath);
+
+            return urlData.publicUrl;
+        } catch (error) {
+            console.error('Upload error:', error);
+            return null;
+        }
+    };
+
+    const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        setIsUploading(true);
         const finalCategory = formData.category === 'Custom' ? customCategory : formData.category;
-        const docPayload = { ...formData, category: finalCategory };
+        let uploadedFileUrl = fileUrl;
+
+        // Upload file if selected
+        if (uploadedFile) {
+            const tempId = `temp-${Date.now()}`;
+            uploadedFileUrl = await uploadFileToStorage(uploadedFile, tempId) || '';
+        }
+
+        const docPayload = { ...formData, category: finalCategory, fileUrl: uploadedFileUrl };
 
         if (isEditMode) {
             updateDocument(editDoc.id, docPayload);
+            setIsUploading(false);
             navigate('/dashboard');
         } else {
             // Await the actual DB saving!
             addDocument(docPayload).then(savedDoc => {
+                setIsUploading(false);
                 if (savedDoc) {
                     // Generate Google Calendar Web Intent URL
                     const startDate = new Date(formData.expiryDate).toISOString().replace(/-|:|\.\d\d\d/g, "");
@@ -265,8 +327,115 @@ const AddDocument: React.FC = () => {
                         />
                     </div>
 
-                    <button type="submit" className="btn-primary-full" style={{ marginTop: '1rem' }}>
-                        {isEditMode ? 'Update Document' : 'Save Document & Schedule Alerts'}
+                    {/* Optional File Upload Section */}
+                    <div className="input-group" style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(129, 140, 248, 0.05)', borderRadius: '8px', border: '1px dashed var(--primary)' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <FileText size={18} color="var(--primary)" />
+                            Upload Document File (Optional)
+                        </label>
+                        <small style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '1rem' }}>
+                            Upload a PDF or image of your document for easy access later (Max 10MB)
+                        </small>
+
+                        {/* Show existing file if in edit mode */}
+                        {fileUrl && !uploadedFile && (
+                            <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(52, 211, 153, 0.1)', borderRadius: '6px', marginBottom: '1rem', border: '1px solid var(--success)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <FileText size={20} color="var(--success)" />
+                                    <span style={{ color: 'var(--text-primary)' }}>Current file uploaded</span>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => window.open(fileUrl, '_blank')}
+                                        style={{ padding: '0.5rem 1rem', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}
+                                    >
+                                        <Download size={16} />
+                                        View/Download
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFileUrl('')}
+                                        style={{ padding: '0.5rem', background: 'rgba(239, 68, 68, 0.2)', color: 'var(--danger)', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Show selected file preview */}
+                        {uploadedFile && (
+                            <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(129, 140, 248, 0.1)', borderRadius: '6px', marginBottom: '1rem', border: '1px solid var(--primary)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <FileText size={20} color="var(--primary)" />
+                                    <div>
+                                        <div style={{ color: 'var(--text-primary)', fontWeight: '500' }}>{uploadedFile.name}</div>
+                                        <small style={{ color: 'var(--text-secondary)' }}>
+                                            {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                                        </small>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setUploadedFile(null);
+                                        if (fileInputRef.current) fileInputRef.current.value = '';
+                                    }}
+                                    style={{ padding: '0.5rem', background: 'rgba(239, 68, 68, 0.2)', color: 'var(--danger)', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        )}
+
+                        {/* File upload button */}
+                        {!uploadedFile && !fileUrl && (
+                            <div>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                    onChange={handleFileSelect}
+                                    style={{ display: 'none' }}
+                                    id="file-upload"
+                                />
+                                <label
+                                    htmlFor="file-upload"
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.75rem 1.5rem',
+                                        background: 'var(--primary)',
+                                        color: 'white',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        border: 'none',
+                                        fontWeight: '500'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'scale(1.05)';
+                                        e.currentTarget.style.boxShadow = '0 0 20px rgba(129, 140, 248, 0.4)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'scale(1)';
+                                        e.currentTarget.style.boxShadow = 'none';
+                                    }}
+                                >
+                                    <Upload size={18} />
+                                    Choose File
+                                </label>
+                                <small style={{ display: 'block', marginTop: '0.5rem', color: 'var(--text-secondary)' }}>
+                                    Supported: PDF, JPG, PNG, WEBP (Max 10MB)
+                                </small>
+                            </div>
+                        )}
+                    </div>
+
+                    <button type="submit" className="btn-primary-full" style={{ marginTop: '1rem' }} disabled={isUploading}>
+                        {isUploading ? 'Uploading...' : (isEditMode ? 'Update Document' : 'Save Document & Schedule Alerts')}
                     </button>
                 </form>
             </div>

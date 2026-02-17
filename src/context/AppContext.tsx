@@ -13,6 +13,7 @@ export interface Document {
     priority: 'Critical' | 'Important' | 'Optional';
     notes?: string;
     userGroup: 'Self' | 'Family' | 'Organization';
+    fileUrl?: string;
     alerts: {
         calendarEventId?: string;
         emailSent30: boolean;
@@ -111,6 +112,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     priority: d.priority as any,
                     notes: d.notes,
                     userGroup: d.user_group || 'Self',
+                    fileUrl: d.file_url || '',
                     alerts: d.alerts_json || { emailSent30: false, emailSent7: false, scheduledAt: '', calendarEventId: '' }
                 }));
                 setDocuments(mappedDocs);
@@ -330,6 +332,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             expiry_date: docData.expiryDate,
             priority: docData.priority,
             notes: docData.notes,
+            file_url: docData.fileUrl || null,
             alerts_json: newAlerts
         };
         
@@ -364,8 +367,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
 
     const updateDocument = async (id: string, updates: Partial<Document>) => {
-        const { error } = await supabase.from('documents').update(updates).eq('id', id);
-        if (error) return false;
+        // Map camelCase to snake_case for database
+        const dbUpdates: any = {};
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.category !== undefined) dbUpdates.category = updates.category;
+        if (updates.expiryDate !== undefined) dbUpdates.expiry_date = updates.expiryDate;
+        if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
+        if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+        if (updates.userGroup !== undefined) dbUpdates.user_group = updates.userGroup;
+        if (updates.fileUrl !== undefined) dbUpdates.file_url = updates.fileUrl;
+        if (updates.alerts !== undefined) dbUpdates.alerts_json = updates.alerts;
+
+        const { error } = await supabase.from('documents').update(dbUpdates).eq('id', id);
+        if (error) {
+            console.error('[UpdateDocument] Error:', error);
+            return false;
+        }
         setDocuments(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
         return true;
     };
