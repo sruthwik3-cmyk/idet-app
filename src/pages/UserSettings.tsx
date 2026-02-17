@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Edit2, X, Send, RefreshCw, MessageSquare } from 'lucide-react';
+import { LogOut, Edit2, X, Send, RefreshCw } from 'lucide-react';
 import { testBackendConnectivity, sendExpiryAlert } from '../utils/emailService';
-import { testSMSService, validatePhoneNumber } from '../utils/smsService';
 import { playAlertSound } from '../utils/soundUtils';
 import { supabase } from '../utils/supabaseClient';
 import PushNotificationSettings from '../components/PushNotificationSettings';
@@ -70,29 +69,7 @@ const UserSettings: React.FC = () => {
         } finally { setIsTesting(false); }
     };
 
-    const handleTestSMS = async () => {
-        if (!userProfile?.phone) return showNotification('Please add phone number first', 'error');
-        
-        const phoneValidation = validatePhoneNumber(userProfile.phone);
-        if (!phoneValidation.valid) {
-            return showNotification(phoneValidation.error || 'Invalid phone number', 'error');
-        }
 
-        setIsTesting(true);
-        try {
-            showNotification('Sending test SMS...', 'info');
-            const success = await testSMSService(phoneValidation.formatted);
-            if (success) {
-                showNotification('✅ Test SMS sent! Check your phone.', 'success');
-            } else {
-                showNotification('❌ Failed to send SMS. Check configuration.', 'error');
-            }
-        } catch (error) {
-            showNotification('❌ SMS service error', 'error');
-        } finally {
-            setIsTesting(false);
-        }
-    };
 
     const handleVerify = async () => {
         if (!userProfile?.email) return;
@@ -208,7 +185,7 @@ const UserSettings: React.FC = () => {
                         </button>
                     </div>
                     
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                         <button onClick={() => handleTest(30)} disabled={isTesting} className="btn-secondary" style={{ flex: 1, minWidth: '140px' }}>
                             <Send size={14} /> Test 30-Day Alert
                         </button>
@@ -216,35 +193,6 @@ const UserSettings: React.FC = () => {
                             <Send size={14} /> Test 7-Day Alert
                         </button>
                     </div>
-
-                    {/* SMS Test Section */}
-                    {userProfile?.phone && (
-                        <div style={{ 
-                            padding: '1rem', 
-                            background: 'rgba(52, 211, 153, 0.05)', 
-                            borderRadius: '8px', 
-                            border: '1px solid rgba(52, 211, 153, 0.2)',
-                            marginTop: '1rem'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <MessageSquare size={16} color="#34d399" />
-                                    <strong style={{ fontSize: '0.9rem', color: '#34d399' }}>SMS Alerts Enabled</strong>
-                                </div>
-                                <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                                    {userProfile.phone}
-                                </span>
-                            </div>
-                            <button 
-                                onClick={handleTestSMS} 
-                                disabled={isTesting} 
-                                className="btn-secondary" 
-                                style={{ width: '100%' }}
-                            >
-                                <MessageSquare size={14} /> Test SMS Alert
-                            </button>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>

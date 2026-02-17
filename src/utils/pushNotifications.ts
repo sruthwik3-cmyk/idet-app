@@ -68,9 +68,10 @@ class PushNotificationService {
 
             if (!this.subscription) {
                 // Create new subscription
+                const appServerKey = this.urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
                 this.subscription = await this.registration.pushManager.subscribe({
                     userVisibleOnly: true,
-                    applicationServerKey: this.urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                    applicationServerKey: appServerKey as any
                 });
                 console.log('[Push] Subscribed:', this.subscription);
 
@@ -118,16 +119,16 @@ class PushNotificationService {
         }
 
         if (this.registration) {
-            await this.registration.showNotification(payload.title, {
+            const options: NotificationOptions = {
                 body: payload.body,
                 icon: payload.icon || '/icon-192x192.png',
                 badge: payload.badge || '/icon-192x192.png',
                 data: payload.data,
-                actions: payload.actions,
-                vibrate: [200, 100, 200],
                 tag: 'document-expiry',
                 requireInteraction: true
-            });
+            };
+            
+            await this.registration.showNotification(payload.title, options);
         }
     }
 

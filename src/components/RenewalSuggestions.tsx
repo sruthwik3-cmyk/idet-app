@@ -27,12 +27,12 @@ const RenewalSuggestions: React.FC = () => {
         localStorage.setItem('dismissed-renewals', JSON.stringify(Array.from(newDismissed)));
     };
 
-    const handleSpeak = (speech: string) => {
+    const handleSpeak = (speech: string, docId: string) => {
         if ('speechSynthesis' in window) {
             // Stop any ongoing speech
             window.speechSynthesis.cancel();
 
-            setSpeaking(documentId);
+            setSpeaking(docId);
             const utterance = new SpeechSynthesisUtterance(speech);
             utterance.onend = () => setSpeaking(null);
             
@@ -49,10 +49,8 @@ const RenewalSuggestions: React.FC = () => {
         }
     };
 
-    const handleOpenLink = (link: RenewalLink, documentId: string) => {
+    const handleOpenLink = (link: RenewalLink) => {
         openRenewalLink(link);
-        // Optionally dismiss after opening
-        // handleDismiss(documentId);
     };
 
     // Filter out dismissed items
@@ -145,7 +143,7 @@ const RenewalSuggestions: React.FC = () => {
 
                     {/* Speak Button */}
                     <button
-                        onClick={() => handleSpeak(item.speech)}
+                        onClick={() => handleSpeak(item.speech, item.document.id)}
                         disabled={speaking === item.document.id}
                         style={{
                             width: '100%',
@@ -180,7 +178,7 @@ const RenewalSuggestions: React.FC = () => {
                             {item.renewalLinks.slice(0, 2).map((link: RenewalLink, index: number) => (
                                 <button
                                     key={index}
-                                    onClick={() => handleOpenLink(link, item.document.id)}
+                                    onClick={() => handleOpenLink(link)}
                                     style={{
                                         padding: '0.75rem',
                                         background: 'rgba(52, 211, 153, 0.2)',

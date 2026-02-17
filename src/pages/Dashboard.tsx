@@ -318,6 +318,22 @@ const Dashboard: React.FC = () => {
                 .filter-chip:hover:not(.active) {
                     background: rgba(255,255,255,0.1);
                 }
+                .action-btn {
+                    display: inline-flex !important;
+                    align-items: center;
+                    justify-content: center;
+                    min-width: 32px;
+                    min-height: 32px;
+                }
+                .action-btn:hover {
+                    background: rgba(255,255,255,0.1) !important;
+                    transform: scale(1.1);
+                }
+                .action-btn svg {
+                    display: block !important;
+                    width: 16px;
+                    height: 16px;
+                }
             `}</style>
             <div className="page-header" style={{ marginBottom: '2rem', alignItems: 'flex-start' }}>
                 <div>

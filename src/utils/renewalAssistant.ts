@@ -147,7 +147,6 @@ export function generateRenewalSpeech(
     daysLeft: number,
     renewalLinks: RenewalLink[]
 ): string {
-    const urgency = daysLeft <= 7 ? 'urgent' : 'soon';
     const greeting = daysLeft <= 7 
         ? `Alert! Your ${documentName} is expiring very soon, in just ${daysLeft} day${daysLeft !== 1 ? 's' : ''}.`
         : `Reminder: Your ${documentName} will expire in ${daysLeft} days.`;
@@ -229,7 +228,7 @@ export function getDocumentsNeedingRenewal(documents: any[]): Array<{
 
     // Sort by urgency (critical first)
     results.sort((a, b) => {
-        const urgencyOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        const urgencyOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
         return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
     });
 
