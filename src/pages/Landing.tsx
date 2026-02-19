@@ -6,13 +6,21 @@ const Landing: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="animate-fade-in" style={{
+        <div className="animate-fade-in page-transition" style={{
             background: '#09090b',
             minHeight: '100vh',
             color: 'white',
             overflowX: 'hidden',
-            fontFamily: "'Inter', sans-serif"
+            fontFamily: "'Inter', sans-serif",
+            position: 'relative'
         }}>
+            {/* Floating Particles */}
+            <div className="particle" style={{ top: '10%', left: '5%' }}></div>
+            <div className="particle" style={{ top: '30%', left: '90%' }}></div>
+            <div className="particle" style={{ top: '70%', left: '10%' }}></div>
+            <div className="particle" style={{ top: '85%', left: '80%' }}></div>
+            <div className="particle" style={{ top: '50%', left: '50%' }}></div>
+            
             {/* Ambient background glows */}
             <div style={{
                 position: 'fixed',
@@ -38,7 +46,7 @@ const Landing: React.FC = () => {
             }}></div>
 
             {/* Navigation Header */}
-            <nav style={{
+            <nav className="slide-up" style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -49,8 +57,8 @@ const Landing: React.FC = () => {
                 borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
                 top: 0
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{
+                <div className="zoom-in" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div className="pulse-ring" style={{
                         background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                         padding: '8px',
                         borderRadius: '10px',
@@ -60,11 +68,12 @@ const Landing: React.FC = () => {
                     }}>
                         <Shield size={24} color="white" />
                     </div>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>IDET</span>
+                    <span className="text-shine" style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>IDET</span>
                 </div>
-                <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+                <div className="stagger-children" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
                     <button
                         onClick={() => navigate('/login')}
+                        className="btn-scale"
                         style={{
                             background: 'none',
                             border: 'none',
@@ -81,6 +90,7 @@ const Landing: React.FC = () => {
                     </button>
                     <button
                         onClick={() => navigate('/login')}
+                        className="btn-scale btn-ripple glow-pulse"
                         style={{
                             background: '#10b981',
                             color: 'white',
@@ -116,7 +126,7 @@ const Landing: React.FC = () => {
                     maxWidth: '900px',
                     margin: '0 auto'
                 }}>
-                    <div style={{
+                    <div className="bounce-in" style={{
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '0.5rem',
@@ -132,7 +142,7 @@ const Landing: React.FC = () => {
                         <Siren size={14} /> New: Synchronized Audio & Gmail Alerts
                     </div>
 
-                    <h1 style={{
+                    <h1 className="slide-up text-shine" style={{
                         fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
                         fontWeight: 850,
                         lineHeight: 1.1,
@@ -146,7 +156,7 @@ const Landing: React.FC = () => {
                         <span style={{ color: '#10b981' }}>With Impact.</span>
                     </h1>
 
-                    <p style={{
+                    <p className="zoom-in" style={{
                         fontSize: 'clamp(1.1rem, 3vw, 1.25rem)',
                         color: 'rgba(255, 255, 255, 0.6)',
                         lineHeight: 1.6,
@@ -157,10 +167,10 @@ const Landing: React.FC = () => {
                         perfectly synchronized sound notifications, and seamless calendar integration.
                     </p>
 
-                    <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <div className="stagger-children" style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                         <button
                             onClick={() => navigate('/login')}
-                            className="btn-pulse"
+                            className="btn-pulse btn-scale btn-magnetic btn-ripple"
                             style={{
                                 background: '#10b981',
                                 color: 'white',
@@ -183,7 +193,7 @@ const Landing: React.FC = () => {
                 </div>
 
                 {/* Features Grid */}
-                <div style={{
+                <div className="stagger-children" style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '2rem',
@@ -269,7 +279,7 @@ const Landing: React.FC = () => {
 };
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
-    <div style={{
+    <div className="card-3d hover-lift gradient-border" style={{
         padding: '2rem',
         background: 'rgba(255, 255, 255, 0.02)',
         border: '1px solid rgba(255, 255, 255, 0.05)',
@@ -287,7 +297,7 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
             e.currentTarget.style.transform = 'none';
         }}
     >
-        <div style={{
+        <div className="pulse-ring icon-bounce" style={{
             width: '48px',
             height: '48px',
             borderRadius: '12px',
@@ -299,7 +309,7 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
         }}>
             {icon}
         </div>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: 'white' }}>{title}</h3>
+        <h3 className="zoom-in" style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: 'white' }}>{title}</h3>
         <p style={{ color: 'rgba(255, 255, 255, 0.5)', lineHeight: 1.6, fontSize: '0.95rem' }}>{description}</p>
     </div>
 );

@@ -239,7 +239,7 @@ const Dashboard: React.FC = () => {
     };
 
     const StatCard = ({ title, value, icon: Icon, color, gradient }: any) => (
-        <div className="card" style={{
+        <div className="card card-3d hover-lift" style={{
             background: 'var(--card-bg)',
             border: '1px solid rgba(255,255,255,0.05)',
             position: 'relative',
@@ -253,31 +253,47 @@ const Dashboard: React.FC = () => {
                 height: '60px',
                 background: gradient,
                 filter: 'blur(40px)',
-                opacity: 0.2
-            }}></div>
+                opacity: 0.2,
+                transition: 'all 0.3s ease'
+            }} className="stat-glow"></div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 1 }}>
                 <div>
                     <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{title}</p>
-                    <h3 style={{ margin: '0.5rem 0 0', fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</h3>
+                    <h3 className="bounce-in" style={{ margin: '0.5rem 0 0', fontSize: '1.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>{value}</h3>
                 </div>
-                <div style={{
+                <div className="icon-bounce" style={{
                     padding: '0.75rem',
                     borderRadius: '12px',
                     background: 'rgba(255,255,255,0.05)',
                     color: color,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    transition: 'all 0.3s ease'
                 }}>
                     <Icon size={24} />
                 </div>
             </div>
+            
+            <style>{`
+                .card-3d:hover .stat-glow {
+                    opacity: 0.4;
+                    filter: blur(50px);
+                }
+            `}</style>
         </div>
     );
 
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in page-transition">
+            {/* Floating Particles Background */}
+            <div className="particle" style={{ top: '15%', left: '10%' }}></div>
+            <div className="particle" style={{ top: '25%', left: '85%' }}></div>
+            <div className="particle" style={{ top: '65%', left: '15%' }}></div>
+            <div className="particle" style={{ top: '75%', left: '75%' }}></div>
+            <div className="particle" style={{ top: '45%', left: '50%' }}></div>
+            
             <style>{`
                 @keyframes pulse-red {
                     0% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4); border-color: rgba(248, 113, 113, 0.4); }
@@ -324,36 +340,45 @@ const Dashboard: React.FC = () => {
                     justify-content: center;
                     min-width: 32px;
                     min-height: 32px;
+                    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 }
                 .action-btn:hover {
                     background: rgba(255,255,255,0.1) !important;
-                    transform: scale(1.1);
+                    transform: scale(1.15) rotate(5deg);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                }
+                .action-btn:active {
+                    transform: scale(0.9);
                 }
                 .action-btn svg {
                     display: block !important;
                     width: 16px;
                     height: 16px;
+                    transition: all 0.3s ease;
+                }
+                .action-btn:hover svg {
+                    filter: drop-shadow(0 0 8px currentColor);
                 }
             `}</style>
             <div className="page-header" style={{ marginBottom: '2rem', alignItems: 'flex-start' }}>
-                <div>
-                    <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Dashboard</h1>
+                <div className="slide-up">
+                    <h1 className="page-title text-shine" style={{ marginBottom: '0.5rem' }}>Dashboard</h1>
                     {!audioUnlocked && (
-                        <p style={{ color: 'var(--warning)', fontSize: '0.875rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <p className="bounce-in" style={{ color: 'var(--warning)', fontSize: '0.875rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Volume2 size={16} /> Click anywhere to enable sound alerts
                         </p>
                     )}
                 </div>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className="stagger-children" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button
-                        className="btn-secondary"
+                        className="btn-secondary btn-scale btn-ripple"
                         onClick={refreshAlerts}
                         title="Check for due alerts now"
                     >
                         <RefreshCw size={16} /> Sync Alerts
                     </button>
                     <button
-                        className="btn-secondary"
+                        className="btn-secondary btn-scale btn-ripple"
                         onClick={handleImport}
                         disabled={isImporting}
                         title="Import documents from CSV file"
@@ -368,12 +393,12 @@ const Dashboard: React.FC = () => {
                         style={{ display: 'none' }}
                     />
                     <button
-                        className="btn-secondary"
+                        className="btn-secondary btn-scale btn-ripple"
                         onClick={handleExport}
                     >
                         <Download size={16} /> Export
                     </button>
-                    <button className="btn-primary-full btn-pulse" style={{ width: 'auto', marginBottom: 0, padding: '0.75rem 1.5rem' }} onClick={() => navigate('/add-document')}>
+                    <button className="btn-primary-full btn-pulse btn-magnetic" style={{ width: 'auto', marginBottom: 0, padding: '0.75rem 1.5rem' }} onClick={() => navigate('/add-document')}>
                         + Add Document
                     </button>
                 </div>
@@ -411,15 +436,16 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid-cols-2">
-                <div className="card" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="card gradient-border hover-lift" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                        <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>Your Documents</h3>
+                        <h3 className="zoom-in" style={{ margin: 0, color: 'var(--text-primary)' }}>Your Documents</h3>
                         <div style={{ position: 'relative' }}>
                             <input
                                 type="text"
                                 placeholder="Search documents..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                className="hover-glow"
                                 style={{
                                     background: 'rgba(0, 0, 0, 0.2)',
                                     border: '1px solid var(--border)',
@@ -439,11 +465,11 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                    <div className="stagger-children" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                         {categories.map(cat => (
                             <div
                                 key={cat}
-                                className={`filter-chip ${selectedCategory === cat ? 'active' : ''}`}
+                                className={`filter-chip btn-scale ${selectedCategory === cat ? 'active' : ''}`}
                                 onClick={() => setSelectedCategory(cat)}
                             >
                                 {cat}
@@ -466,7 +492,7 @@ const Dashboard: React.FC = () => {
                                 const isCritical = doc.priority === 'Critical';
 
                                 return (
-                                    <div key={doc.id} style={{
+                                    <div key={doc.id} className={`doc-item hover-lift ${isCritical ? 'high-alert glow-pulse' : ''}`} style={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
@@ -474,8 +500,8 @@ const Dashboard: React.FC = () => {
                                         backgroundColor: 'rgba(255,255,255,0.03)',
                                         borderRadius: 'var(--radius)',
                                         border: isCritical ? '1px solid #f87171' : '1px solid rgba(255,255,255,0.05)',
-                                        transition: 'all 0.2s'
-                                    }} className={`doc-item ${isCritical ? 'high-alert' : ''}`}>
+                                        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                                    }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
                                             <div>
                                                 <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -607,11 +633,11 @@ const Dashboard: React.FC = () => {
                     )}
                 </div>
 
-                <div className="card" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Quick Actions</h3>
-                    <div className="grid-cols-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                <div className="card gradient-border hover-lift" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <h3 className="zoom-in" style={{ marginTop: 0, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Quick Actions</h3>
+                    <div className="grid-cols-3 stagger-children" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
                         <div
-                            className="card"
+                            className="card card-3d btn-scale"
                             onClick={() => navigate('/calendar')}
                             style={{
                                 padding: '1.5rem',
@@ -626,7 +652,7 @@ const Dashboard: React.FC = () => {
                                 transition: 'all 0.3s ease'
                             }}
                         >
-                            <div style={{
+                            <div className="pulse-ring icon-bounce" style={{
                                 padding: '12px',
                                 borderRadius: '12px',
                                 background: 'rgba(129, 140, 248, 0.15)',
@@ -639,7 +665,7 @@ const Dashboard: React.FC = () => {
                         </div>
 
                         <div
-                            className="card"
+                            className="card card-3d btn-scale"
                             onClick={() => navigate('/alerts')}
                             style={{
                                 padding: '1.5rem',
@@ -654,7 +680,7 @@ const Dashboard: React.FC = () => {
                                 transition: 'all 0.3s ease'
                             }}
                         >
-                            <div style={{
+                            <div className="pulse-ring icon-bounce" style={{
                                 padding: '12px',
                                 borderRadius: '12px',
                                 background: 'rgba(251, 191, 36, 0.15)',
@@ -667,7 +693,7 @@ const Dashboard: React.FC = () => {
                         </div>
 
                         <div
-                            className="card"
+                            className="card card-3d btn-scale"
                             onClick={() => navigate('/profile')}
                             style={{
                                 padding: '1.5rem',
@@ -682,7 +708,7 @@ const Dashboard: React.FC = () => {
                                 transition: 'all 0.3s ease'
                             }}
                         >
-                            <div style={{
+                            <div className="pulse-ring icon-bounce" style={{
                                 padding: '12px',
                                 borderRadius: '12px',
                                 background: 'rgba(52, 211, 153, 0.15)',
