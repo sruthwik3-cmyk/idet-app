@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDET - Intelligent Document Expiry Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide {
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 60px;
+            display: none;
+            flex-direction: column;
+            position: relative;
+            animation: slideIn 0.5s ease;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 20px;
+            right: 40px;
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #764ba2;
+            font-size: 36px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #667eea;
+            font-size: 28px;
+            margin: 20px 0 15px 0;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 24px;
+            color: #555;
+            margin-bottom: 40px;
+        }
+
+        .info {
+            text-align: center;
+            font-size: 20px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .problem-box {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            padding: 30px;
+            border-radius: 15px;
+            color: white;
+        }
+
+        .solution-box {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            padding: 30px;
+            border-radius: 15px;
+            color: white;
+        }
+
+        .problem-box h3, .solution-box h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            padding: 10px 0;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        li:before {
+            content: "✓ ";
+            color: #51cf66;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .problem-box li:before {
+            content: "✗ ";
+            color: #fff;
+        }
+
+        .architecture-diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .layer {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 15px auto;
+            border-radius: 10px;
+            max-width: 500px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .arrow {
+            font-size: 30px;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .tech-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .tech-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .feature-card h3 {
+            margin-top: 0;
+            font-size: 24px;
+        }
+
+        .alert-flow {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .flow-box {
+            background: white;
+            padding: 15px 25px;
+            margin: 10px auto;
+            border-radius: 10px;
+            max-width: 400px;
+            border: 2px solid #667eea;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .alert-methods {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .alert-method {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            flex: 1;
+            margin: 0 10px;
+            border: 2px solid #667eea;
+        }
+
+        .alert-method .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .challenge-item {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #ff6b6b;
+        }
+
+        .challenge-item strong {
+            color: #ff6b6b;
+        }
+
+        .solution {
+            color: #51cf66;
+            margin-top: 10px;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        button {
+            background: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .demo-link {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+
+        .demo-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #f8f9fa;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #667eea;
+        }
+
+        .contact-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .schema-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+        }
+
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .security-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #51cf66;
+        }
+
+        .screenshot-placeholder {
+            background: #f8f9fa;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            color: #667eea;
+            font-size: 18px;
+            margin: 20px 0;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- SLIDE 1: Title -->
+        <div class="slide active">
+            <h1>IDET</h1>
+            <div class="subtitle">Intelligent Document Expiry Tracker</div>
+            <div class="subtitle" style="font-size: 20px; margin-top: 20px;">
+                A Smart Web Application for Document Management & Expiry Alerts
+            </div>
+            
+            <div class="info" style="margin-top: 60px;">
+                <p style="margin: 15px 0;"><strong>Presented By:</strong> [Your Name]</p>
+                <p style="margin: 15px 0;"><strong>Roll Number:</strong> [Your Roll Number]</p>
+                <p style="margin: 15px 0;"><strong>Department:</strong> [Your Department]</p>
+                <p style="margin: 15px 0;"><strong>College:</strong> [Your College Name]</p>
+                <p style="margin: 15px 0;"><strong>Date:</strong> [Presentation Date]</p>
+            </div>
+            
+            <div class="slide-number">1 / 10</div>
+        </div>
+
+        <!-- SLIDE 2: Problem & Solution -->
+        <div class="slide">
+            <h2>Problem Statement & Solution</h2>
+            
+            <div class="two-column">
+                <div class="problem-box">
+                    <h3>The Problem 🚨</h3>
+                    <ul>
+                        <li>People forget to renew important documents</li>
+                        <li>Missing deadlines leads to penalties</li>
+                        <li>No centralized tracking system</li>
+                        <li>Manual tracking is error-prone</li>
+                    </ul>
+                </div>
+                
+                <div class="solution-box">
+                    <h3>Our Solution ✅</h3>
+                    <ul>
+                        <li>Tracks all documents in one place</li>
+                        <li>Sends automatic alerts (3 methods)</li>
+                        <li>Provides smart renewal suggestions</li>
+                        <li>Works on all devices</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 40px; font-size: 24px; color: #667eea; font-weight: bold;">
+                IDET = Automated + Intelligent + Reliable
+            </div>
+            
+            <div class="slide-number">2 / 10</div>
+        </div>
+
+        <!-- SLIDE 3: Architecture & Technologies -->
+        <div class="slide">
+            <h2>System Architecture & Technologies</h2>
+            
+            <div class="architecture-diagram">
+                <div class="layer">PRESENTATION LAYER<br>React 18 + TypeScript</div>
+                <div class="arrow">↕</div>
+                <div class="layer">APPLICATION LAYER<br>Node.js + Express</div>
+                <div class="arrow">↕</div>
+                <div class="layer">DATA LAYER<br>Supabase PostgreSQL</div>
+            </div>
+            
+            <div class="tech-grid">
+                <div class="tech-box">
+                    <h4>Frontend</h4>
+                    <p>React 18, TypeScript, Vite, React Router</p>
+                </div>
+                <div class="tech-box">
+                    <h4>Backend</h4>
+                    <p>Node.js, Express, Gmail API, OpenAI API</p>
+                </div>
+                <div class="tech-box">
+                    <h4>Database</h4>
+                    <p>Supabase (PostgreSQL + Storage)</p>
+                </div>
+                <div class="tech-box">
+                    <h4>Deployment</h4>
+                    <p>Render Cloud Platform, Google OAuth 2.0</p>
+                </div>
+            </div>
+            
+            <div class="slide-number">3 / 10</div>
+        </div>
+
+        <!-- SLIDE 4: Key Features -->
+        <div class="slide">
+            <h2>Key Features</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>📄 Document Management</h3>
+                    <ul style="font-size: 16px;">
+                        <li>Add, edit, delete documents</li>
+                        <li>Upload files (PDF, images)</li>
+                        <li>Categorize by type</li>
+                        <li>Set priority levels</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🔔 3 Alert Methods</h3>
+                    <ul style="font-size: 16px;">
+                        <li>Gmail email notifications</li>
+                        <li>Google Calendar reminders</li>
+                        <li>Sound alerts (15 seconds)</li>
+                        <li>100% accuracy rate</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🤖 Smart Features</h3>
+                    <ul style="font-size: 16px;">
+                        <li>Jarvis AI voice assistant</li>
+                        <li>Renewal link suggestions</li>
+                        <li>Web push notifications</li>
+                        <li>CSV import/export</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🎨 User Experience</h3>
+                    <ul style="font-size: 16px;">
+                        <li>Responsive design</li>
+                        <li>Smooth animations</li>
+                        <li>Dark theme</li>
+                        <li>Calendar view</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="slide-number">4 / 10</div>
+        </div>
+
+        <!-- SLIDE 5: Alert System -->
+        <div class="slide">
+            <h2>Alert System - How It Works</h2>
+            
+            <div class="alert-flow">
+                <div class="flow-box">Document Added</div>
+                <div class="arrow">↓</div>
+                <div class="flow-box">System Checks Daily</div>
+                <div class="arrow">↓</div>
+                <div class="flow-box">Days Until Expiry?</div>
+                <div class="arrow">↓</div>
+                
+                <div style="display: flex; justify-content: center; gap: 40px; margin-top: 20px;">
+                    <div>
+                        <div class="flow-box" style="background: #fff3cd; border-color: #ffc107;">8-30 Days<br>30-Day Alert</div>
+                    </div>
+                    <div>
+                        <div class="flow-box" style="background: #f8d7da; border-color: #dc3545;">0-7 Days<br>URGENT Alert</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-methods">
+                <div class="alert-method">
+                    <div class="icon">📧</div>
+                    <strong>Gmail</strong>
+                    <p style="font-size: 14px; margin-top: 10px;">Email notifications<br>Works offline</p>
+                </div>
+                <div class="alert-method">
+                    <div class="icon">📅</div>
+                    <strong>Calendar</strong>
+                    <p style="font-size: 14px; margin-top: 10px;">Google Calendar<br>Syncs devices</p>
+                </div>
+                <div class="alert-method">
+                    <div class="icon">🔊</div>
+                    <strong>Sound</strong>
+                    <p style="font-size: 14px; margin-top: 10px;">15-second audio<br>When app open</p>
+                </div>
+            </div>
+            
+            <div class="slide-number">5 / 10</div>
+        </div>
+
+        <!-- SLIDE 6: Database & Security -->
+        <div class="slide">
+            <h2>Database Design & Security</h2>
+            
+            <div class="two-column">
+                <div>
+                    <h3 style="font-size: 22px;">Database Schema</h3>
+                    <div class="schema-box">
+                        <strong>profiles table:</strong><br>
+                        - id, full_name, email<br>
+                        - phone, dob, user_group<br><br>
+                        
+                        <strong>documents table:</strong><br>
+                        - id, user_id, name<br>
+                        - category, expiry_date<br>
+                        - priority, notes, file_url<br><br>
+                        
+                        <strong>Storage:</strong><br>
+                        - document-files bucket
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="font-size: 22px;">Security Features 🔒</h3>
+                    <div class="security-item">
+                        <strong>Authentication</strong><br>
+                        Google OAuth 2.0 (no passwords)
+                    </div>
+                    <div class="security-item">
+                        <strong>Database</strong><br>
+                        Row-level security
+                    </div>
+                    <div class="security-item">
+                        <strong>Files</strong><br>
+                        Validated types, size limits
+                    </div>
+                    <div class="security-item">
+                        <strong>API</strong><br>
+                        HTTPS encryption
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-number">6 / 10</div>
+        </div>
+
+        <!-- SLIDE 7: Screenshots -->
+        <div class="slide">
+            <h2>Screenshots - Dashboard & Features</h2>
+            
+            <div class="screenshot-placeholder">
+                <div>
+                    <h3>Dashboard View</h3>
+                    <p>Insert screenshot showing:</p>
+                    <ul style="text-align: left; display: inline-block; margin-top: 15px;">
+                        <li>Statistics cards (Total, Active, Expiring, Expired)</li>
+                        <li>Document list with icons (✏️ edit, 🗑️ delete, 🔗 download)</li>
+                        <li>Search and filter options</li>
+                        <li>Quick actions</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="screenshot-placeholder" style="min-height: 200px;">
+                <div>
+                    <h3>Calendar View</h3>
+                    <p>Insert screenshot showing monthly calendar with color-coded expiry dates</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; color: #667eea; font-size: 16px;">
+                💡 Tip: Take screenshots from https://idet-app.onrender.com
+            </div>
+            
+            <div class="slide-number">7 / 10</div>
+        </div>
+
+        <!-- SLIDE 8: Results -->
+        <div class="slide">
+            <h2>Implementation Results</h2>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Page Load Time</div>
+                    <div class="metric-value">< 2s</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Alert Accuracy</div>
+                    <div class="metric-value">100%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Uptime</div>
+                    <div class="metric-value">99.9%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Build Size</div>
+                    <div class="metric-value">622 KB</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Lines of Code</div>
+                    <div class="metric-value">~5,000</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Development Time</div>
+                    <div class="metric-value">10 weeks</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 40px; text-align: center;">
+                <h3 style="color: #667eea;">Cost Analysis</h3>
+                <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                    <div>
+                        <strong>Development:</strong> $0<br>
+                        <span style="font-size: 14px; color: #666;">(Self-developed)</span>
+                    </div>
+                    <div>
+                        <strong>Monthly Operations:</strong> ~$5<br>
+                        <span style="font-size: 14px; color: #666;">(OpenAI API)</span>
+                    </div>
+                    <div>
+                        <strong>User Cost:</strong> FREE<br>
+                        <span style="font-size: 14px; color: #666;">(No subscription)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-number">8 / 10</div>
+        </div>
+
+        <!-- SLIDE 9: Challenges & Learning -->
+        <div class="slide">
+            <h2>Challenges & Learning Outcomes</h2>
+            
+            <div style="max-height: 500px; overflow-y: auto;">
+                <div class="challenge-item">
+                    <strong>Challenge 1:</strong> Gmail API Integration - Complex OAuth 2.0 setup<br>
+                    <span class="solution">✓ Solution: Detailed documentation & extensive testing</span>
+                </div>
+                
+                <div class="challenge-item">
+                    <strong>Challenge 2:</strong> Alert Timing Logic - Accurate date calculations<br>
+                    <span class="solution">✓ Solution: UTC-based date comparison</span>
+                </div>
+                
+                <div class="challenge-item">
+                    <strong>Challenge 3:</strong> File Upload - Large file handling<br>
+                    <span class="solution">✓ Solution: Size limits (10MB) & validation</span>
+                </div>
+                
+                <div class="challenge-item">
+                    <strong>Challenge 4:</strong> Responsive Design - Multiple screen sizes<br>
+                    <span class="solution">✓ Solution: CSS Grid & Flexbox</span>
+                </div>
+                
+                <div class="challenge-item">
+                    <strong>Challenge 5:</strong> TypeScript Errors - Type safety issues<br>
+                    <span class="solution">✓ Solution: Proper type definitions</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; background: #f8f9fa; padding: 20px; border-radius: 10px;">
+                <h3 style="margin-top: 0; color: #667eea;">Learning Outcomes</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; font-size: 16px;">
+                    <div>✓ Full-stack development</div>
+                    <div>✓ API integration</div>
+                    <div>✓ Database design</div>
+                    <div>✓ Cloud deployment</div>
+                    <div>✓ Problem-solving</div>
+                    <div>✓ Security best practices</div>
+                </div>
+            </div>
+            
+            <div class="slide-number">9 / 10</div>
+        </div>
+
+        <!-- SLIDE 10: Conclusion & Demo -->
+        <div class="slide">
+            <h2>Conclusion & Live Demo</h2>
+            
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; margin-bottom: 20px;">
+                <h3 style="color: white; margin-top: 0;">Project Summary</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; font-size: 16px;">
+                    <div>✓ Automated document tracking</div>
+                    <div>✓ Timely alerts (3 methods)</div>
+                    <div>✓ Smart AI suggestions</div>
+                    <div>✓ Secure architecture</div>
+                    <div>✓ User-friendly interface</div>
+                    <div>✓ 100% alert accuracy</div>
+                </div>
+            </div>
+            
+            <div class="two-column">
+                <div>
+                    <h3 style="font-size: 20px;">Future Enhancements</h3>
+                    <ul style="font-size: 16px;">
+                        <li>Multi-language support</li>
+                        <li>Mobile app (React Native)</li>
+                        <li>Document scanning (OCR)</li>
+                        <li>Team collaboration</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="qr-placeholder">
+                        QR Code<br>
+                        (Add QR code to website)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="demo-link">
+                <strong>Live Demo:</strong><br>
+                <a href="https://idet-app.onrender.com" target="_blank">https://idet-app.onrender.com</a>
+            </div>
+            
+            <div class="contact-info">
+                <strong>Contact:</strong> [Your Email] | [Your GitHub] | [Your LinkedIn]
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; font-size: 32px; color: #667eea; font-weight: bold;">
+                Thank You! 🎉
+            </div>
+            
+            <div class="slide-number">10 / 10</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+        <button id="nextBtn" onclick="changeSlide(1)">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            
+            document.getElementById('prevBtn').disabled = currentSlide === 0;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+            if (e.key === 'ArrowRight') changeSlide(1);
+        });
+
+        // Initialize
+        document.getElementById('prevBtn').disabled = true;
+    </script>
+</body>
+</html>

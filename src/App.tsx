@@ -7,7 +7,7 @@ import { unlockAudioContext } from './utils/soundUtils';
 // Pages
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
-import Landing from './pages/Landing';
+import LandingPage from './pages/LandingPage';
 import SetupProfile from './pages/SetupProfile';
 import AddDocument from './pages/AddDocument';
 import Alerts from './pages/Alerts';
@@ -63,7 +63,7 @@ const AppRoutes = () => {
 
     return (
         <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
 
