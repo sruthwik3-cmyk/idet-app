@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-box {
+            background: #2a2a2a;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success { background: #10b981; color: white; }
+        .error { background: #ef4444; color: white; }
+        .pending { background: #f59e0b; color: white; }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #2563eb; }
+        pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Supabase Connection Test</h1>
+    
+    <div class="test-box">
+        <h2>Test 1: Direct API Connection</h2>
+        <p>Testing if Supabase REST API is reachable...</p>
+        <div id="test1-status" class="status pending">⏳ Waiting...</div>
+        <button onclick="testDirectConnection()">Run Test 1</button>
+        <pre id="test1-result"></pre>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 2: Supabase Client Connection</h2>
+        <p>Testing if Supabase JS client can connect...</p>
+        <div id="test2-status" class="status pending">⏳ Waiting...</div>
+        <button onclick="testClientConnection()">Run Test 2</button>
+        <pre id="test2-result"></pre>
+    </div>
+
+    <div class="test-box">
+        <h2>Test 3: Authentication Test</h2>
+        <p>Testing if authentication endpoint responds...</p>
+        <div id="test3-status" class="status pending">⏳ Waiting...</div>
+        <button onclick="testAuth()">Run Test 3</button>
+        <pre id="test3-result"></pre>
+    </div>
+
+    <div class="test-box">
+        <h2>📋 Instructions</h2>
+        <ol>
+            <li>Click each "Run Test" button in order</li>
+            <li>Wait for results (may take 10-30 seconds)</li>
+            <li>If all tests pass ✅ - Supabase is working!</li>
+            <li>If tests fail ❌ - Check Supabase dashboard</li>
+        </ol>
+        <p><strong>Supabase Dashboard:</strong> <a href="https://supabase.com/dashboard" target="_blank" style="color: #3b82f6;">https://supabase.com/dashboard</a></p>
+        <p><strong>Your Project:</strong> egnajcexpflszsgjarzt</p>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://egnajcexpflszsgjarzt.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmFqY2V4cGZsc3pzZ2phcnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0ODMyNTYsImV4cCI6MjA4NjA1OTI1Nn0.72fP2YWQ-UA2d0FozeJu0EqmP6wTr2Ro-0gZXQ7JmRw';
+
+        async function testDirectConnection() {
+            const statusEl = document.getElementById('test1-status');
+            const resultEl = document.getElementById('test1-result');
+            
+            statusEl.className = 'status pending';
+            statusEl.textContent = '⏳ Testing... (may take 10-30 seconds)';
+            resultEl.textContent = 'Connecting to Supabase REST API...';
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`
+                    }
+                });
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                if (response.ok) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = `✅ SUCCESS! (${duration}ms)`;
+                    resultEl.textContent = `Status: ${response.status}\nResponse Time: ${duration}ms\n\nSupabase REST API is reachable!`;
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = `❌ FAILED (${response.status})`;
+                    resultEl.textContent = `Status: ${response.status}\nError: ${response.statusText}\n\nSupabase returned an error.`;
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ CONNECTION FAILED';
+                resultEl.textContent = `Error: ${error.message}\n\nPossible causes:\n1. Supabase project is paused\n2. Network/firewall blocking connection\n3. Supabase service is down\n\nCheck: https://supabase.com/dashboard`;
+            }
+        }
+
+        async function testClientConnection() {
+            const statusEl = document.getElementById('test2-status');
+            const resultEl = document.getElementById('test2-result');
+            
+            statusEl.className = 'status pending';
+            statusEl.textContent = '⏳ Testing...';
+            resultEl.textContent = 'Testing Supabase client connection...';
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${SUPABASE_URL}/auth/v1/health`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY
+                    }
+                });
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statusEl.className = 'status success';
+                    statusEl.textContent = `✅ SUCCESS! (${duration}ms)`;
+                    resultEl.textContent = `Status: ${response.status}\nResponse Time: ${duration}ms\nHealth: ${JSON.stringify(data, null, 2)}\n\nSupabase client is working!`;
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = `❌ FAILED (${response.status})`;
+                    resultEl.textContent = `Status: ${response.status}\nError: ${response.statusText}`;
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ CONNECTION FAILED';
+                resultEl.textContent = `Error: ${error.message}\n\nSupabase client cannot connect.`;
+            }
+        }
+
+        async function testAuth() {
+            const statusEl = document.getElementById('test3-status');
+            const resultEl = document.getElementById('test3-result');
+            
+            statusEl.className = 'status pending';
+            statusEl.textContent = '⏳ Testing...';
+            resultEl.textContent = 'Testing authentication endpoint...';
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': SUPABASE_KEY
+                    }
+                });
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statusEl.className = 'status success';
+                    statusEl.textContent = `✅ SUCCESS! (${duration}ms)`;
+                    resultEl.textContent = `Status: ${response.status}\nResponse Time: ${duration}ms\nAuth Settings: ${JSON.stringify(data, null, 2)}\n\nAuthentication is configured!`;
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = `❌ FAILED (${response.status})`;
+                    resultEl.textContent = `Status: ${response.status}\nError: ${response.statusText}`;
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ CONNECTION FAILED';
+                resultEl.textContent = `Error: ${error.message}\n\nAuthentication endpoint not reachable.`;
+            }
+        }
+
+        // Auto-run first test on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('Auto-running Test 1...');
+                testDirectConnection();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
