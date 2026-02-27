@@ -230,11 +230,17 @@ const Login: React.FC = () => {
 
                         {(error || authError) && (
                             <div style={{ padding: '0.75rem', background: 'rgba(248, 113, 113, 0.2)', color: '#fca5a5', borderRadius: '8px', fontSize: '0.875rem' }}>
-                                <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>Authentication Issue</div>
+                                <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>⚠️ Connection Issue</div>
                                 {error || authError}
-                                {(error?.includes('exchange external code') || authError?.includes('exchange external code')) && (
-                                    <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', opacity: 0.8 }}>
-                                        This usually means the Google OAuth keys in Supabase don't match your project. Please verify your Google Client ID and Secret in the Supabase Dashboard.
+                                {(error?.includes('timeout') || error?.includes('took too long') || authError?.includes('timeout')) && (
+                                    <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(59, 130, 246, 0.2)', borderRadius: '6px', fontSize: '0.85rem' }}>
+                                        <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>💡 Quick Fix:</div>
+                                        <div>Supabase is experiencing cold start delays. Please:</div>
+                                        <ol style={{ marginTop: '0.5rem', marginLeft: '1.25rem', lineHeight: '1.6' }}>
+                                            <li>Use <strong>Email/Password</strong> login below (faster)</li>
+                                            <li>Or wait 30 seconds and try Google again</li>
+                                            <li>Second attempt is usually faster!</li>
+                                        </ol>
                                     </div>
                                 )}
                             </div>
