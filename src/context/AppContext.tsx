@@ -135,15 +135,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     useEffect(() => {
         let isMounted = true;
         let timeoutId: NodeJS.Timeout;
+        let emergencyTimeout: NodeJS.Timeout;
         
-        // Fallback: Force stop loading after 15 seconds no matter what
-        const emergencyTimeout = setTimeout(() => {
-            if (isMounted && loading) {
-                console.error('[AppContext] EMERGENCY TIMEOUT - Forcing loading to stop');
-                setLoading(false);
-                setAuthError('Connection timeout. Please refresh the page.');
-            }
-        }, 15000);
+        // CRITICAL: Force stop loading after 5 seconds no matter what
+        emergencyTimeout = setTimeout(() => {
+            console.error('[AppContext] EMERGENCY TIMEOUT (5s) - Forcing loading to stop');
+            setLoading(false);
+            setAuthError('Connection timeout. Please refresh the page.');
+        }, 5000);
         
         const initAuth = async () => {
             try {
@@ -151,7 +150,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 
                 // Add timeout to prevent infinite loading
                 const timeoutPromise = new Promise((_, reject) => {
-                    timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 8000);
+                    timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 3000);
                 });
                 
                 const authPromise = supabase.auth.getSession();
@@ -159,6 +158,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 const { data: { session } } = await Promise.race([authPromise, timeoutPromise]) as any;
                 
                 clearTimeout(timeoutId);
+                clearTimeout(emergencyTimeout);
                 
                 if (!isMounted) return;
                 
@@ -172,6 +172,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 }
             } catch (error) {
                 console.error('[AppContext] Init error:', error);
+                clearTimeout(emergencyTimeout);
                 if (isMounted) {
                     setAuthError('Failed to initialize. Please refresh the page.');
                     setLoading(false);

@@ -40,6 +40,19 @@ const AppRoutes = () => {
     const { session, loading } = useApp();
     const navigate = useNavigate();
     const location = window.location.pathname;
+    const [forceShowApp, setForceShowApp] = React.useState(false);
+
+    // EMERGENCY: Force show app after 5 seconds if still loading
+    React.useEffect(() => {
+        const emergencyTimer = setTimeout(() => {
+            if (loading) {
+                console.error('[App] EMERGENCY: Forcing app to show after 5 seconds');
+                setForceShowApp(true);
+            }
+        }, 5000);
+
+        return () => clearTimeout(emergencyTimer);
+    }, [loading]);
 
     React.useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -55,7 +68,8 @@ const AppRoutes = () => {
         }
     }, [session, loading, location, navigate]);
 
-    if (loading) return (
+    // Show loading screen only if not forced and still loading
+    if (loading && !forceShowApp) return (
         <div style={{ height: '100vh', background: '#09090b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="animate-pulse text-white">Initializing IDET...</div>
         </div>
