@@ -196,13 +196,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             }
         });
 
-        const channel = supabase.channel('db_changes').on('postgres_changes', { event: '*', schema: 'public', table: 'documents' }, () => {
-            if (isMounted) {
-                supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-                    if (currentSession?.user?.id) fetchUserData(currentSession.user.id, currentSession.user.email);
-                });
-            }
-        }).subscribe();
+        // Removed realtime subscription to avoid WebSocket timeout issues
+        // Documents will refresh on page load and manual actions
 
         const interval = setInterval(() => {
             checkAndSendAlerts(documentsRef.current, userProfileRef.current);
@@ -213,7 +208,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             clearTimeout(timeoutId);
             clearTimeout(emergencyTimeout);
             subscription.unsubscribe();
-            supabase.removeChannel(channel);
             clearInterval(interval);
         };
     }, []);

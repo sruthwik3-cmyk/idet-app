@@ -1,0 +1,84 @@
+Design and generate a modern, responsive web application UI for a non-ML project named
+"Important Documents Expiry Tracker".
+
+PRIMARY REQUIREMENT (MANDATORY):
+- Every document expiry MUST generate:
+  1. A Google Calendar event with reminder notification
+  2. A Gmail email alert message
+- These alerts must not be optional or simulated in UI.
+- UI should clearly show that alerts are successfully sent.
+
+UI DESIGN STYLE:
+- Clean, professional, modern interface
+- Light theme with soft accent colors
+- Dashboard with cards and icons
+- Rounded buttons and form fields
+- Responsive for mobile and desktop
+
+APPLICATION FLOW & SCREENS:
+
+1. Login / Signup Page:
+- Email and password authentication
+- Simple and secure UI
+
+2. User Profile Setup Page:
+- Fields:
+  - Full Name
+  - Phone Number
+  - Gmail ID (mandatory for alerts)
+  - Date of Birth
+  - User Group (Self / Family / Organization)
+- Note text: "Gmail and Google Calendar alerts will be sent to this email"
+
+3. Dashboard Page:
+- Summary cards:
+  - Total Documents
+  - Active
+  - Expiring Soon
+  - Expired
+- Section showing:
+  - "Upcoming Alerts (Google Calendar & Gmail)"
+- Visual indicator showing alert status: Sent / Scheduled
+
+4. Add Document Page:
+- Fields:
+  - Document Name
+  - Category
+  - Expiry / Renewal Date (user-entered only)
+  - Priority Level (Critical / Important / Optional)
+  - Notes (optional)
+- On Save:
+  - Automatically create Google Calendar event
+  - Automatically send Gmail reminder email
+- Show confirmation:
+  - "Google Calendar event created"
+  - "Gmail alert sent successfully"
+
+5. Calendar View Page:
+- In-app calendar synchronized with Google Calendar
+- Expiry dates displayed as events
+- Clicking event shows document details
+
+6. Alerts & History Page:
+- List of all alert messages sent via Gmail
+- Calendar event IDs for each document
+- Status labels: Scheduled / Sent / Expired
+
+7. Profile & Settings Page:
+- Display connected Gmail account
+- Display Google Calendar sync status
+- Re-authentication option if access expires
+- Logout option
+
+FUNCTIONAL RULES:
+- Do NOT use Machine Learning
+- Do NOT calculate document validity
+- Use simple date comparison only
+- Expiry dates are always user-entered
+- Alerts are mandatory for every document
+
+UX REQUIREMENTS:
+- Clear success and error feedback
+- Visible confirmation of alert delivery
+- Smooth navigation between pages
+- Suitable for academic evaluation and live demo
