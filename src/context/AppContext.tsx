@@ -136,13 +136,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         let isMounted = true;
         let timeoutId: NodeJS.Timeout;
         
+        // Fallback: Force stop loading after 15 seconds no matter what
+        const emergencyTimeout = setTimeout(() => {
+            if (isMounted && loading) {
+                console.error('[AppContext] EMERGENCY TIMEOUT - Forcing loading to stop');
+                setLoading(false);
+                setAuthError('Connection timeout. Please refresh the page.');
+            }
+        }, 15000);
+        
         const initAuth = async () => {
             try {
                 console.log('[AppContext] Initializing authentication...');
                 
                 // Add timeout to prevent infinite loading
                 const timeoutPromise = new Promise((_, reject) => {
-                    timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 10000);
+                    timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 8000);
                 });
                 
                 const authPromise = supabase.auth.getSession();
@@ -201,6 +210,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return () => {
             isMounted = false;
             clearTimeout(timeoutId);
+            clearTimeout(emergencyTimeout);
             subscription.unsubscribe();
             supabase.removeChannel(channel);
             clearInterval(interval);

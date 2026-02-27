@@ -12,7 +12,8 @@ import {
     addMonths,
     subMonths
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, Calendar } from 'lucide-react';
+import { generateCalendarUrl } from '../utils/calendarUtils';
 
 const getCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
@@ -229,6 +230,28 @@ const CalendarView: React.FC = () => {
                                                 {doc.category} • {doc.priority}
                                             </p>
                                         </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const url = generateCalendarUrl(doc.name, doc.expiryDate, doc.priority);
+                                                window.open(url, '_blank');
+                                            }}
+                                            style={{
+                                                background: 'rgba(255,255,255,0.05)',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                color: 'var(--primary)',
+                                                padding: '0.75rem',
+                                                borderRadius: '10px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            title="Add to Google Calendar"
+                                        >
+                                            <Calendar size={20} />
+                                        </button>
                                     </div>
                                 );
                             })}
