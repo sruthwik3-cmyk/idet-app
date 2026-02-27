@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download, RefreshCw, Volume2, Upload, ExternalLink } from 'lucide-react';
+import { FileText, Clock, AlertTriangle, CheckCircle, Trash2, Pencil, Siren, Download, RefreshCw, Volume2, Upload, ExternalLink, Calendar } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { SkeletonDashboard } from '../components/SkeletonCards';
 import { unlockAudioContext } from '../utils/soundUtils';
+import { generateCalendarUrl } from '../utils/calendarUtils';
 
 const Dashboard: React.FC = () => {
     const { stats, documents, deleteDocument, loading, refreshAlerts, addDocument, showNotification } = useApp();
@@ -25,10 +26,10 @@ const Dashboard: React.FC = () => {
             setAudioUnlocked(true);
             console.log('[Dashboard] Audio context unlocked');
         };
-        
+
         // Try to unlock on first click
         document.addEventListener('click', handleClick, { once: true });
-        
+
         return () => {
             document.removeEventListener('click', handleClick);
         };
@@ -117,7 +118,7 @@ const Dashboard: React.FC = () => {
         try {
             const text = await file.text();
             const lines = text.split('\n').filter(line => line.trim());
-            
+
             if (lines.length < 2) {
                 showNotification('CSV file is empty', 'error');
                 setIsImporting(false);
@@ -131,7 +132,7 @@ const Dashboard: React.FC = () => {
             // Validate headers
             const requiredHeaders = ['Name', 'Category', 'Expiry Date', 'Priority'];
             const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
-            
+
             if (missingHeaders.length > 0) {
                 showNotification(`Missing required columns: ${missingHeaders.join(', ')}`, 'error');
                 setIsImporting(false);
@@ -142,7 +143,7 @@ const Dashboard: React.FC = () => {
             for (let i = 1; i < lines.length; i++) {
                 const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
                 const row: any = {};
-                
+
                 headers.forEach((header, index) => {
                     row[header] = values[index] || '';
                 });
@@ -156,7 +157,7 @@ const Dashboard: React.FC = () => {
                 // Parse and validate date - accept multiple formats
                 let parsedDate = '';
                 const dateStr = row['Expiry Date'].trim();
-                
+
                 // Try YYYY-MM-DD format first
                 const isoRegex = /^\d{4}-\d{2}-\d{2}$/;
                 if (isoRegex.test(dateStr)) {
@@ -165,7 +166,7 @@ const Dashboard: React.FC = () => {
                     // Try M/D/YYYY or MM/DD/YYYY format
                     const slashRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
                     const slashMatch = dateStr.match(slashRegex);
-                    
+
                     if (slashMatch) {
                         const month = slashMatch[1].padStart(2, '0');
                         const day = slashMatch[2].padStart(2, '0');
@@ -175,7 +176,7 @@ const Dashboard: React.FC = () => {
                         // Try DD/MM/YYYY format
                         const ddmmRegex = /^(\d{1,2})-(\d{1,2})-(\d{4})$/;
                         const ddmmMatch = dateStr.match(ddmmRegex);
-                        
+
                         if (ddmmMatch) {
                             const day = ddmmMatch[1].padStart(2, '0');
                             const month = ddmmMatch[2].padStart(2, '0');
@@ -218,11 +219,11 @@ const Dashboard: React.FC = () => {
             }
 
             setImportResults({ success: successCount, errors });
-            
+
             if (successCount > 0) {
                 showNotification(`Successfully imported ${successCount} document${successCount > 1 ? 's' : ''}!`, 'success');
             }
-            
+
             if (errors.length > 0) {
                 showNotification(`${errors.length} row${errors.length > 1 ? 's' : ''} had errors`, 'error');
             }
@@ -275,7 +276,7 @@ const Dashboard: React.FC = () => {
                     <Icon size={24} />
                 </div>
             </div>
-            
+
             <style>{`
                 .card-3d:hover .stat-glow {
                     opacity: 0.4;
@@ -293,7 +294,7 @@ const Dashboard: React.FC = () => {
             <div className="particle" style={{ top: '65%', left: '15%' }}></div>
             <div className="particle" style={{ top: '75%', left: '75%' }}></div>
             <div className="particle" style={{ top: '45%', left: '50%' }}></div>
-            
+
             <style>{`
                 @keyframes pulse-red {
                     0% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4); border-color: rgba(248, 113, 113, 0.4); }
@@ -604,6 +605,18 @@ const Dashboard: React.FC = () => {
                                                     </button>
                                                 )}
                                                 <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const url = generateCalendarUrl(doc.name, doc.expiryDate, doc.priority);
+                                                        window.open(url, '_blank');
+                                                    }}
+                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}
+                                                    className="action-btn"
+                                                    title="Add to Google Calendar"
+                                                >
+                                                    <Calendar size={16} />
+                                                </button>
+                                                <button
                                                     onClick={(e) => { e.stopPropagation(); handleEdit(doc); }}
                                                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}
                                                     className="action-btn"
@@ -750,7 +763,7 @@ const Dashboard: React.FC = () => {
                             <CheckCircle size={28} color="var(--success)" />
                             Import Results
                         </h2>
-                        
+
                         <div style={{ marginBottom: '1.5rem' }}>
                             <p style={{ fontSize: '1.1rem', margin: '0.5rem 0' }}>
                                 <strong style={{ color: 'var(--success)' }}>{importResults.success}</strong> document{importResults.success !== 1 ? 's' : ''} imported successfully

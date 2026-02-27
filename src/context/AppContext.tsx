@@ -134,20 +134,47 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     useEffect(() => {
         let isMounted = true;
+        let timeoutId: NodeJS.Timeout;
+        
         const initAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!isMounted) return;
-            setSession(session);
-            if (session?.user) {
-                await fetchUserData(session.user.id, session.user.email);
-            } else {
-                setLoading(false);
+            try {
+                console.log('[AppContext] Initializing authentication...');
+                
+                // Add timeout to prevent infinite loading
+                const timeoutPromise = new Promise((_, reject) => {
+                    timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 10000);
+                });
+                
+                const authPromise = supabase.auth.getSession();
+                
+                const { data: { session } } = await Promise.race([authPromise, timeoutPromise]) as any;
+                
+                clearTimeout(timeoutId);
+                
+                if (!isMounted) return;
+                
+                console.log('[AppContext] Session:', session ? 'Found' : 'None');
+                setSession(session);
+                
+                if (session?.user) {
+                    await fetchUserData(session.user.id, session.user.email);
+                } else {
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error('[AppContext] Init error:', error);
+                if (isMounted) {
+                    setAuthError('Failed to initialize. Please refresh the page.');
+                    setLoading(false);
+                }
             }
         };
+        
         initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (!isMounted) return;
+            console.log('[AppContext] Auth state changed:', _event);
             setSession(session);
             if (session?.user) {
                 fetchUserData(session.user.id, session.user.email);
@@ -173,6 +200,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         return () => {
             isMounted = false;
+            clearTimeout(timeoutId);
             subscription.unsubscribe();
             supabase.removeChannel(channel);
             clearInterval(interval);
