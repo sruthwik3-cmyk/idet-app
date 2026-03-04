@@ -58,16 +58,16 @@ const Landing: React.FC = () => {
                 top: 0
             }}>
                 <div className="zoom-in" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <img 
-                        src="/idet-logo.png" 
-                        alt="IDET Logo" 
-                        className="pulse-ring"
-                        style={{ 
-                            width: '48px', 
-                            height: '48px', 
-                            objectFit: 'contain'
-                        }} 
-                    />
+                    <div className="pulse-ring" style={{
+                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                        padding: '8px',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <Shield size={24} color="white" />
+                    </div>
                     <span className="text-shine" style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>IDET</span>
                 </div>
                 <div className="stagger-children" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>

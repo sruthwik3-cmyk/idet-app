@@ -60,17 +60,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
     return (
         <div className="app-container">
             <aside className="sidebar">
-                <div className="sidebar-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                    <img 
-                        src="/idet-logo.png" 
-                        alt="IDET Logo" 
-                        style={{ 
-                            width: '64px', 
-                            height: '64px', 
-                            objectFit: 'contain',
-                            marginBottom: '0.5rem'
-                        }} 
-                    />
+                <div className="sidebar-header">
                     <h2>IDET</h2>
                     <p>Doc Tracker</p>
                 </div>

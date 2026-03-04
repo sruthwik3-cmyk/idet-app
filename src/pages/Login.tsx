@@ -196,23 +196,17 @@ const Login: React.FC = () => {
                     {/* Header Section */}
                     <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
                         <div style={{
-                            width: '120px',
-                            height: '120px',
+                            width: '64px',
+                            height: '64px',
+                            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
+                            borderRadius: '16px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            margin: '0 auto 1.5rem'
+                            margin: '0 auto 1.5rem',
+                            boxShadow: '0 10px 15px -3px var(--primary-glow)'
                         }}>
-                            <img 
-                                src="/idet-logo.png" 
-                                alt="IDET Logo" 
-                                style={{ 
-                                    width: '100%', 
-                                    height: '100%', 
-                                    objectFit: 'contain',
-                                    filter: 'drop-shadow(0 10px 15px rgba(124, 58, 237, 0.3))'
-                                }} 
-                            />
+                            <Shield size={32} color="white" />
                         </div>
                         <h1 style={{
                             fontSize: '2rem',
