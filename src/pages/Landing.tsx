@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Bell, Clock, Calendar, ArrowRight, CheckCircle2, Siren } from 'lucide-react';
+import { Bell, Clock, Calendar, ArrowRight, CheckCircle2, Siren } from 'lucide-react';
 
 const Landing: React.FC = () => {
     const navigate = useNavigate();
