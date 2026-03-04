@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDET Alert System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-box {
+            background: #2a2a2a;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success { background: #10b981; color: white; }
+        .error { background: #ef4444; color: white; }
+        .pending { background: #f59e0b; color: white; }
+        .info { background: #3b82f6; color: white; }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #2563eb; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 4px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔔 IDET Alert System Test</h1>
+    <p>This page tests the sound alerts and Gmail email functionality.</p>
+
+    <!-- Sound Test -->
+    <div class="test-box">
+        <h2>🔊 Test 1: Sound Alert (15 seconds)</h2>
+        <p>Tests if the browser can play the alert sound for 15 seconds.</p>
+        <div class="warning">
+            ⚠️ <strong>Important:</strong> Browsers block sound until you interact with the page. Click the button below to test.
+        </div>
+        <div id="sound-status" class="status pending">⏳ Ready to test</div>
+        <button onclick="testSound()">🔊 Play 15-Second Alert Sound</button>
+        <button onclick="stopSound()">⏹️ Stop Sound</button>
+        <pre id="sound-result">Click "Play 15-Second Alert Sound" to test...</pre>
+    </div>
+
+    <!-- Gmail API Health Check -->
+    <div class="test-box">
+        <h2>📧 Test 2: Gmail API Health Check</h2>
+        <p>Checks if the backend Gmail API is configured correctly.</p>
+        <div id="health-status" class="status pending">⏳ Waiting...</div>
+        <button onclick="testGmailHealth()">🔍 Check Gmail Status</button>
+        <pre id="health-result">Click "Check Gmail Status" to test...</pre>
+    </div>
+
+    <!-- Email Test -->
+    <div class="test-box">
+        <h2>✉️ Test 3: Send Test Email</h2>
+        <p>Sends a real test email via Gmail API to verify email alerts work.</p>
+        <label for="test-email">Enter your email address:</label>
+        <input type="email" id="test-email" placeholder="your.email@example.com" value="sriperambudururuthwik@gmail.com">
+        <div id="email-status" class="status pending">⏳ Ready to send</div>
+        <button onclick="testEmail()">📨 Send Test Email</button>
+        <pre id="email-result">Enter your email and click "Send Test Email"...</pre>
+    </div>
+
+    <!-- Combined Alert Test -->
+    <div class="test-box">
+        <h2>🚨 Test 4: Full Alert Simulation (Sound + Email)</h2>
+        <p>Simulates a real document expiry alert with both sound and email.</p>
+        <label for="full-test-email">Enter your email address:</label>
+        <input type="email" id="full-test-email" placeholder="your.email@example.com" value="sriperambudururuthwik@gmail.com">
+        <div id="full-status" class="status pending">⏳ Ready to test</div>
+        <button onclick="testFullAlert()">🚨 Trigger Full Alert</button>
+        <pre id="full-result">Click "Trigger Full Alert" to test complete alert system...</pre>
+    </div>
+
+    <div class="test-box">
+        <h2>📋 Instructions</h2>
+        <ol>
+            <li><strong>Test 1:</strong> Click to play sound - should hear melody for 15 seconds</li>
+            <li><strong>Test 2:</strong> Check if Gmail API is connected properly</li>
+            <li><strong>Test 3:</strong> Send a test email to verify email delivery</li>
+            <li><strong>Test 4:</strong> Full simulation with sound + email together</li>
+        </ol>
+        <p><strong>Expected Results:</strong></p>
+        <ul>
+            <li>✅ Sound plays for exactly 15 seconds</li>
+            <li>✅ Gmail status shows "connected as sriperambudururuthwik@gmail.com"</li>
+            <li>✅ Test email arrives in inbox within 1-2 minutes</li>
+            <li>✅ Full alert triggers both sound and email</li>
+        </ul>
+    </div>
+
+    <script>
+        let audioContext = null;
+        let alertSoundInterval = null;
+
+        // Initialize AudioContext
+        function getAudioContext() {
+            if (!audioContext) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioContext = new AudioContext();
+                }
+            }
+            return audioContext;
+        }
+
+        // Test Sound
+        async function testSound() {
+            const statusEl = document.getElementById('sound-status');
+            const resultEl = document.getElementById('sound-result');
+            
+            statusEl.className = 'status info';
+            statusEl.textContent = '🔊 Playing sound...';
+            resultEl.textContent = 'Starting 15-second alert sound...\n';
+
+            const ctx = getAudioContext();
+            if (!ctx) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ AudioContext not supported';
+                resultEl.textContent += 'ERROR: Your browser does not support Web Audio API.\n';
+                return;
+            }
+
+            resultEl.textContent += `AudioContext state: ${ctx.state}\n`;
+
+            if (ctx.state === 'suspended') {
+                resultEl.textContent += 'Resuming suspended AudioContext...\n';
+                try {
+                    await ctx.resume();
+                    resultEl.textContent += `AudioContext resumed! New state: ${ctx.state}\n`;
+                } catch (err) {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = '❌ Failed to resume AudioContext';
+                    resultEl.textContent += `ERROR: ${err.message}\n`;
+                    return;
+                }
+            }
+
+            stopSound();
+            playMelody(ctx);
+            
+            statusEl.className = 'status success';
+            statusEl.textContent = '✅ Sound playing for 15 seconds';
+            resultEl.textContent += 'Sound is now playing! Should hear a pleasant melody.\n';
+            resultEl.textContent += 'Will automatically stop after 15 seconds.\n';
+
+            // Auto-update status after 15 seconds
+            setTimeout(() => {
+                statusEl.className = 'status success';
+                statusEl.textContent = '✅ Sound test complete';
+                resultEl.textContent += '\n✅ 15-second sound test completed successfully!\n';
+            }, 15000);
+        }
+
+        function stopSound() {
+            if (alertSoundInterval) {
+                clearInterval(alertSoundInterval);
+                alertSoundInterval = null;
+            }
+        }
+
+        function playMelody(ctx) {
+            const melody = [
+                { note: 523.25, duration: 0.15, time: 0 },
+                { note: 659.25, duration: 0.15, time: 0.15 },
+                { note: 783.99, duration: 0.15, time: 0.30 },
+                { note: 1046.50, duration: 0.30, time: 0.45 },
+                { note: 783.99, duration: 0.15, time: 0.75 },
+                { note: 659.25, duration: 0.15, time: 0.90 },
+                { note: 523.25, duration: 0.30, time: 1.05 },
+                { note: 587.33, duration: 0.15, time: 1.50 },
+                { note: 698.46, duration: 0.15, time: 1.65 },
+                { note: 880.00, duration: 0.15, time: 1.80 },
+                { note: 1174.66, duration: 0.40, time: 1.95 },
+            ];
+
+            const playTune = () => {
+                const now = ctx.currentTime;
+                melody.forEach(({ note, duration, time }) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(note, now + time);
+                    gain.gain.setValueAtTime(0, now + time);
+                    gain.gain.linearRampToValueAtTime(0.25, now + time + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + time + duration);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + time);
+                    osc.stop(now + time + duration + 0.1);
+                });
+            };
+
+            playTune();
+            let loopCount = 0;
+            const maxLoops = 5;
+
+            alertSoundInterval = setInterval(() => {
+                loopCount++;
+                if (loopCount >= maxLoops) {
+                    clearInterval(alertSoundInterval);
+                    alertSoundInterval = null;
+                    return;
+                }
+                playTune();
+            }, 2800);
+
+            setTimeout(() => {
+                if (alertSoundInterval) {
+                    clearInterval(alertSoundInterval);
+                    alertSoundInterval = null;
+                }
+            }, 15000);
+        }
+
+        // Test Gmail Health
+        async function testGmailHealth() {
+            const statusEl = document.getElementById('health-status');
+            const resultEl = document.getElementById('health-result');
+            
+            statusEl.className = 'status info';
+            statusEl.textContent = '🔍 Checking Gmail API...';
+            resultEl.textContent = 'Connecting to backend...\n';
+
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                resultEl.textContent = JSON.stringify(data, null, 2);
+
+                if (data.gmailStatus && data.gmailStatus.includes('connected')) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = '✅ Gmail API Connected';
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = '❌ Gmail API Error';
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ Connection Failed';
+                resultEl.textContent = `ERROR: ${error.message}\n\nCannot reach backend server.`;
+            }
+        }
+
+        // Test Email
+        async function testEmail() {
+            const email = document.getElementById('test-email').value.trim();
+            const statusEl = document.getElementById('email-status');
+            const resultEl = document.getElementById('email-result');
+
+            if (!email) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ Email required';
+                resultEl.textContent = 'Please enter an email address.';
+                return;
+            }
+
+            statusEl.className = 'status info';
+            statusEl.textContent = '📨 Sending email...';
+            resultEl.textContent = `Sending test email to: ${email}\n`;
+
+            try {
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to: email,
+                        subject: '🧪 IDET Test Email',
+                        html: '<h1>Test Successful!</h1><p>Your IDET alert system is working correctly.</p>',
+                        text: 'Test Successful! Your IDET alert system is working correctly.'
+                    })
+                });
+
+                const data = await response.json();
+                resultEl.textContent += JSON.stringify(data, null, 2);
+
+                if (data.success) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = '✅ Email sent successfully!';
+                    resultEl.textContent += '\n\n✅ Check your inbox! Email should arrive within 1-2 minutes.';
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = '❌ Email failed';
+                    resultEl.textContent += '\n\n❌ Email sending failed. Check error above.';
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ Request failed';
+                resultEl.textContent += `\nERROR: ${error.message}`;
+            }
+        }
+
+        // Test Full Alert
+        async function testFullAlert() {
+            const email = document.getElementById('full-test-email').value.trim();
+            const statusEl = document.getElementById('full-status');
+            const resultEl = document.getElementById('full-result');
+
+            if (!email) {
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ Email required';
+                resultEl.textContent = 'Please enter an email address.';
+                return;
+            }
+
+            statusEl.className = 'status info';
+            statusEl.textContent = '🚨 Triggering full alert...';
+            resultEl.textContent = 'FULL ALERT SIMULATION\n';
+            resultEl.textContent += '='.repeat(50) + '\n\n';
+
+            // Step 1: Play Sound
+            resultEl.textContent += '1️⃣ Playing 15-second alert sound...\n';
+            const ctx = getAudioContext();
+            if (ctx) {
+                if (ctx.state === 'suspended') {
+                    await ctx.resume();
+                }
+                stopSound();
+                playMelody(ctx);
+                resultEl.textContent += '   ✅ Sound started\n\n';
+            } else {
+                resultEl.textContent += '   ❌ Sound not available\n\n';
+            }
+
+            // Step 2: Send Email
+            resultEl.textContent += '2️⃣ Sending expiry alert email...\n';
+            try {
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to: email,
+                        subject: '🚨 URGENT: Test Document expires in 5 days',
+                        html: `
+                            <h1>🚨 URGENT ALERT</h1>
+                            <p>This is a <strong>test alert</strong> from IDET.</p>
+                            <h2>Document Details:</h2>
+                            <ul>
+                                <li><strong>Name:</strong> Test Document</li>
+                                <li><strong>Days Remaining:</strong> 5 days</li>
+                                <li><strong>Priority:</strong> Critical</li>
+                            </ul>
+                            <p>If you received this email and heard a sound, your alert system is working perfectly!</p>
+                        `,
+                        text: 'URGENT: Test Document expires in 5 days. This is a test alert from IDET.'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultEl.textContent += '   ✅ Email sent successfully\n\n';
+                    statusEl.className = 'status success';
+                    statusEl.textContent = '✅ Full alert test complete!';
+                    resultEl.textContent += '='.repeat(50) + '\n';
+                    resultEl.textContent += '✅ FULL ALERT TEST SUCCESSFUL!\n';
+                    resultEl.textContent += '\nYou should:\n';
+                    resultEl.textContent += '  • Hear a 15-second melody playing\n';
+                    resultEl.textContent += '  • Receive an email within 1-2 minutes\n';
+                } else {
+                    resultEl.textContent += '   ❌ Email failed\n\n';
+                    resultEl.textContent += JSON.stringify(data, null, 2);
+                    statusEl.className = 'status error';
+                    statusEl.textContent = '❌ Email failed';
+                }
+            } catch (error) {
+                resultEl.textContent += `   ❌ Error: ${error.message}\n`;
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ Full alert failed';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
-import { Mail, Calendar, CheckCircle, Bell, History } from 'lucide-react';
+import { Mail, Calendar, CheckCircle, Bell, History, TestTube } from 'lucide-react';
 
 const Alerts: React.FC = () => {
-    const { documents } = useApp();
+    const { documents, refreshAlerts } = useApp();
 
     // Filter documents to show those that have at least one alert sent or a calendar event scheduled
     const alertDocs = documents.filter(doc =>
@@ -21,7 +21,14 @@ const Alerts: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <button
-                        onClick={() => useApp().refreshAlerts()}
+                        onClick={() => window.open('/test-alerts.html', '_blank')}
+                        className="btn-secondary"
+                        style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}
+                    >
+                        <TestTube size={16} /> Test Alerts
+                    </button>
+                    <button
+                        onClick={refreshAlerts}
                         className="btn-secondary"
                     >
                         <History size={16} /> Force Check
