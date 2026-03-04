@@ -59,7 +59,7 @@ const Landing: React.FC = () => {
             }}>
                 <div className="zoom-in" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <img 
-                        src="/idet-logo.png" 
+                        src="/idet-logo.svg" 
                         alt="IDET Logo" 
                         className="pulse-ring"
                         style={{ 

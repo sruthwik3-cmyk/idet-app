@@ -204,7 +204,7 @@ const Login: React.FC = () => {
                             margin: '0 auto 1.5rem'
                         }}>
                             <img 
-                                src="/idet-logo.png" 
+                                src="/idet-logo.svg" 
                                 alt="IDET Logo" 
                                 style={{ 
                                     width: '100%', 

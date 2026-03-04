@@ -62,7 +62,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
             <aside className="sidebar">
                 <div className="sidebar-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                     <img 
-                        src="/idet-logo.png" 
+                        src="/idet-logo.svg" 
                         alt="IDET Logo" 
                         style={{ 
                             width: '64px', 
