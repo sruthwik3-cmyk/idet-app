@@ -20,14 +20,45 @@ export const useVoiceAssistant = () => {
 
     const speak = useCallback((text: string) => {
         if ('speechSynthesis' in window) {
+            // OPTIMIZATION: Cancel any ongoing speech for instant response
+            window.speechSynthesis.cancel();
+            
             setIsSpeaking(true);
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.onend = () => setIsSpeaking(false);
+            
+            // OPTIMIZATION: Faster speech rate for quicker responses
+            utterance.rate = 1.1; // Slightly faster than normal (1.0)
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            utterance.onstart = () => {
+                console.log('[Jarvis] Speaking:', text);
+            };
+            
+            utterance.onend = () => {
+                console.log('[Jarvis] Speech complete');
+                setIsSpeaking(false);
+            };
+            
+            utterance.onerror = (event) => {
+                console.error('[Jarvis] Speech error:', event);
+                setIsSpeaking(false);
+            };
+            
             // Select a nice voice if available
             const voices = window.speechSynthesis.getVoices();
-            const preferredVoice = voices.find(voice => voice.name.includes('Google') || voice.name.includes('Female'));
-            if (preferredVoice) utterance.voice = preferredVoice;
+            const preferredVoice = voices.find(voice => 
+                voice.name.includes('Google') || 
+                voice.name.includes('Female') ||
+                voice.name.includes('Samantha') ||
+                voice.name.includes('Karen')
+            );
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+                console.log('[Jarvis] Using voice:', preferredVoice.name);
+            }
 
+            // INSTANT START: Speak immediately
             window.speechSynthesis.speak(utterance);
         }
     }, []);
@@ -199,10 +230,9 @@ export const useVoiceAssistant = () => {
         console.log('[Jarvis] Heard:', command);
         console.log('[Jarvis] AI Mode:', isAIModeEnabled() ? 'ENABLED' : 'DISABLED');
 
-        // Try AI response first if enabled
+        // Try AI response first if enabled (NO DELAY - instant response)
         if (isAIModeEnabled()) {
             try {
-                speak("Processing your request, sir...");
                 const aiResponse = await getAIResponse(command, stats);
                 if (aiResponse) {
                     speak(aiResponse);
@@ -347,27 +377,57 @@ export const useVoiceAssistant = () => {
         recognition.continuous = false;
         recognition.lang = 'en-US';
         recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
 
-        recognition.onstart = () => setIsListening(true);
-        recognition.onend = () => setIsListening(false);
+        // OPTIMIZATION: Faster end detection
+        let silenceTimer: NodeJS.Timeout | undefined;
+        
+        recognition.onstart = () => {
+            console.log('[Jarvis] Listening started...');
+            setIsListening(true);
+        };
+        
+        recognition.onend = () => {
+            console.log('[Jarvis] Listening ended');
+            setIsListening(false);
+            if (silenceTimer) clearTimeout(silenceTimer);
+        };
+        
         recognition.onresult = (event: any) => {
             const last = event.results.length - 1;
             const text = event.results[last][0].transcript;
+            const confidence = event.results[last][0].confidence;
+            
+            console.log('[Jarvis] Recognized:', text, 'Confidence:', confidence);
             setTranscript(text);
-            processCommand(text);
+            
+            // INSTANT RESPONSE: Process immediately when final result is received
+            if (event.results[last].isFinal) {
+                console.log('[Jarvis] Final result - processing immediately');
+                processCommand(text);
+            }
+        };
+        
+        recognition.onerror = (event: any) => {
+            console.error('[Jarvis] Recognition error:', event.error);
+            if (event.error === 'no-speech') {
+                console.log('[Jarvis] No speech detected');
+            }
+            setIsListening(false);
         };
 
         if (isListening) {
             try {
                 recognition.start();
             } catch (e) {
-                // Already started
+                console.warn('[Jarvis] Recognition already started');
             }
         } else {
             recognition.stop();
         }
 
         return () => {
+            if (silenceTimer) clearTimeout(silenceTimer);
             recognition.stop();
         };
     }, [isListening, processCommand]);

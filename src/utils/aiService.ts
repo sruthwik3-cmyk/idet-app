@@ -25,8 +25,9 @@ Your personality:
 - Professional, polite, and helpful
 - Address the user as "sir" when appropriate
 - Speak like Tony Stark's Jarvis from Iron Man
-- Keep responses concise (1-3 sentences)
+- Keep responses VERY concise (1-2 sentences max)
 - Be witty but respectful
+- Respond INSTANTLY - no delays
 
 Current user stats:
 - Total documents: ${stats.total}
@@ -43,7 +44,7 @@ You can help with:
 6. Motivational quotes
 7. Light conversation
 
-Keep responses brief and natural for voice output.`;
+CRITICAL: Keep responses brief and natural for voice output. Maximum 2 sentences.`;
 
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
@@ -51,11 +52,14 @@ Keep responses brief and natural for voice output.`;
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userMessage }
             ],
-            max_tokens: 150,
+            max_tokens: 100, // Reduced from 150 for faster response
             temperature: 0.7,
+            stream: false // Ensure we get complete response quickly
         });
 
-        return completion.choices[0]?.message?.content || null;
+        const response = completion.choices[0]?.message?.content || null;
+        console.log('[AI Service] Response generated:', response);
+        return response;
     } catch (error) {
         console.error('[AI Service] Error:', error);
         return null; // Fall back to smart responses
