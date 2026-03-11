@@ -1,44 +1,134 @@
 <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Gradient Definitions -->
   <defs>
-    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    <!-- Vibrant Gradients -->
+    <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
     </linearGradient>
+    
     <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
     </linearGradient>
+    
+    <linearGradient id="successGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#11998e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#38ef7d;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="alertGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fa709a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fee140;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Glow Effects -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Shadow -->
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.3"/>
+    </filter>
   </defs>
   
-  <!-- Shield Background -->
-  <path d="M100 20 L160 40 L160 100 C160 140 130 170 100 180 C70 170 40 140 40 100 L40 40 Z" 
-        fill="url(#shieldGradient)" 
-        stroke="#4f46e5" 
-        stroke-width="3"/>
+  <!-- Outer Glow Ring -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="url(#mainGradient)" stroke-width="3" opacity="0.2"/>
+  <circle cx="100" cy="100" r="80" fill="none" stroke="url(#accentGradient)" stroke-width="2" opacity="0.3"/>
   
-  <!-- Document Icon -->
-  <rect x="70" y="60" width="35" height="45" rx="3" fill="white" opacity="0.95"/>
-  <line x1="75" y1="70" x2="100" y2="70" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
-  <line x1="75" y1="78" x2="100" y2="78" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
-  <line x1="75" y1="86" x2="95" y2="86" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+  <!-- Central Shield/Badge Shape -->
+  <path d="M100 25 L145 45 L145 85 Q145 120 100 145 Q55 120 55 85 L55 45 Z" 
+        fill="url(#mainGradient)" 
+        filter="url(#shadow)"
+        opacity="0.95"/>
   
-  <!-- Calendar Icon -->
-  <rect x="95" y="75" width="35" height="40" rx="3" fill="white" opacity="0.95"/>
-  <rect x="95" y="75" width="35" height="10" rx="3" fill="url(#accentGradient)"/>
-  <circle cx="103" cy="95" r="2" fill="#6366f1"/>
-  <circle cx="113" cy="95" r="2" fill="#6366f1"/>
-  <circle cx="123" cy="95" r="2" fill="#6366f1"/>
-  <circle cx="103" cy="105" r="2" fill="#6366f1"/>
-  <circle cx="113" cy="105" r="2" fill="#10b981"/>
-  <circle cx="123" cy="105" r="2" fill="#6366f1"/>
+  <!-- Inner Shield Highlight -->
+  <path d="M100 35 L135 50 L135 85 Q135 112 100 132 Q65 112 65 85 L65 50 Z" 
+        fill="white" 
+        opacity="0.1"/>
   
-  <!-- Checkmark -->
-  <circle cx="85" cy="95" r="12" fill="url(#accentGradient)"/>
-  <path d="M80 95 L84 99 L91 92" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Stylized "ID" Letters -->
+  <g transform="translate(70, 60)" filter="url(#glow)">
+    <!-- Letter I -->
+    <rect x="0" y="0" width="8" height="40" rx="4" fill="white"/>
+    <rect x="0" y="0" width="8" height="4" rx="2" fill="url(#accentGradient)"/>
+    <rect x="0" y="36" width="8" height="4" rx="2" fill="url(#accentGradient)"/>
+    
+    <!-- Letter D -->
+    <path d="M15 0 L30 0 Q45 0 45 20 Q45 40 30 40 L15 40 Z" 
+          fill="white"/>
+    <path d="M20 5 L30 5 Q40 5 40 20 Q40 35 30 35 L20 35 Z" 
+          fill="url(#mainGradient)"/>
+  </g>
   
-  <!-- Alert Bell (small) -->
-  <path d="M115 125 Q115 120 120 120 Q125 120 125 125 L125 130 Q125 133 122.5 135 Q120 137 117.5 135 Q115 133 115 130 Z" 
-        fill="#f59e0b" opacity="0.9"/>
-  <circle cx="120" cy="138" r="2" fill="#f59e0b"/>
+  <!-- Document Icon (Top Right) -->
+  <g transform="translate(120, 50)" filter="url(#glow)">
+    <rect x="0" y="0" width="28" height="36" rx="3" fill="white" stroke="url(#accentGradient)" stroke-width="2"/>
+    <line x1="5" y1="8" x2="23" y2="8" stroke="url(#mainGradient)" stroke-width="2" stroke-linecap="round"/>
+    <line x1="5" y1="14" x2="23" y2="14" stroke="url(#mainGradient)" stroke-width="2" stroke-linecap="round"/>
+    <line x1="5" y1="20" x2="18" y2="20" stroke="url(#mainGradient)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="20" cy="28" r="4" fill="url(#successGradient)"/>
+    <path d="M18 28 L19.5 29.5 L22 27" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Calendar Icon (Bottom Left) -->
+  <g transform="translate(52, 105)" filter="url(#glow)">
+    <rect x="0" y="5" width="32" height="32" rx="3" fill="white" stroke="url(#accentGradient)" stroke-width="2"/>
+    <rect x="0" y="5" width="32" height="8" rx="3" fill="url(#successGradient)"/>
+    <circle cx="8" cy="5" r="2" fill="white"/>
+    <circle cx="24" cy="5" r="2" fill="white"/>
+    <!-- Calendar dates -->
+    <circle cx="8" cy="20" r="2" fill="url(#mainGradient)" opacity="0.6"/>
+    <circle cx="16" cy="20" r="2" fill="url(#mainGradient)" opacity="0.6"/>
+    <circle cx="24" cy="20" r="2" fill="url(#mainGradient)" opacity="0.6"/>
+    <circle cx="8" cy="28" r="2" fill="url(#mainGradient)" opacity="0.6"/>
+    <!-- Highlighted date -->
+    <circle cx="16" cy="28" r="3" fill="url(#alertGradient)" filter="url(#strongGlow)"/>
+  </g>
+  
+  <!-- Alert Bell (Bottom Right) -->
+  <g transform="translate(118, 108)" filter="url(#strongGlow)">
+    <path d="M10 3 Q10 0 13 0 Q16 0 16 3 L16 8 Q16 12 13 14 Q10 12 10 8 Z" 
+          fill="url(#alertGradient)"/>
+    <ellipse cx="13" cy="15" rx="2" ry="1.5" fill="url(#alertGradient)"/>
+    <circle cx="13" cy="12" r="1.5" fill="#fff"/>
+    <!-- Alert waves -->
+    <path d="M5 5 Q3 5 3 7" stroke="url(#alertGradient)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M21 5 Q23 5 23 7" stroke="url(#alertGradient)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <circle cx="20" cy="2" r="3" fill="url(#alertGradient)" opacity="0.8"/>
+    <text x="20" y="4" font-size="5" fill="white" text-anchor="middle" font-weight="bold">!</text>
+  </g>
+  
+  <!-- Clock/Timer (Bottom Center) -->
+  <g transform="translate(85, 130)" filter="url(#glow)">
+    <circle cx="15" cy="15" r="13" fill="white" stroke="url(#accentGradient)" stroke-width="2"/>
+    <circle cx="15" cy="15" r="2" fill="url(#mainGradient)"/>
+    <line x1="15" y1="15" x2="15" y2="8" stroke="url(#mainGradient)" stroke-width="2" stroke-linecap="round"/>
+    <line x1="15" y1="15" x2="20" y2="15" stroke="url(#mainGradient)" stroke-width="2" stroke-linecap="round"/>
+    <!-- Clock marks -->
+    <circle cx="15" cy="5" r="1" fill="url(#mainGradient)"/>
+    <circle cx="25" cy="15" r="1" fill="url(#mainGradient)"/>
+    <circle cx="15" cy="25" r="1" fill="url(#mainGradient)"/>
+    <circle cx="5" cy="15" r="1" fill="url(#mainGradient)"/>
+  </g>
+  
+  <!-- Sparkle Effects -->
+  <g opacity="0.8">
+    <path d="M160 40 L162 45 L167 47 L162 49 L160 54 L158 49 L153 47 L158 45 Z" fill="url(#accentGradient)" filter="url(#glow)"/>
+    <path d="M45 160 L47 165 L52 167 L47 169 L45 174 L43 169 L38 167 L43 165 Z" fill="url(#successGradient)" filter="url(#glow)"/>
+    <path d="M170 120 L171 123 L174 124 L171 125 L170 128 L169 125 L166 124 L169 123 Z" fill="url(#alertGradient)" filter="url(#glow)"/>
+  </g>
 </svg>

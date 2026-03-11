@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { supabase } from '../utils/supabaseClient';
 import { useApp } from '../context/AppContext';
 
@@ -196,17 +196,22 @@ const Login: React.FC = () => {
                     {/* Header Section */}
                     <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
                         <div style={{
-                            width: '64px',
-                            height: '64px',
-                            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
-                            borderRadius: '16px',
+                            width: '120px',
+                            height: '120px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            margin: '0 auto 1.5rem',
-                            boxShadow: '0 10px 15px -3px var(--primary-glow)'
+                            margin: '0 auto 1.5rem'
                         }}>
-                            <Shield size={32} color="white" />
+                            <img 
+                                src="/idet-logo.svg" 
+                                alt="IDET Logo" 
+                                style={{ 
+                                    width: '100%', 
+                                    height: '100%', 
+                                    objectFit: 'contain'
+                                }} 
+                            />
                         </div>
                         <h1 style={{
                             fontSize: '2rem',
