@@ -293,6 +293,8 @@ body {
   flex-shrink: 0;
   z-index: 10;
   position: relative;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* Sidebar glow line */
@@ -337,6 +339,26 @@ body {
 
 .sidebar-nav {
   flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-bottom: 1rem;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.3);
+  border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.5);
 }
 
 .sidebar-nav ul {
@@ -734,6 +756,8 @@ textarea.input-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .user-mini-profile {
