@@ -53,7 +53,7 @@ const SetupProfile: React.FC = () => {
             }}></div>
 
             {/* Main Glass Container */}
-            <div style={{
+            <div className="setup-profile-container" style={{
                 width: '100%',
                 maxWidth: '1000px',
                 height: '85vh',
@@ -70,7 +70,7 @@ const SetupProfile: React.FC = () => {
             }}>
 
                 {/* Left Side - Form Area */}
-                <div style={{
+                <div className="setup-profile-left" style={{
                     padding: '3rem',
                     overflowY: 'auto',
                     borderRight: '1px solid rgba(255, 255, 255, 0.05)'
@@ -188,7 +188,7 @@ const SetupProfile: React.FC = () => {
                 </div>
 
                 {/* Right Side - Visual Context */}
-                <div style={{
+                <div className="setup-profile-right" style={{
                     position: 'relative',
                     display: 'flex',
                     flexDirection: 'column',

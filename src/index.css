@@ -312,6 +312,10 @@ body {
 
 .sidebar-header {
   margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .sidebar-header h2 {
@@ -1040,77 +1044,16 @@ html, body {
   max-width: 100vw;
 }
 
-* {
+img, video, svg, canvas {
   max-width: 100%;
 }
 
-/* Small Mobile Phones (up to 480px) */
-@media (max-width: 480px) {
+/* ─── Mobile Base (all phones up to 768px) ─── */
+@media (max-width: 768px) {
   .app-container {
     flex-direction: column;
     height: 100vh;
     height: 100dvh;
-    overflow: hidden;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    padding: 0.5rem 0.75rem;
-  }
-
-  .sidebar-header h2 {
-    font-size: 1.1rem;
-  }
-
-  .sidebar-nav ul {
-    display: flex;
-    overflow-x: auto;
-    gap: 0.4rem;
-    scrollbar-width: none;
-  }
-
-  .nav-item {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8rem;
-    white-space: nowrap;
-  }
-
-  .main-content {
-    padding: 0.75rem;
-  }
-
-  .page-title {
-    font-size: 1.5rem;
-  }
-
-  .grid-cols-4,
-  .grid-cols-3,
-  .grid-cols-2 {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .card {
-    padding: 1rem;
-  }
-
-  .btn-primary-full,
-  .btn-secondary {
-    font-size: 0.8rem;
-    padding: 0.6rem 0.9rem;
-  }
-}
-
-/* Mobile Phones (481px to 768px) */
-@media (min-width: 481px) and (max-width: 768px) {
-  .app-container {
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    background: var(--bg);
     overflow: hidden;
   }
 
@@ -1119,135 +1062,191 @@ html, body {
     display: none;
   }
 
+  /* ── Sidebar becomes a top nav bar ── */
   .sidebar {
     width: 100%;
     height: auto;
+    min-height: unset;
     border-right: none;
     border-bottom: 1px solid var(--border);
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 1rem;
     flex-shrink: 0;
+    overflow: visible;
   }
 
   .sidebar::after {
     display: none;
   }
 
+  /* Logo + title row */
   .sidebar-header {
     margin-bottom: 0.5rem;
     display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 0.75rem;
+  }
+
+  .sidebar-header img,
+  .sidebar-logo {
+    width: 32px !important;
+    height: 32px !important;
+    margin-bottom: 0 !important;
   }
 
   .sidebar-header h2 {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    margin: 0;
   }
 
   .sidebar-header p {
     display: none;
   }
 
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
+  /* Hide the "New Document" button in sidebar on mobile (FAB handles it) */
   .sidebar-nav .btn-primary-full {
     display: none;
   }
 
+  /* Nav tabs scroll horizontally */
+  .sidebar-nav {
+    margin-bottom: 0;
+  }
+
   .sidebar-nav ul {
     display: flex;
+    flex-direction: row;
     overflow-x: auto;
-    gap: 0.5rem;
-    padding-bottom: 0.25rem;
-    margin-top: 0;
+    gap: 0.4rem;
+    padding-bottom: 0.2rem;
+    margin-top: 0.4rem;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   .sidebar-nav ul::-webkit-scrollbar {
     display: none;
   }
 
+  .sidebar-nav ul li {
+    flex-shrink: 0;
+  }
+
   .nav-item {
     white-space: nowrap;
     margin-bottom: 0;
-    padding: 0.6rem 1rem;
-    font-size: 0.85rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
     border: 1px solid var(--border);
     background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
+    transform: none !important;
   }
 
   .nav-item::before {
     display: none;
   }
 
+  .nav-item:hover {
+    transform: none !important;
+  }
+
   .nav-item.active {
     border-color: var(--primary);
+    background: rgba(124, 58, 237, 0.15);
+    color: #c084fc;
   }
 
-  .main-content {
-    padding: 1rem;
-    height: 100%;
-    overflow-y: auto;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 1rem;
-  }
-
-  .page-header > div:last-child {
-    width: 100%;
-    justify-content: flex-start;
-    overflow-x: auto;
-  }
-
-  .page-title {
-    font-size: 1.75rem;
-  }
-
-  .grid-cols-4 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-
-  .grid-cols-3 {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-  }
-
-  .grid-cols-2 {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
+  /* Sidebar footer (user info) */
   .sidebar-footer {
     display: flex;
-    padding: 0.5rem 0;
+    padding: 0.4rem 0 0;
     border-top: 1px solid var(--border);
-    margin-top: 0.5rem;
+    margin-top: 0.4rem;
   }
 
   .sidebar-footer .user-info .email {
     display: none;
   }
 
+  /* ── Main content area ── */
+  .main-content {
+    flex: 1;
+    padding: 0.85rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+  }
+
+  /* ── Page header: stack title + buttons vertically ── */
+  .page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem;
+    margin-bottom: 1rem !important;
+  }
+
+  .page-title {
+    font-size: 1.6rem;
+  }
+
+  /* Action buttons row: wrap and fill width */
+  .page-header > div:last-child,
+  .page-header .stagger-children {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
+  }
+
+  .page-header .btn-secondary {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+    font-size: 0.78rem;
+    padding: 0.55rem 0.75rem;
+    white-space: nowrap;
+  }
+
+  .page-header .btn-primary-full {
+    width: 100% !important;
+    margin-bottom: 0 !important;
+    font-size: 0.85rem;
+    padding: 0.65rem 1rem;
+  }
+
+  /* ── Grids ── */
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem;
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  /* ── FAB ── */
   .fab-mobile {
     position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    width: 56px;
-    height: 56px;
+    bottom: 5.5rem;
+    right: 1.25rem;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--primary), #a855f7);
     color: white;
@@ -1260,22 +1259,51 @@ html, body {
     border: none;
     animation: pulseGlow 2s infinite;
   }
+}
 
-  .card {
-    padding: 1.25rem;
+/* ─── Small phones (up to 400px) ─── */
+@media (max-width: 400px) {
+  .sidebar {
+    padding: 0.5rem 0.75rem;
   }
 
-  .btn-secondary,
-  .btn-primary-full {
-    font-size: 0.85rem;
-    padding: 0.65rem 1rem;
+  .sidebar-header h2 {
+    font-size: 1rem;
+  }
+
+  .nav-item {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .main-content {
+    padding: 0.65rem;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+  }
+
+  .grid-cols-4,
+  .grid-cols-3 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem;
+  }
+
+  .card {
+    padding: 0.85rem;
   }
 }
 
-/* Tablets (769px to 1024px) */
+/* ─── Tablets (769px to 1024px) ─── */
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar {
     width: 220px;
+    padding: 1.5rem 1rem;
+  }
+
+  .sidebar-header h2 {
+    font-size: 1.6rem;
   }
 
   .main-content {
@@ -1300,7 +1328,7 @@ html, body {
   }
 }
 
-/* Large Tablets and Small Laptops (1025px to 1366px) */
+/* ─── Large Tablets / Small Laptops (1025px to 1366px) ─── */
 @media (min-width: 1025px) and (max-width: 1366px) {
   .sidebar {
     width: 260px;
@@ -1319,7 +1347,7 @@ html, body {
   }
 }
 
-/* Desktop and Large Screens (1367px+) */
+/* ─── Desktop / Large Screens (1367px+) ─── */
 @media (min-width: 1367px) {
   .sidebar {
     width: 280px;
@@ -1327,8 +1355,6 @@ html, body {
 
   .main-content {
     padding: 2rem;
-    max-width: 1800px;
-    margin: 0 auto;
   }
 
   .grid-cols-4 {
@@ -1340,15 +1366,168 @@ html, body {
   }
 }
 
-/* Ultra-wide screens (1920px+) */
+/* ─── Ultra-wide (1920px+) ─── */
 @media (min-width: 1920px) {
   .main-content {
     max-width: 2000px;
+    margin: 0 auto;
   }
 
   .grid-cols-4 {
     grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   PAGE-SPECIFIC MOBILE FIXES
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Calendar: smaller cells on mobile ─── */
+@media (max-width: 768px) {
+  .calendar-wrapper {
+    gap: 0.75rem !important;
+  }
+
+  .calendar-card {
+    padding: 0.6rem !important;
+    min-height: unset !important;
+  }
+
+  .calendar-day {
+    min-height: 52px !important;
+    padding: 0.35rem !important;
+    border-radius: 8px !important;
+    gap: 2px !important;
+  }
+
+  /* Modal fits screen on mobile */
+  .modal-overlay > .card,
+  .modal-overlay > div > .card {
+    margin: 1rem;
+    padding: 1.25rem !important;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+}
+
+/* ─── Alerts: header buttons wrap, items stack ─── */
+@media (max-width: 768px) {
+  .alerts-wrapper .page-header > div:last-child {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .alert-history-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  .alert-history-item > div:last-child {
+    align-items: flex-start !important;
+  }
+}
+
+/* ─── Notification toast: bottom on mobile ─── */
+@media (max-width: 768px) {
+  .notification-toast {
+    top: auto !important;
+    bottom: 1rem !important;
+    right: 1rem !important;
+    left: 1rem !important;
+    width: auto !important;
+  }
+
+  /* AddDocument 3-col grid → 1-col on mobile */
+  .add-doc-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* SetupProfile two-panel → single column */
+  .setup-profile-container {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: 100vh;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .setup-profile-right {
+    display: none !important;
+  }
+
+  .setup-profile-left {
+    padding: 1.5rem !important;
+    border-right: none !important;
+  }
+
+  /* Calendar nav bar full width */
+  .calendar-nav-bar {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* ─── Login card inner padding on small phones ─── */
+@media (max-width: 480px) {
+  .login-card-inner {
+    padding: 2rem 1.25rem !important;
+  }
+}
+
+/* ─── Landing page nav on small screens ─── */
+@media (max-width: 600px) {
+  .landing-trust-row {
+    gap: 1.5rem !important;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+
+/* ─── Dashboard action buttons ─── */
+.dashboard-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dashboard-add-btn {
+  width: auto !important;
+  margin-bottom: 0 !important;
+  padding: 0.75rem 1.5rem !important;
+}
+
+@media (max-width: 768px) {
+  .dashboard-actions {
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .dashboard-actions .btn-secondary {
+    flex: 1 1 calc(33% - 0.5rem);
+    min-width: 90px;
+    justify-content: center;
+    font-size: 0.78rem;
+    padding: 0.55rem 0.5rem;
+  }
+
+  .dashboard-add-btn {
+    width: 100% !important;
+    padding: 0.65rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .dashboard-actions .btn-secondary {
+    flex: 1 1 calc(50% - 0.25rem);
+    font-size: 0.72rem;
+    padding: 0.5rem 0.4rem;
   }
 }
 
@@ -1698,6 +1877,7 @@ input[type="search"]:focus {
   animation: gradientBorder 4s ease infinite;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   pointer-events: none;
 }

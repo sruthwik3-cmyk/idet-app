@@ -46,7 +46,7 @@ const Landing: React.FC = () => {
             }}></div>
 
             {/* Navigation Header */}
-            <nav className="slide-up" style={{
+            <nav className="landing-nav slide-up" style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -70,7 +70,7 @@ const Landing: React.FC = () => {
                     />
                     <span className="text-shine" style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>IDET</span>
                 </div>
-                <div className="stagger-children" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+                <div className="landing-nav-links stagger-children" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
                     <button
                         onClick={() => navigate('/login')}
                         className="btn-scale"
@@ -226,7 +226,7 @@ const Landing: React.FC = () => {
                     <p style={{ color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.2em', marginBottom: '3rem' }}>
                         Designed for Professional Organization
                     </p>
-                    <div style={{
+                    <div className="landing-trust-row" style={{
                         display: 'flex',
                         justifyContent: 'center',
                         gap: '4rem',

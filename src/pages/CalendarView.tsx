@@ -67,7 +67,7 @@ const CalendarView: React.FC = () => {
 
     return (
         <div className="animate-fade-in calendar-wrapper" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div className="page-header" style={{ marginBottom: 0, alignItems: 'flex-start' }}>
+            <div className="page-header" style={{ marginBottom: 0, alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Calendar View</h1>
                     <p style={{ color: 'var(--text-dim)', margin: 0, fontSize: '0.95rem' }}>
@@ -75,7 +75,7 @@ const CalendarView: React.FC = () => {
                     </p>
                 </div>
 
-                <div style={{
+                <div className="calendar-nav-bar" style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '1rem',
@@ -100,7 +100,7 @@ const CalendarView: React.FC = () => {
             <div className="card glass-panel calendar-card" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '600px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
                     {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
-                        <div key={day} style={{ textAlign: 'center', fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-dim)', letterSpacing: '0.1em', padding: '0.5rem 0' }}>
+                        <div key={day} className="calendar-day-header" style={{ textAlign: 'center', fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-dim)', letterSpacing: '0.1em', padding: '0.5rem 0' }}>
                             {day}
                         </div>
                     ))}

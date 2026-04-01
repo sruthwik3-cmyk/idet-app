@@ -370,7 +370,7 @@ const Dashboard: React.FC = () => {
                         </p>
                     )}
                 </div>
-                <div className="stagger-children" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div className="dashboard-actions stagger-children">
                     <button
                         className="btn-secondary btn-scale btn-ripple"
                         onClick={refreshAlerts}
@@ -399,7 +399,7 @@ const Dashboard: React.FC = () => {
                     >
                         <Download size={16} /> Export
                     </button>
-                    <button className="btn-primary-full btn-pulse btn-magnetic" style={{ width: 'auto', marginBottom: 0, padding: '0.75rem 1.5rem' }} onClick={() => navigate('/add-document')}>
+                    <button className="btn-primary-full btn-pulse btn-magnetic dashboard-add-btn" onClick={() => navigate('/add-document')}>
                         + Add Document
                     </button>
                 </div>
@@ -438,9 +438,9 @@ const Dashboard: React.FC = () => {
 
             <div className="grid-cols-2">
                 <div className="card gradient-border hover-lift" style={{ border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                         <h3 className="zoom-in" style={{ margin: 0, color: 'var(--text-primary)' }}>Your Documents</h3>
-                        <div style={{ position: 'relative' }}>
+                        <div style={{ position: 'relative', flex: '1 1 160px', maxWidth: '220px', minWidth: '140px' }}>
                             <input
                                 type="text"
                                 placeholder="Search documents..."
@@ -456,7 +456,7 @@ const Dashboard: React.FC = () => {
                                     color: 'white',
                                     fontSize: '0.875rem',
                                     outline: 'none',
-                                    width: '200px',
+                                    width: '100%',
                                     transition: 'all 0.2s'
                                 }}
                             />

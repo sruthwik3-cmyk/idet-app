@@ -19,7 +19,7 @@ const Alerts: React.FC = () => {
                         Track your document notifications and alert history
                     </p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                     <button
                         onClick={() => window.open('/test-alerts.html', '_blank')}
                         className="btn-secondary"

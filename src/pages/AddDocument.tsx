@@ -224,7 +224,7 @@ const AddDocument: React.FC = () => {
                         />
                     </div>
 
-                    <div className="grid-cols-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                    <div className="add-doc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                         <div className="input-group">
                             <label>Category</label>
                             <select
