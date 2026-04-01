@@ -58,7 +58,7 @@ const DocumentFiles: React.FC = () => {
             {/* Search and Filter */}
             <div className="card" style={{ marginBottom: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <div style={{ position: 'relative', flex: '1', minWidth: '250px' }}>
+                    <div style={{ position: 'relative', flex: '1', minWidth: '160px' }}>
                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                         <input
                             type="text"
@@ -117,7 +117,7 @@ const DocumentFiles: React.FC = () => {
 
             {/* Files Grid */}
             {filteredDocs.length > 0 ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))', gap: '1rem' }}>
                     {filteredDocs.map(doc => (
                         <div
                             key={doc.id}

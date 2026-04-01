@@ -495,142 +495,114 @@ const Dashboard: React.FC = () => {
                                 return (
                                     <div key={doc.id} className={`doc-item hover-lift ${isCritical ? 'high-alert glow-pulse' : ''}`} style={{
                                         display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '1rem',
+                                        flexDirection: 'column',
+                                        padding: '0.85rem',
                                         backgroundColor: 'rgba(255,255,255,0.03)',
-                                        borderRadius: 'var(--radius)',
+                                        borderRadius: '14px',
                                         border: isCritical ? '1px solid #f87171' : '1px solid rgba(255,255,255,0.05)',
-                                        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                                        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                                        gap: '0.6rem'
                                     }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
-                                            <div>
-                                                <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                                    {doc.name}
-                                                    {isCritical && (
-                                                        <span className="badge" style={{
-                                                            background: '#f87171',
-                                                            color: 'white',
-                                                            fontSize: '0.7rem',
-                                                            fontWeight: 'bold',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '4px',
-                                                            animation: 'none'
-                                                        }}>
-                                                            <Siren size={12} /> CRITICAL
-                                                        </span>
-                                                    )}
-                                                    {strictDaysLeft <= 7 && strictDaysLeft >= 0 && (
-                                                        <span className="recent-alert-badge">
-                                                            <AlertTriangle size={10} /> Expiring Soon
-                                                        </span>
-                                                    )}
-                                                    {doc.fileUrl && (
-                                                        <span className="badge" style={{
-                                                            background: 'rgba(52, 211, 153, 0.15)',
-                                                            color: '#34d399',
-                                                            fontSize: '0.7rem',
-                                                            fontWeight: 'bold',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            gap: '4px',
-                                                            border: '1px solid rgba(52, 211, 153, 0.3)'
-                                                        }}>
-                                                            <FileText size={10} /> File Attached
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                                                    <span style={{ color: strictDaysLeft <= 30 ? '#f87171' : '#34d399', fontWeight: strictDaysLeft <= 30 ? 'bold' : 'normal' }}>
-                                                        {strictDaysLeft < 0 ? `Expired ${Math.abs(strictDaysLeft)} days ago` : `Expires in ${strictDaysLeft} days`}
-                                                        <span style={{ opacity: 0.6, fontWeight: 'normal', marginLeft: '4px', color: 'var(--text-secondary)' }}>
-                                                            ({new Date(doc.expiryDate).toLocaleDateString('en-GB')})
-                                                        </span>
-                                                    </span>
-                                                    <span>•</span>
-                                                    {(() => {
-                                                        const getCategoryColor = (cat: string) => {
-                                                            const colors: Record<string, string> = {
-                                                                'Personal': '#60a5fa',
-                                                                'Financial': '#34d399',
-                                                                'Medical': '#f87171',
-                                                                'Legal': '#fbbf24',
-                                                                'Education': '#a78bfa',
-                                                                'Vehicle': '#fb923c',
-                                                            };
-                                                            return colors[cat] || '#e879f9';
-                                                        };
-                                                        const catColor = getCategoryColor(doc.category);
-                                                        return (
-                                                            <span style={{
-                                                                fontSize: '0.75rem',
-                                                                padding: '2px 8px',
-                                                                borderRadius: '4px',
-                                                                backgroundColor: `${catColor}33`,
-                                                                color: catColor,
-                                                                border: `1px solid ${catColor}66`
-                                                            }}>
-                                                                {doc.category}
-                                                            </span>
-                                                        );
-                                                    })()}
-                                                </div>
-                                            </div>
+                                        {/* Top row: name + badges */}
+                                        <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                            {doc.name}
+                                            {isCritical && (
+                                                <span className="badge" style={{
+                                                    background: '#f87171', color: 'white', fontSize: '0.65rem',
+                                                    fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px', animation: 'none'
+                                                }}>
+                                                    <Siren size={10} /> CRITICAL
+                                                </span>
+                                            )}
+                                            {strictDaysLeft <= 7 && strictDaysLeft >= 0 && (
+                                                <span className="recent-alert-badge">
+                                                    <AlertTriangle size={10} /> Expiring Soon
+                                                </span>
+                                            )}
+                                            {doc.fileUrl && (
+                                                <span className="badge" style={{
+                                                    background: 'rgba(52, 211, 153, 0.15)', color: '#34d399', fontSize: '0.65rem',
+                                                    fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '3px',
+                                                    border: '1px solid rgba(52, 211, 153, 0.3)'
+                                                }}>
+                                                    <FileText size={10} /> File
+                                                </span>
+                                            )}
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        {/* Middle row: expiry + category */}
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                            <span style={{ color: strictDaysLeft <= 30 ? '#f87171' : '#34d399', fontWeight: strictDaysLeft <= 30 ? 'bold' : 'normal' }}>
+                                                {strictDaysLeft < 0 ? `Expired ${Math.abs(strictDaysLeft)}d ago` : `${strictDaysLeft}d left`}
+                                                <span style={{ opacity: 0.6, fontWeight: 'normal', marginLeft: '3px', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                                                    ({new Date(doc.expiryDate).toLocaleDateString('en-GB')})
+                                                </span>
+                                            </span>
+                                            <span style={{ opacity: 0.4 }}>•</span>
+                                            {(() => {
+                                                const getCategoryColor = (cat: string) => {
+                                                    const colors: Record<string, string> = {
+                                                        'Personal': '#60a5fa', 'Financial': '#34d399', 'Medical': '#f87171',
+                                                        'Legal': '#fbbf24', 'Education': '#a78bfa', 'Vehicle': '#fb923c',
+                                                    };
+                                                    return colors[cat] || '#e879f9';
+                                                };
+                                                const catColor = getCategoryColor(doc.category);
+                                                return (
+                                                    <span style={{
+                                                        fontSize: '0.7rem', padding: '1px 6px', borderRadius: '4px',
+                                                        backgroundColor: `${catColor}33`, color: catColor, border: `1px solid ${catColor}66`
+                                                    }}>
+                                                        {doc.category}
+                                                    </span>
+                                                );
+                                            })()}
+                                        </div>
+
+                                        {/* Bottom row: alert badges + action buttons — always visible */}
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
                                                 {doc.alerts.emailSent30 && (
-                                                    <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
-                                                        30d Alert
+                                                    <span className="badge badge-success" style={{ fontSize: '0.65rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
+                                                        30d ✓
                                                     </span>
                                                 )}
                                                 {doc.alerts.emailSent7 && (
-                                                    <span className="badge badge-success" style={{ fontSize: '0.7rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
-                                                        7d Alert
+                                                    <span className="badge badge-success" style={{ fontSize: '0.65rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
+                                                        7d ✓
                                                     </span>
                                                 )}
                                             </div>
-
-                                            <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '0.5rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
                                                 {doc.fileUrl && (
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); window.open(doc.fileUrl, '_blank'); }}
-                                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--success)', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}
-                                                        className="action-btn"
-                                                        title="View/Download File"
+                                                        style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)', cursor: 'pointer', color: 'var(--success)', padding: '6px 8px', borderRadius: '6px' }}
+                                                        className="action-btn" title="View File"
                                                     >
-                                                        <ExternalLink size={16} />
+                                                        <ExternalLink size={14} />
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const url = generateCalendarUrl(doc.name, doc.expiryDate, doc.priority);
-                                                        window.open(url, '_blank');
-                                                    }}
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}
-                                                    className="action-btn"
-                                                    title="Add to Google Calendar"
+                                                    onClick={(e) => { e.stopPropagation(); const url = generateCalendarUrl(doc.name, doc.expiryDate, doc.priority); window.open(url, '_blank'); }}
+                                                    style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', cursor: 'pointer', color: 'var(--primary)', padding: '6px 8px', borderRadius: '6px' }}
+                                                    className="action-btn" title="Add to Calendar"
                                                 >
-                                                    <Calendar size={16} />
+                                                    <Calendar size={14} />
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleEdit(doc); }}
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}
-                                                    className="action-btn"
-                                                    title="Edit Document"
+                                                    style={{ background: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.2)', cursor: 'pointer', color: '#818cf8', padding: '6px 8px', borderRadius: '6px' }}
+                                                    className="action-btn" title="Edit"
                                                 >
-                                                    <Pencil size={16} />
+                                                    <Pencil size={14} />
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleDelete(doc.id, doc.name); }}
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', padding: '6px', borderRadius: '6px', transition: 'all 0.2s' }}
-                                                    className="action-btn"
-                                                    title="Delete Document"
+                                                    style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', cursor: 'pointer', color: '#f87171', padding: '6px 8px', borderRadius: '6px' }}
+                                                    className="action-btn" title="Delete"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <Trash2 size={14} />
                                                 </button>
                                             </div>
                                         </div>

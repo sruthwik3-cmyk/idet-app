@@ -63,13 +63,16 @@ const RenewalSuggestions: React.FC = () => {
     return (
         <div style={{
             position: 'fixed',
-            bottom: '20px',
-            right: '20px',
-            maxWidth: '400px',
-            zIndex: 1000,
+            bottom: '5.5rem',
+            right: '1rem',
+            width: 'min(380px, calc(100vw - 2rem))',
+            zIndex: 999,
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem'
+            gap: '0.75rem',
+            maxHeight: 'calc(100vh - 8rem)',
+            overflowY: 'auto',
+            overflowX: 'hidden'
         }}>
             {visibleItems.map((item) => (
                 <div
