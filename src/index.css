@@ -1258,8 +1258,7 @@ img, video, svg, canvas {
     cursor: pointer;
     border: none;
     animation: pulseGlow 2s infinite;
-  }
-}
+  }}
 
 /* ─── Small phones (up to 400px) ─── */
 @media (max-width: 400px) {
@@ -1391,14 +1390,10 @@ img, video, svg, canvas {
 
   .calendar-card {
     padding: 0.6rem !important;
-    min-height: unset !important;
   }
 
   .calendar-day {
-    min-height: 52px !important;
-    padding: 0.35rem !important;
     border-radius: 8px !important;
-    gap: 2px !important;
   }
 
   /* Modal fits screen on mobile */

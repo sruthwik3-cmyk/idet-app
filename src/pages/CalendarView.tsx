@@ -66,7 +66,7 @@ const CalendarView: React.FC = () => {
     };
 
     return (
-        <div className="animate-fade-in calendar-wrapper" style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div className="animate-fade-in calendar-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem' }}>
             <div className="page-header" style={{ marginBottom: 0, alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Calendar View</h1>
@@ -97,16 +97,18 @@ const CalendarView: React.FC = () => {
                 </div>
             </div>
 
-            <div className="card glass-panel calendar-card" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '600px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
+            <div className="card glass-panel calendar-card" style={{ padding: '1rem' }}>
+                {/* Day headers */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.35rem', marginBottom: '0.5rem' }}>
                     {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
-                        <div key={day} className="calendar-day-header" style={{ textAlign: 'center', fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-dim)', letterSpacing: '0.1em', padding: '0.5rem 0' }}>
+                        <div key={day} className="calendar-day-header" style={{ textAlign: 'center', fontWeight: 800, fontSize: '0.7rem', color: 'var(--text-dim)', letterSpacing: '0.08em', padding: '0.4rem 0' }}>
                             {day}
                         </div>
                     ))}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', flex: 1, gridAutoRows: '1fr' }}>
+                {/* Calendar days grid — auto height, never clips */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.35rem' }}>
                     {calendarDays.map((day, idx) => {
                         const docs = getDocumentsForDay(day);
                         const isCurrentMonth = isSameMonth(day, monthStart);
@@ -121,37 +123,38 @@ const CalendarView: React.FC = () => {
                                 style={{
                                     background: isCurrentMonth ? 'rgba(255,255,255,0.02)' : 'transparent',
                                     border: '1px solid rgba(255,255,255,0.05)',
-                                    borderRadius: '14px',
-                                    padding: '1rem',
-                                    minHeight: '110px',
+                                    borderRadius: '10px',
+                                    padding: '0.5rem 0.35rem',
+                                    minHeight: '70px',
                                     cursor: 'pointer',
                                     transition: 'all 0.3s var(--spring)',
                                     opacity: isCurrentMonth ? 1 : 0.3,
                                     position: 'relative',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    gap: '0.5rem'
+                                    gap: '0.25rem'
                                 }}
                             >
                                 <span style={{
-                                    fontSize: '1rem',
+                                    fontSize: '0.85rem',
                                     fontWeight: isToday ? 900 : 500,
                                     color: isToday ? 'var(--primary)' : 'white',
-                                    textAlign: 'right'
+                                    textAlign: 'right',
+                                    lineHeight: 1
                                 }}>
                                     {format(day, 'd')}
                                 </span>
 
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: 'auto' }}>
-                                    {docs.map(doc => (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', marginTop: 'auto' }}>
+                                    {docs.slice(0, 3).map(doc => (
                                         <div
                                             key={doc.id}
                                             style={{
-                                                width: '8px',
-                                                height: '8px',
+                                                width: '6px',
+                                                height: '6px',
                                                 borderRadius: '50%',
                                                 backgroundColor: getCategoryColor(doc.category),
-                                                boxShadow: `0 0 8px ${getCategoryColor(doc.category)}`
+                                                boxShadow: `0 0 6px ${getCategoryColor(doc.category)}`
                                             }}
                                             title={doc.name}
                                         />
@@ -160,10 +163,10 @@ const CalendarView: React.FC = () => {
 
                                 {docs.length > 0 && (
                                     <div style={{
-                                        fontSize: '0.65rem',
+                                        fontSize: '0.55rem',
                                         fontWeight: 800,
                                         color: 'var(--text-dim)',
-                                        marginTop: '2px'
+                                        lineHeight: 1
                                     }}>
                                         {docs.length} DOC{docs.length > 1 ? 'S' : ''}
                                     </div>

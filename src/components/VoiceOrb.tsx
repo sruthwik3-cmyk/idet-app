@@ -9,7 +9,7 @@ interface VoiceOrbProps {
 
 const VoiceOrb: React.FC<VoiceOrbProps> = ({ isListening, isSpeaking, toggleListening }) => {
     return (
-        <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}>
+        <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }} className="voice-orb-wrapper">
             <style>{`
                 @keyframes pulse-ring {
                     0% { transform: scale(0.8); opacity: 0.5; }
@@ -55,6 +55,13 @@ const VoiceOrb: React.FC<VoiceOrbProps> = ({ isListening, isSpeaking, toggleList
                 }
                 .orb-speaking {
                     animation: wave 1s infinite ease-in-out;
+                }
+                /* On mobile, move voice orb above the FAB button */
+                @media (max-width: 768px) {
+                    .voice-orb-wrapper {
+                        bottom: 1.5rem !important;
+                        right: 1.25rem !important;
+                    }
                 }
             `}</style>
 
