@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Clock, Calendar, ArrowRight, CheckCircle2, Siren } from 'lucide-react';
+import { Bell, Clock, Calendar, ArrowRight, CheckCircle2, Siren, Shield, Lock, Eye } from 'lucide-react';
 
 const Landing: React.FC = () => {
     const navigate = useNavigate();
@@ -83,8 +83,8 @@ const Landing: React.FC = () => {
                             cursor: 'pointer',
                             transition: 'color 0.2s'
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.color = 'white'}
-                        onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
+                        onMouseOver={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'white'}
+                        onMouseOut={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255, 255, 255, 0.7)'}
                     >
                         Login
                     </button>
@@ -103,13 +103,13 @@ const Landing: React.FC = () => {
                             transition: 'all 0.2s',
                             boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
                         }}
-                        onMouseOver={(e) => {
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.backgroundColor = '#059669';
+                        onMouseOver={(e: React.MouseEvent) => {
+                            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
+                            (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#059669';
                         }}
-                        onMouseOut={(e) => {
-                            e.currentTarget.style.transform = 'none';
-                            e.currentTarget.style.backgroundColor = '#10b981';
+                        onMouseOut={(e: React.MouseEvent) => {
+                            (e.currentTarget as HTMLButtonElement).style.transform = 'none';
+                            (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#10b981';
                         }}
                     >
                         Get Started
@@ -244,6 +244,70 @@ const Landing: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Security & Trust Section */}
+                <div style={{
+                    padding: '6rem 0 10rem',
+                    textAlign: 'center'
+                }}>
+                    <div className="slide-up" style={{
+                        maxWidth: '800px',
+                        margin: '0 auto',
+                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%)',
+                        padding: '4rem 2rem',
+                        borderRadius: '32px',
+                        border: '1px solid rgba(16, 185, 129, 0.1)',
+                        position: 'relative',
+                        overflow: 'hidden'
+                    }}>
+                        <div style={{
+                            position: 'absolute',
+                            top: '-20%',
+                            right: '-10%',
+                            width: '200px',
+                            height: '200px',
+                            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)',
+                            filter: 'blur(40px)',
+                            zIndex: 0
+                        }}></div>
+
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                            <div style={{ 
+                                display: 'inline-flex', 
+                                gap: '1rem', 
+                                marginBottom: '2rem' 
+                            }}>
+                                <div style={{ color: '#10b981' }}><Shield size={32} /></div>
+                                <div style={{ color: '#10b981' }}><Lock size={32} /></div>
+                                <div style={{ color: '#10b981' }}><Eye size={32} /></div>
+                            </div>
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
+                                Your Safety is Our <span style={{ color: '#10b981' }}>Core Mission.</span>
+                            </h2>
+                            <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2.5rem' }}>
+                                IDET implements <strong>Multi-Layered Security</strong>: Bank-grade HSTS headers, 
+                                automated rate-limiting to prevent abuse, and secure Google OAuth 2.0. 
+                                Your documents are never shared and remain under your absolute control.
+                            </p>
+                            <button
+                                onClick={() => navigate('/privacy')}
+                                className="btn-scale"
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    padding: '0.8rem 2rem',
+                                    borderRadius: '12px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                Read Our Security Policy
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </main>
 
             {/* Footer */}
@@ -254,6 +318,24 @@ const Landing: React.FC = () => {
                 color: 'rgba(255, 255, 255, 0.4)',
                 fontSize: '0.9rem'
             }}>
+                <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', gap: '2rem' }}>
+                    <button 
+                        onClick={() => navigate('/privacy')}
+                        style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', transition: 'color 0.2s' }}
+                        onMouseOver={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'white'}
+                        onMouseOut={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255, 255, 255, 0.4)'}
+                    >
+                        Privacy Policy
+                    </button>
+                    <button 
+                        onClick={() => navigate('/privacy')}
+                        style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', transition: 'color 0.2s' }}
+                        onMouseOver={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'white'}
+                        onMouseOut={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255, 255, 255, 0.4)'}
+                    >
+                        Terms of Service
+                    </button>
+                </div>
                 <p>© {new Date().getFullYear()} IDET Document Manager. All rights reserved.</p>
             </footer>
 
@@ -286,15 +368,15 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
         borderRadius: '24px',
         transition: 'all 0.3s'
     }}
-        onMouseOver={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-            e.currentTarget.style.transform = 'translateY(-5px)';
+        onMouseOver={(e: React.MouseEvent) => {
+            (e.currentTarget as HTMLDivElement).style.background = 'rgba(255, 255, 255, 0.04)';
+            (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-5px)';
         }}
-        onMouseOut={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
-            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
-            e.currentTarget.style.transform = 'none';
+        onMouseOut={(e: React.MouseEvent) => {
+            (e.currentTarget as HTMLDivElement).style.background = 'rgba(255, 255, 255, 0.02)';
+            (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255, 255, 255, 0.05)';
+            (e.currentTarget as HTMLDivElement).style.transform = 'none';
         }}
     >
         <div className="pulse-ring icon-bounce" style={{

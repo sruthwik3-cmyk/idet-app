@@ -14,6 +14,7 @@ import Alerts from './pages/Alerts';
 import UserSettings from './pages/UserSettings';
 import CalendarView from './pages/CalendarView';
 import DocumentFiles from './pages/DocumentFiles';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import NotFound from './pages/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -79,6 +80,7 @@ const AppRoutes = () => {
         <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
 
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

@@ -26,9 +26,9 @@ export const useVoiceAssistant = () => {
             setIsSpeaking(true);
             const utterance = new SpeechSynthesisUtterance(text);
             
-            // OPTIMIZATION: Faster speech rate for quicker responses
-            utterance.rate = 1.1; // Slightly faster than normal (1.0)
-            utterance.pitch = 1.0;
+            // JARVIS-LIKE VOICE SETTINGS
+            utterance.rate = 0.95; // Slightly slower for that sophisticated British accent
+            utterance.pitch = 0.9; // Slightly lower pitch for deeper, more authoritative voice
             utterance.volume = 1.0;
             
             utterance.onstart = () => {
@@ -45,17 +45,44 @@ export const useVoiceAssistant = () => {
                 setIsSpeaking(false);
             };
             
-            // Select a nice voice if available
+            // Select JARVIS-LIKE voice (British male voices preferred)
             const voices = window.speechSynthesis.getVoices();
-            const preferredVoice = voices.find(voice => 
-                voice.name.includes('Google') || 
-                voice.name.includes('Female') ||
-                voice.name.includes('Samantha') ||
-                voice.name.includes('Karen')
-            );
+            
+            // Priority order for Jarvis-like voices
+            const jarvisVoicePreferences = [
+                'Google UK English Male',
+                'Microsoft Daniel - English (United Kingdom)',
+                'Daniel',
+                'Google UK English',
+                'Alex',
+                'Microsoft David Desktop',
+                'Google US English Male',
+                'Microsoft Mark - English (United States)'
+            ];
+            
+            let preferredVoice = null;
+            
+            // Try to find exact match first
+            for (const prefName of jarvisVoicePreferences) {
+                preferredVoice = voices.find(voice => voice.name === prefName);
+                if (preferredVoice) break;
+            }
+            
+            // If no exact match, find any British or male voice
+            if (!preferredVoice) {
+                preferredVoice = voices.find(voice => 
+                    voice.lang.includes('en-GB') || 
+                    voice.name.toLowerCase().includes('male') ||
+                    voice.name.toLowerCase().includes('daniel') ||
+                    voice.name.toLowerCase().includes('alex')
+                );
+            }
+            
             if (preferredVoice) {
                 utterance.voice = preferredVoice;
-                console.log('[Jarvis] Using voice:', preferredVoice.name);
+                console.log('[Jarvis] Using Jarvis-like voice:', preferredVoice.name, preferredVoice.lang);
+            } else {
+                console.log('[Jarvis] No British voice found, using default');
             }
 
             // INSTANT START: Speak immediately

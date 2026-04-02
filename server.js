@@ -7,6 +7,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { google } from 'googleapis';
 import { existsSync } from 'fs';
 
@@ -24,8 +26,23 @@ console.log('[Startup] Port:', PORT);
 console.log('[Startup] Environment:', process.env.NODE_ENV || 'development');
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            "script-src": ["'self'", "'unsafe-inline'", "https://apis.google.com"],
+            "img-src": ["'self'", "data:", "https://*.google.com"]
+        }
+    }
+}));
+app.use(cors({
+    origin: process.env.NODE_ENV === 'production' 
+        ? [process.env.FRONTEND_URL || 'https://idet.vercel.app'] 
+        : true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+app.use(express.json({ limit: '10kb' })); // Limit body size to prevent payload attacks
 
 // Serve static files from the 'dist' directory
 const distPath = path.join(__dirname, 'dist');
@@ -119,8 +136,25 @@ const createRawMessage = (from, to, subject, body) => {
     return Buffer.from(message).toString('base64url');
 };
 
+// Rate limiting for sensitive API endpoints
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 50, // Limit each IP to 50 requests per window
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { success: false, error: 'Too many requests, please try again later.' }
+});
+
+const emailLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    limit: 10, // Limit to 10 emails per hour per IP to prevent spam abuse
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { success: false, error: 'Email limit reached. Please try again in an hour.' }
+});
+
 // API Endpoint for sending emails using Gmail API (REST)
-app.post('/api/send-email', async (req, res) => {
+app.post('/api/send-email', emailLimiter, async (req, res) => {
     const timestamp = new Date().toISOString();
     const { to, subject, html, text } = req.body;
 
@@ -164,7 +198,7 @@ app.post('/api/send-email', async (req, res) => {
 });
 
 // Diagnostic Route: Verifies token explicitly without sending mail
-app.get('/api/diagnose-gmail', async (req, res) => {
+app.get('/api/diagnose-gmail', apiLimiter, async (req, res) => {
     try {
         const { oauth2Client } = await getGmailClient();
         console.log('[Diagnostic] Attempting token refresh...');
