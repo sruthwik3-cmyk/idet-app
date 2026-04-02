@@ -51,11 +51,9 @@ const Landing: React.FC = () => {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '1.5rem 5%',
-                position: 'relative',
-                zIndex: 10,
-                backdropFilter: 'blur(10px)',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                top: 0
+                position: 'sticky',
+                top: 0,
+                zIndex: 100,
             }}>
                 <div className="zoom-in" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <img 
@@ -209,6 +207,20 @@ const Landing: React.FC = () => {
                         >
                             Get Started Free <ArrowRight size={20} />
                         </button>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: '#10b981',
+                            fontSize: '0.9rem',
+                            fontWeight: 600,
+                            padding: '0.5rem 1.25rem',
+                            background: 'rgba(16, 185, 129, 0.05)',
+                            borderRadius: '50px',
+                            border: '1px solid rgba(16, 185, 129, 0.1)'
+                        }}>
+                            <Shield size={16} /> Bank-Grade Security Enabled
+                        </div>
                     </div>
                 </div>
 
@@ -355,6 +367,14 @@ const Landing: React.FC = () => {
                     >
                         Terms of Service
                     </button>
+                    <a 
+                        href="mailto:sriperambudururuthwik@gmail.com"
+                        style={{ textDecoration: 'none', color: 'inherit', transition: 'color 0.2s' }}
+                        onMouseOver={(e: React.MouseEvent) => (e.currentTarget as HTMLAnchorElement).style.color = 'white'}
+                        onMouseOut={(e: React.MouseEvent) => (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255, 255, 255, 0.4)'}
+                    >
+                        Contact Support
+                    </a>
                 </div>
                 <p>© {new Date().getFullYear()} IDET Document Manager. All rights reserved.</p>
             </footer>
