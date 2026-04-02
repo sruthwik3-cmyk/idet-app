@@ -31,14 +31,27 @@ app.use(helmet({
         directives: {
             ...helmet.contentSecurityPolicy.getDefaultDirectives(),
             "script-src": ["'self'", "'unsafe-inline'", "https://apis.google.com"],
+            "connect-src": ["'self'", "https://egnajcexpflszsgjarzt.supabase.co"],
             "img-src": ["'self'", "data:", "https://*.google.com"]
         }
     }
 }));
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-        ? [process.env.FRONTEND_URL || 'https://idet.vercel.app'] 
-        : true,
+    origin: (origin, callback) => {
+        // Allow no origin (e.g. mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [
+            'https://idet.vercel.app',
+            'https://idet-app-1.onrender.com'
+        ];
+        
+        if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.onrender.com')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
