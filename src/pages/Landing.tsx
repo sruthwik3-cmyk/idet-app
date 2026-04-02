@@ -72,6 +72,26 @@ const Landing: React.FC = () => {
                 </div>
                 <div className="landing-nav-links stagger-children" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
                     <button
+                        onClick={() => {
+                            const element = document.getElementById('security-section');
+                            element?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="btn-scale"
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            fontSize: '0.95rem',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            transition: 'color 0.2s'
+                        }}
+                        onMouseOver={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = '#10b981'}
+                        onMouseOut={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255, 255, 255, 0.7)'}
+                    >
+                        Security
+                    </button>
+                    <button
                         onClick={() => navigate('/login')}
                         className="btn-scale"
                         style={{
@@ -246,7 +266,7 @@ const Landing: React.FC = () => {
                 </div>
 
                 {/* Security & Trust Section */}
-                <div style={{
+                <div id="security-section" style={{
                     padding: '6rem 0 10rem',
                     textAlign: 'center'
                 }}>
