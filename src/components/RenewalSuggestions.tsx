@@ -65,160 +65,123 @@ const RenewalSuggestions: React.FC = () => {
             position: 'fixed',
             bottom: '5.5rem',
             right: '1rem',
-            width: 'min(380px, calc(100vw - 2rem))',
+            width: 'min(340px, calc(100vw - 2rem))',
             zIndex: 999,
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.75rem',
-            maxHeight: 'calc(100vh - 8rem)',
+            gap: '0.5rem',
+            maxHeight: '50vh',
             overflowY: 'auto',
-            overflowX: 'hidden'
+            overflowX: 'hidden',
+            scrollbarWidth: 'none'
         }}>
-            {visibleItems.map((item) => (
+            {visibleItems.slice(0, 2).map((item) => (
                 <div
                     key={item.document.id}
                     className="card animate-fade-in"
                     style={{
-                        background: item.urgency === 'critical' 
+                        background: item.urgency === 'critical'
                             ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%)'
                             : 'linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%)',
-                        border: item.urgency === 'critical' 
+                        border: item.urgency === 'critical'
                             ? '1px solid rgba(239, 68, 68, 0.5)'
                             : '1px solid rgba(251, 191, 36, 0.5)',
                         boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                        animation: item.urgency === 'critical' ? 'pulse 2s infinite' : 'none'
+                        padding: '0.75rem',
+                        borderRadius: '12px'
                     }}
                 >
-                    {/* Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <AlertTriangle 
-                                size={24} 
-                                color={item.urgency === 'critical' ? '#ef4444' : '#f59e0b'} 
-                            />
+                    {/* Header — compact */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <AlertTriangle size={16} color={item.urgency === 'critical' ? '#ef4444' : '#f59e0b'} />
                             <div>
-                                <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>
-                                    Renewal Reminder
-                                </h3>
-                                <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                                    Jarvis Smart Assistant
-                                </p>
+                                <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>Renewal Reminder</p>
+                                <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Jarvis Smart Assistant</p>
                             </div>
                         </div>
                         <button
                             onClick={() => handleDismiss(item.document.id)}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                color: 'var(--text-secondary)',
-                                padding: '4px'
-                            }}
-                            title="Dismiss"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '2px', lineHeight: 1 }}
                         >
-                            <X size={18} />
+                            <X size={16} />
                         </button>
                     </div>
 
-                    {/* Document Info */}
-                    <div style={{ marginBottom: '1rem' }}>
-                        <p style={{ margin: '0 0 0.5rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                            {item.document.name}
-                        </p>
-                        <p style={{ margin: 0, fontSize: '0.875rem', color: item.urgency === 'critical' ? '#ef4444' : '#f59e0b' }}>
-                            {item.urgency === 'critical' ? '🚨 ' : '⏰ '}
-                            Expires in {item.daysLeft} day{item.daysLeft !== 1 ? 's' : ''}
-                        </p>
+                    {/* Doc name + expiry — one line each */}
+                    <p style={{ margin: '0 0 0.2rem', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.document.name}
+                    </p>
+                    <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', color: item.urgency === 'critical' ? '#ef4444' : '#f59e0b' }}>
+                        {item.urgency === 'critical' ? '🚨 ' : '⏰ '}
+                        Expires in {item.daysLeft} day{item.daysLeft !== 1 ? 's' : ''}
+                    </p>
+
+                    {/* Action buttons row */}
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <button
+                            onClick={() => handleSpeak(item.speech, item.document.id)}
+                            disabled={speaking === item.document.id}
+                            style={{
+                                flex: 1,
+                                padding: '0.45rem 0.5rem',
+                                background: 'rgba(129, 140, 248, 0.2)',
+                                color: '#818cf8',
+                                border: '1px solid rgba(129, 140, 248, 0.3)',
+                                borderRadius: '6px',
+                                cursor: speaking === item.document.id ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.3rem',
+                                fontSize: '0.75rem',
+                                fontWeight: 500
+                            }}
+                        >
+                            <Volume2 size={13} />
+                            {speaking === item.document.id ? 'Speaking...' : 'Hear Jarvis'}
+                        </button>
+
+                        {item.renewalLinks.length > 0 && (
+                            <button
+                                onClick={() => handleOpenLink(item.renewalLinks[0])}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.45rem 0.5rem',
+                                    background: 'rgba(52, 211, 153, 0.2)',
+                                    color: '#34d399',
+                                    border: '1px solid rgba(52, 211, 153, 0.3)',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.3rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 500
+                                }}
+                            >
+                                <ExternalLink size={13} />
+                                Renew
+                            </button>
+                        )}
                     </div>
-
-                    {/* Jarvis Speech */}
-                    <div style={{
-                        padding: '0.75rem',
-                        background: 'rgba(0,0,0,0.2)',
-                        borderRadius: '8px',
-                        marginBottom: '1rem',
-                        fontSize: '0.875rem',
-                        color: 'var(--text-secondary)',
-                        fontStyle: 'italic'
-                    }}>
-                        "{item.speech}"
-                    </div>
-
-                    {/* Speak Button */}
-                    <button
-                        onClick={() => handleSpeak(item.speech, item.document.id)}
-                        disabled={speaking === item.document.id}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            background: speaking === item.document.id 
-                                ? 'rgba(129, 140, 248, 0.3)' 
-                                : 'rgba(129, 140, 248, 0.2)',
-                            color: '#818cf8',
-                            border: '1px solid rgba(129, 140, 248, 0.3)',
-                            borderRadius: '6px',
-                            cursor: speaking === item.document.id ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            fontSize: '0.875rem',
-                            fontWeight: '500',
-                            marginBottom: '0.75rem',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <Volume2 size={16} />
-                        {speaking === item.document.id ? 'Speaking...' : 'Hear Jarvis'}
-                    </button>
-
-                    {/* Renewal Links */}
-                    {item.renewalLinks.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            <p style={{ margin: '0 0 0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                                RENEWAL OPTIONS:
-                            </p>
-                            {item.renewalLinks.slice(0, 2).map((link: RenewalLink, index: number) => (
-                                <button
-                                    key={index}
-                                    onClick={() => handleOpenLink(link)}
-                                    style={{
-                                        padding: '0.75rem',
-                                        background: 'rgba(52, 211, 153, 0.2)',
-                                        color: '#34d399',
-                                        border: '1px solid rgba(52, 211, 153, 0.3)',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        fontSize: '0.875rem',
-                                        fontWeight: '500',
-                                        transition: 'all 0.2s',
-                                        textAlign: 'left'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = 'rgba(52, 211, 153, 0.3)';
-                                        e.currentTarget.style.transform = 'scale(1.02)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = 'rgba(52, 211, 153, 0.2)';
-                                        e.currentTarget.style.transform = 'scale(1)';
-                                    }}
-                                >
-                                    <div>
-                                        <div>{link.name}</div>
-                                        <div style={{ fontSize: '0.7rem', opacity: 0.7, marginTop: '0.25rem' }}>
-                                            {link.description}
-                                        </div>
-                                    </div>
-                                    <ExternalLink size={16} />
-                                </button>
-                            ))}
-                        </div>
-                    )}
                 </div>
             ))}
+
+            {/* Show count if more than 2 */}
+            {visibleItems.length > 2 && (
+                <div style={{
+                    textAlign: 'center',
+                    fontSize: '0.72rem',
+                    color: 'var(--text-secondary)',
+                    padding: '0.25rem',
+                    background: 'rgba(255,255,255,0.05)',
+                    borderRadius: '6px'
+                }}>
+                    +{visibleItems.length - 2} more reminder{visibleItems.length - 2 > 1 ? 's' : ''}
+                </div>
+            )}
 
             <style>{`
                 @keyframes pulse {
