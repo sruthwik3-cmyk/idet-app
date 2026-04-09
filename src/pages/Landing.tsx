@@ -50,84 +50,45 @@ const Landing: React.FC = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '1.5rem 5%',
+                padding: '1rem 4%',
                 position: 'sticky',
                 top: 0,
                 zIndex: 100,
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                background: 'rgba(9,9,11,0.85)',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
             }}>
-                <div className="zoom-in" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <img 
-                        src="/idet-logo.svg" 
-                        alt="IDET Logo" 
-                        className="pulse-ring"
-                        style={{ 
-                            width: '48px', 
-                            height: '48px', 
-                            objectFit: 'contain'
-                        }} 
+                {/* Logo + name */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexShrink: 0 }}>
+                    <img
+                        src="/idet-logo.svg"
+                        alt="IDET Logo"
+                        style={{ width: '36px', height: '36px', objectFit: 'contain', flexShrink: 0 }}
                     />
-                    <span className="text-shine" style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em' }}>IDET</span>
+                    <span className="text-shine" style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.025em', whiteSpace: 'nowrap' }}>IDET</span>
                 </div>
-                <div className="landing-nav-links stagger-children" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-                    <button
-                        onClick={() => {
-                            const element = document.getElementById('security-section');
-                            element?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="btn-scale"
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            fontSize: '0.95rem',
-                            fontWeight: 500,
-                            cursor: 'pointer',
-                            transition: 'color 0.2s'
-                        }}
-                        onMouseOver={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = '#10b981'}
-                        onMouseOut={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255, 255, 255, 0.7)'}
-                    >
-                        Security
-                    </button>
+
+                {/* Nav buttons */}
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexShrink: 0 }}>
                     <button
                         onClick={() => navigate('/login')}
-                        className="btn-scale"
                         style={{
-                            background: 'none',
-                            border: 'none',
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            fontSize: '0.95rem',
-                            fontWeight: 500,
-                            cursor: 'pointer',
-                            transition: 'color 0.2s'
+                            background: 'none', border: 'none',
+                            color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem',
+                            fontWeight: 500, cursor: 'pointer', padding: '0.4rem 0.6rem',
+                            whiteSpace: 'nowrap'
                         }}
-                        onMouseOver={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'white'}
-                        onMouseOut={(e: React.MouseEvent) => (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255, 255, 255, 0.7)'}
                     >
                         Login
                     </button>
                     <button
                         onClick={() => navigate('/login')}
-                        className="btn-scale btn-ripple glow-pulse"
                         style={{
-                            background: '#10b981',
-                            color: 'white',
-                            border: 'none',
-                            padding: '0.6rem 1.25rem',
-                            borderRadius: '8px',
-                            fontWeight: 600,
-                            fontSize: '0.95rem',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
-                        }}
-                        onMouseOver={(e: React.MouseEvent) => {
-                            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
-                            (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#059669';
-                        }}
-                        onMouseOut={(e: React.MouseEvent) => {
-                            (e.currentTarget as HTMLButtonElement).style.transform = 'none';
-                            (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#10b981';
+                            background: '#10b981', color: 'white', border: 'none',
+                            padding: '0.55rem 1rem', borderRadius: '8px',
+                            fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
+                            whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(16,185,129,0.25)'
                         }}
                     >
                         Get Started
@@ -185,7 +146,7 @@ const Landing: React.FC = () => {
                         perfectly synchronized sound notifications, and seamless calendar integration.
                     </p>
 
-                    <div className="stagger-children" style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <div className="stagger-children" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', padding: '0 1rem' }}>
                         <button
                             onClick={() => navigate('/login')}
                             className="btn-pulse btn-scale btn-magnetic btn-ripple"
@@ -200,9 +161,12 @@ const Landing: React.FC = () => {
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
+                                justifyContent: 'center',
                                 gap: '0.75rem',
                                 transition: 'all 0.3s',
-                                boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)'
+                                boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)',
+                                width: '100%',
+                                maxWidth: '320px'
                             }}
                         >
                             Get Started Free <ArrowRight size={20} />
@@ -212,14 +176,15 @@ const Landing: React.FC = () => {
                             alignItems: 'center',
                             gap: '0.5rem',
                             color: '#10b981',
-                            fontSize: '0.9rem',
+                            fontSize: '0.85rem',
                             fontWeight: 600,
                             padding: '0.5rem 1.25rem',
                             background: 'rgba(16, 185, 129, 0.05)',
                             borderRadius: '50px',
-                            border: '1px solid rgba(16, 185, 129, 0.1)'
+                            border: '1px solid rgba(16, 185, 129, 0.1)',
+                            whiteSpace: 'nowrap'
                         }}>
-                            <Shield size={16} /> Bank-Grade Security Enabled
+                            <Shield size={14} /> Bank-Grade Security
                         </div>
                     </div>
                 </div>
@@ -278,64 +243,39 @@ const Landing: React.FC = () => {
                 </div>
 
                 {/* Security & Trust Section */}
-                <div id="security-section" style={{
-                    padding: '6rem 0 10rem',
-                    textAlign: 'center'
-                }}>
+                <div id="security-section" style={{ padding: '4rem 0 8rem', textAlign: 'center' }}>
                     <div className="slide-up" style={{
                         maxWidth: '800px',
                         margin: '0 auto',
                         background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%)',
-                        padding: '4rem 2rem',
-                        borderRadius: '32px',
+                        padding: 'clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 2rem)',
+                        borderRadius: '24px',
                         border: '1px solid rgba(16, 185, 129, 0.1)',
                         position: 'relative',
                         overflow: 'hidden'
                     }}>
-                        <div style={{
-                            position: 'absolute',
-                            top: '-20%',
-                            right: '-10%',
-                            width: '200px',
-                            height: '200px',
-                            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)',
-                            filter: 'blur(40px)',
-                            zIndex: 0
-                        }}></div>
-
                         <div style={{ position: 'relative', zIndex: 1 }}>
-                            <div style={{ 
-                                display: 'inline-flex', 
-                                gap: '1rem', 
-                                marginBottom: '2rem' 
-                            }}>
-                                <div style={{ color: '#10b981' }}><Shield size={32} /></div>
-                                <div style={{ color: '#10b981' }}><Lock size={32} /></div>
-                                <div style={{ color: '#10b981' }}><Eye size={32} /></div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                                <Shield size={28} color="#10b981" />
+                                <Lock size={28} color="#10b981" />
+                                <Eye size={28} color="#10b981" />
                             </div>
-                            <h2 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
+                            <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-0.02em' }}>
                                 Your Safety is Our <span style={{ color: '#10b981' }}>Core Mission.</span>
                             </h2>
-                            <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '1.1rem', lineHeight: 1.6, marginBottom: '2.5rem' }}>
-                                IDET implements <strong>Multi-Layered Security</strong>: Bank-grade HSTS headers, 
-                                automated rate-limiting to prevent abuse, and secure Google OAuth 2.0. 
-                                Your documents are never shared and remain under your absolute control.
+                            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 'clamp(0.9rem, 2.5vw, 1.1rem)', lineHeight: 1.6, marginBottom: '2rem', maxWidth: '600px', margin: '0 auto 2rem' }}>
+                                IDET uses bank-grade HTTPS encryption, Row Level Security so only you see your data, Google OAuth 2.0 login, and automated rate-limiting. Your documents are never shared.
                             </p>
                             <button
                                 onClick={() => navigate('/privacy')}
-                                className="btn-scale"
                                 style={{
-                                    background: 'rgba(255, 255, 255, 0.05)',
-                                    color: 'white',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    padding: '0.8rem 2rem',
-                                    borderRadius: '12px',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
+                                    background: 'rgba(255,255,255,0.05)', color: 'white',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    padding: '0.75rem 1.75rem', borderRadius: '10px',
+                                    fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem'
                                 }}
                             >
-                                Read Our Security Policy
+                                Read Our Privacy Policy →
                             </button>
                         </div>
                     </div>
