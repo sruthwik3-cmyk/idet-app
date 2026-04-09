@@ -99,8 +99,8 @@ const Landing: React.FC = () => {
             {/* Hero Section */}
             <main style={{ position: 'relative', zIndex: 1, padding: '0 5%' }}>
                 <div style={{
-                    paddingTop: '6rem',
-                    paddingBottom: '8rem',
+                    paddingTop: '3rem',
+                    paddingBottom: '3rem',
                     textAlign: 'center',
                     maxWidth: '900px',
                     margin: '0 auto'
@@ -109,24 +109,24 @@ const Landing: React.FC = () => {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '0.5rem',
-                        padding: '0.5rem 1rem',
+                        padding: '0.4rem 0.9rem',
                         background: 'rgba(99, 102, 241, 0.1)',
                         border: '1px solid rgba(99, 102, 241, 0.2)',
                         borderRadius: '50px',
                         color: '#818cf8',
-                        fontSize: '0.85rem',
+                        fontSize: '0.8rem',
                         fontWeight: 600,
-                        marginBottom: '2rem'
+                        marginBottom: '1.25rem'
                     }}>
                         <Siren size={14} /> New: Synchronized Audio & Gmail Alerts
                     </div>
 
                     <h1 className="slide-up text-shine" style={{
-                        fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
+                        fontSize: 'clamp(2rem, 7vw, 4rem)',
                         fontWeight: 850,
                         lineHeight: 1.1,
                         letterSpacing: '-0.04em',
-                        marginBottom: '1.5rem',
+                        marginBottom: '1rem',
                         background: 'linear-gradient(to bottom right, #fff 50%, rgba(255, 255, 255, 0.6))',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent'
@@ -136,11 +136,11 @@ const Landing: React.FC = () => {
                     </h1>
 
                     <p className="zoom-in" style={{
-                        fontSize: 'clamp(1.1rem, 3vw, 1.25rem)',
+                        fontSize: 'clamp(0.95rem, 2.5vw, 1.15rem)',
                         color: 'rgba(255, 255, 255, 0.6)',
                         lineHeight: 1.6,
-                        maxWidth: '650px',
-                        margin: '0 auto 3rem'
+                        maxWidth: '600px',
+                        margin: '0 auto 1.75rem'
                     }}>
                         Professional document tracking with automated Gmail alerts,
                         perfectly synchronized sound notifications, and seamless calendar integration.
@@ -192,9 +192,9 @@ const Landing: React.FC = () => {
                 {/* Features Grid */}
                 <div className="stagger-children" style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                    gap: '2rem',
-                    paddingBottom: '8rem',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))',
+                    gap: '1.25rem',
+                    paddingBottom: '3rem',
                     maxWidth: '1200px',
                     margin: '0 auto'
                 }}>
@@ -216,11 +216,8 @@ const Landing: React.FC = () => {
                 </div>
 
                 {/* Trust Section */}
-                <div style={{
-                    textAlign: 'center',
-                    paddingBottom: '8rem'
-                }}>
-                    <p style={{ color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.2em', marginBottom: '3rem' }}>
+                <div style={{ textAlign: 'center', paddingBottom: '3rem' }}>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>
                         Designed for Professional Organization
                     </p>
                     <div className="landing-trust-row" style={{
@@ -243,7 +240,7 @@ const Landing: React.FC = () => {
                 </div>
 
                 {/* Security & Trust Section */}
-                <div id="security-section" style={{ padding: '4rem 0 8rem', textAlign: 'center' }}>
+                <div id="security-section" style={{ padding: '2rem 0 3rem', textAlign: 'center' }}>
                     <div className="slide-up" style={{
                         maxWidth: '800px',
                         margin: '0 auto',
@@ -284,7 +281,7 @@ const Landing: React.FC = () => {
 
             {/* Footer */}
             <footer style={{
-                padding: '4rem 5%',
+                padding: '2rem 5%',
                 borderTop: '1px solid rgba(255, 255, 255, 0.05)',
                 textAlign: 'center',
                 color: 'rgba(255, 255, 255, 0.4)',
