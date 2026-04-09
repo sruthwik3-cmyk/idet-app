@@ -25,6 +25,16 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
     const navigate = useNavigate();
     const { isListening, isSpeaking, toggleListening } = useVoiceAssistant();
 
+    // Lock body scroll when inside app layout — prevents double scrollbar
+    React.useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+        };
+    }, []);
+
     // Global listener to unlock audio context on first interaction
     React.useEffect(() => {
         const unlock = () => {
