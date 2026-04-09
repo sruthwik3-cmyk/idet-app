@@ -229,8 +229,14 @@ body {
 }
 
 #root {
-  height: 100vh;
   width: 100%;
+  /* Height only constrained when inside app layout */
+}
+
+/* When app-container is present, constrain to viewport */
+#root:has(.app-container) {
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -911,9 +917,12 @@ textarea.input-field {
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
+  overflow-x: hidden;
   min-width: 0;
   position: relative;
   z-index: 1;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.3) transparent;
 }
 
 .main-content > * {
@@ -1042,6 +1051,20 @@ html, body {
   overflow-x: hidden;
   width: 100%;
   max-width: 100vw;
+  /* Only one scrollbar — body scrolls for public pages (Landing, Privacy) */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.4) transparent;
+}
+
+/* App container (authenticated pages) — body scroll disabled, main-content scrolls */
+.app-container {
+  overflow: hidden;
+}
+
+/* Hide body scrollbar when inside app */
+body:has(.app-container) {
+  overflow: hidden;
 }
 
 img, video, svg, canvas {
