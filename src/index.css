@@ -1495,6 +1495,40 @@ img, video, svg, canvas {
   width: auto !important;
   margin-bottom: 0 !important;
   padding: 0.75rem 1.5rem !important;
+  animation: gradientFlow 4s ease infinite, pulseGlow 2.5s ease-in-out infinite !important;
+}
+
+.dashboard-add-btn:hover {
+  transform: translateY(-4px) scale(1.05) !important;
+  box-shadow: 0 0 40px rgba(124, 58, 237, 0.6), 0 15px 35px rgba(0,0,0,0.4) !important;
+  filter: brightness(1.2) !important;
+}
+
+/* Enhanced btn-secondary hover glow */
+.btn-secondary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-secondary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(168,85,247,0.1));
+  transition: opacity 0.3s ease;
+}
+
+.btn-secondary:hover::after {
+  opacity: 1;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(124, 58, 237, 0.5) !important;
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.25), 0 4px 15px rgba(0,0,0,0.3) !important;
+  color: #c084fc !important;
+  transform: translateY(-3px) !important;
 }
 
 @media (max-width: 768px) {
@@ -1581,16 +1615,18 @@ img, video, svg, canvas {
    ═══════════════════════════════════════════════════ */
 
 .action-btn {
-  transition: all 0.2s var(--spring);
+  transition: all 0.25s var(--spring) !important;
 }
 
 .action-btn:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.12) !important;
+  transform: scale(1.2) !important;
+  box-shadow: 0 0 12px currentColor !important;
+  filter: brightness(1.3) !important;
 }
 
 .action-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.9) !important;
 }
 
 /* ═══════════════════════════════════════════════════

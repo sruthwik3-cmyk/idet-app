@@ -72,6 +72,21 @@ const Landing: React.FC = () => {
                 {/* Nav buttons */}
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexShrink: 0 }}>
                     <button
+                        onClick={() => {
+                            document.getElementById('security-section')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        style={{
+                            background: 'none', border: 'none',
+                            color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem',
+                            fontWeight: 500, cursor: 'pointer', padding: '0.4rem 0.6rem',
+                            whiteSpace: 'nowrap', transition: 'color 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.color = '#10b981'}
+                        onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                    >
+                        Security
+                    </button>
+                    <button
                         onClick={() => navigate('/login')}
                         style={{
                             background: 'none', border: 'none',
@@ -88,7 +103,18 @@ const Landing: React.FC = () => {
                             background: '#10b981', color: 'white', border: 'none',
                             padding: '0.55rem 1rem', borderRadius: '8px',
                             fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer',
-                            whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(16,185,129,0.25)'
+                            whiteSpace: 'nowrap', boxShadow: '0 4px 12px rgba(16,185,129,0.25)',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.background = '#059669';
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.4)';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.background = '#10b981';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(16,185,129,0.25)';
+                            e.currentTarget.style.transform = 'none';
                         }}
                     >
                         Get Started
@@ -266,13 +292,32 @@ const Landing: React.FC = () => {
                             <button
                                 onClick={() => navigate('/privacy')}
                                 style={{
-                                    background: 'rgba(255,255,255,0.05)', color: 'white',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    padding: '0.75rem 1.75rem', borderRadius: '10px',
-                                    fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem'
+                                    background: 'linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%)',
+                                    color: '#10b981',
+                                    border: '1px solid rgba(16,185,129,0.4)',
+                                    padding: '0.85rem 2rem',
+                                    borderRadius: '12px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    fontSize: '0.95rem',
+                                    boxShadow: '0 0 20px rgba(16,185,129,0.2), 0 4px 15px rgba(0,0,0,0.3)',
+                                    transition: 'all 0.3s ease',
+                                    letterSpacing: '0.01em'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16,185,129,0.3) 0%, rgba(16,185,129,0.1) 100%)';
+                                    e.currentTarget.style.boxShadow = '0 0 35px rgba(16,185,129,0.4), 0 8px 25px rgba(0,0,0,0.4)';
+                                    e.currentTarget.style.transform = 'translateY(-3px) scale(1.03)';
+                                    e.currentTarget.style.borderColor = 'rgba(16,185,129,0.7)';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%)';
+                                    e.currentTarget.style.boxShadow = '0 0 20px rgba(16,185,129,0.2), 0 4px 15px rgba(0,0,0,0.3)';
+                                    e.currentTarget.style.transform = 'none';
+                                    e.currentTarget.style.borderColor = 'rgba(16,185,129,0.4)';
                                 }}
                             >
-                                Read Our Privacy Policy →
+                                🔒 Read Our Privacy Policy →
                             </button>
                         </div>
                     </div>
