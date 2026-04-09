@@ -27,11 +27,13 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
 
     // Lock body scroll when inside app layout — prevents double scrollbar
     React.useEffect(() => {
+        // Hide the body scrollbar — only .main-content scrolls
         document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
+        document.body.style.height = '100vh';
         return () => {
+            // Restore when leaving app (going to public pages)
             document.body.style.overflow = '';
-            document.documentElement.style.overflow = '';
+            document.body.style.height = '';
         };
     }, []);
 
