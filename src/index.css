@@ -1041,15 +1041,38 @@ textarea.input-field {
    ═══════════════════════════════════════════════════ */
 
 /* Prevent horizontal scroll on all devices */
-html, body {
-  overflow-x: hidden;
+html {
+  overflow: hidden;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  height: 100%;
   width: 100%;
-  max-width: 100vw;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* App container — internal scroll only via .main-content */
 .app-container {
   overflow: hidden;
+}
+
+/* Public pages (Landing, Privacy) — scroll inside their own wrapper */
+.public-page {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Also handle pages that don't use .public-page wrapper — target by route */
+.animate-fade-in.page-transition {
+  min-height: 100%;
 }
 
 img, video, svg, canvas {

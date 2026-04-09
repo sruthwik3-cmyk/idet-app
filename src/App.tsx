@@ -78,9 +78,9 @@ const AppRoutes = () => {
 
     return (
         <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/" element={<div className="public-page"><Landing /></div>} />
+            <Route path="/login" element={<div className="public-page"><Login /></div>} />
+            <Route path="/privacy" element={<div className="public-page"><PrivacyPolicy /></div>} />
             <Route path="/setup-profile" element={<Layout hideSidebar><SetupProfile /></Layout>} />
 
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

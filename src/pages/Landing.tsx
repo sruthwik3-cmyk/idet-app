@@ -8,7 +8,7 @@ const Landing: React.FC = () => {
     return (
         <div className="animate-fade-in page-transition" style={{
             background: '#09090b',
-            minHeight: '100vh',
+            minHeight: '100%',
             color: 'white',
             overflowX: 'hidden',
             fontFamily: "'Inter', sans-serif",
