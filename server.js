@@ -205,9 +205,11 @@ app.post('/api/send-email', emailLimiter, async (req, res) => {
         res.status(500).json({
             success: false,
             error: error.message,
-            hint: error.message.includes('invalid_client')
-                ? 'Check your Google Client ID and Secret in Render/Supabase.'
-                : (error.message.includes('invalid_grant') ? 'Your Refresh Token is invalid or expired. Please re-generate it.' : 'Check your Google Cloud settings.'),
+            hint: error.message.includes('unauthorized_client') 
+                ? 'Your Client ID/Secret do not match the Refresh Token. Ensure you used the SAME Client ID/Secret in BOTH Google Playground and Render.'
+                : (error.message.includes('invalid_client')
+                    ? 'Check your Google Client ID and Secret in Render/Supabase. One of them is likely incorrect.'
+                    : (error.message.includes('invalid_grant') ? 'Your Refresh Token is invalid or expired. Please re-generate it.' : 'Check your Google Cloud settings.')),
             details: error.response?.data,
             credentialsDiagnostic: {
                 hasId: !!process.env.GOOGLE_CLIENT_ID,
