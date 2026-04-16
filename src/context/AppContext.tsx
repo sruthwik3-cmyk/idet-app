@@ -29,6 +29,7 @@ export interface UserProfile {
     email: string;
     dob: string;
     userGroup: 'Self' | 'Family' | 'Organization';
+    githubUrl?: string;
 }
 
 interface AppContextType {
@@ -92,12 +93,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                     email: profile.email || authEmail || '',
                     phone: profile.phone,
                     dob: profile.dob,
-                    userGroup: profile.user_group
+                    userGroup: profile.user_group,
+                    githubUrl: profile.github_url || ''
                 };
                 setUserProfile(p);
                 userProfileRef.current = p;
             } else {
-                const shell: UserProfile = { id: userId, fullName: '', email: authEmail || '', phone: '', dob: '', userGroup: 'Self' as const };
+                const shell: UserProfile = { id: userId, fullName: '', email: authEmail || '', phone: '', dob: '', userGroup: 'Self' as const, githubUrl: '' };
                 setUserProfile(shell);
                 userProfileRef.current = shell;
             }
@@ -452,7 +454,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             email: profile.email,
             phone: profile.phone,
             user_group: profile.userGroup,
-            dob: profile.dob
+            dob: profile.dob,
+            github_url: profile.githubUrl || ''
         });
     };
 

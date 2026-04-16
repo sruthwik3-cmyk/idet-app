@@ -1,5 +1,77 @@
 import { generateCalendarUrl } from './calendarUtils';
 
+// ─── Helper Utilities ────────────────────────────────────────────────────────
+
+/** Simple sleep/delay helper */
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Safely parse a fetch response as JSON.
+ * Returns { _htmlError: true } if the response is HTML (e.g. Render spin-up page)
+ * instead of throwing and crashing the app.
+ */
+const parseJsonSafe = async (response: Response): Promise<any> => {
+    const contentType = response.headers.get('content-type') || '';
+    
+    // Check if it's JSON first
+    if (!contentType.includes('application/json')) {
+        // Safe to read text since we haven't consumed the stream yet
+        const text = await response.text();
+        console.warn('[Email] Non-JSON response received:', text.substring(0, 200));
+        return { 
+            _htmlError: true, 
+            rawText: text.substring(0, 200),
+            status: response.status 
+        };
+    }
+
+    try {
+        // Clone the response so we can read it as text if JSON parsing fails
+        const clonedResponse = response.clone();
+        try {
+            return await response.json();
+        } catch (jsonErr) {
+            const text = await clonedResponse.text();
+            console.warn('[Email] JSON parse failed, falling back to text:', text.substring(0, 200));
+            return { 
+                _htmlError: true, 
+                rawText: text.substring(0, 200),
+                status: response.status,
+                parseError: true
+            };
+        }
+    } catch (err: any) {
+        console.error('[Email] Critical error in parseJsonSafe:', err);
+        return { _htmlError: true, error: err.message };
+    }
+};
+
+/**
+ * Ping the health endpoint to wake up the Render free-tier server before
+ * making the real email request. Free instances sleep after ~15 min inactivity
+ * and return an HTML placeholder page for the first request during spin-up.
+ */
+const wakeUpServer = async (): Promise<void> => {
+    try {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), 55000); // 55s max spin-up time
+        const res = await fetch('/api/health', { signal: controller.signal });
+        clearTimeout(id);
+        const data = await parseJsonSafe(res);
+        if (data._htmlError) {
+            // Server still starting — wait extra time
+            console.warn('[Email] Server still waking up, waiting 10s...');
+            await delay(10000);
+        } else {
+            console.log('[Email] Server is awake. Gmail status:', data.gmailStatus);
+        }
+    } catch (e) {
+        console.warn('[Email] Wake-up ping failed (server might still be starting):', e);
+        await delay(5000);
+    }
+};
+
+
 /**
  * Sends an email alert via the backend API.
  * The backend now uses Gmail API (REST) to bypass Render port blocks.
@@ -182,9 +254,14 @@ Sent via Gmail API • Secure & Reliable Document Tracking
     `.trim();
 
     try {
+        console.log(`[Email] Waking up backend server...`);
+        // Step 1: Wake up the Render server (free tier sleeps after inactivity)
+        // This prevents the HTML "spinning up" page from being returned for the email request
+        await wakeUpServer();
+
         console.log(`[Email] Sending request to backend for: ${docName}`);
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
         const response = await fetch('/api/send-email', {
             method: 'POST',
@@ -195,18 +272,45 @@ Sent via Gmail API • Secure & Reliable Document Tracking
 
         clearTimeout(timeoutId);
 
-        const data = await response.json();
-        console.log(`[Email] Backend response for "${docName}":`, data);
+        // Step 2: Validate response is JSON before parsing
+        // If Render is still waking up, it may return HTML instead of JSON
+        const safeData = await parseJsonSafe(response);
+        console.log(`[Email] Backend response for "${docName}":`, safeData);
+
+        if (safeData._htmlError) {
+            console.error(`[Email] Server returned HTML (still waking up?) for "${docName}"`);
+            // Step 3: Retry once after a short delay
+            console.log(`[Email] Retrying after 5 seconds...`);
+            await delay(5000);
+            const retryResponse = await fetch('/api/send-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ to: toEmail, subject, html, text }),
+            });
+            const retryData = await parseJsonSafe(retryResponse);
+            if (retryData._htmlError) {
+                return { success: false, error: 'Server is still starting up. Please try again in 30 seconds.' };
+            }
+            if (!retryResponse.ok) {
+                return { success: false, error: retryData.error || retryData.hint || 'Email send failed on retry' };
+            }
+            return { success: true, ...retryData };
+        }
 
         if (!response.ok) {
-            console.error(`[Email] Backend FAILED for "${docName}":`, data.error || 'Unknown error');
-            return { success: false, error: data.error || data.hint || 'Backend Error' };
+            console.error(`[Email] Backend FAILED for "${docName}":`, safeData.error || 'Unknown error');
+            // Provide a user-friendly message for expired token
+            const errorMsg = safeData.error || '';
+            if (errorMsg.includes('invalid_grant') || errorMsg.includes('Token has been expired')) {
+                return { success: false, error: 'Gmail token expired. Admin needs to update the refresh token on Render.' };
+            }
+            return { success: false, error: safeData.error || safeData.hint || 'Backend Error' };
         }
-        return { success: true, ...data };
+        return { success: true, ...safeData };
     } catch (error: any) {
         console.error(`[Email] Fetch error for "${docName}":`, error);
         if (error.name === 'AbortError') {
-            return { success: false, error: 'Email request timed out (Backend slow)' };
+            return { success: false, error: 'Email request timed out. The server may be starting up — please try again in 30 seconds.' };
         }
         return { success: false, error: error.message || 'Network error (Check Render Logs)' };
     }
@@ -216,14 +320,18 @@ Sent via Gmail API • Secure & Reliable Document Tracking
  * Backend connectivity test for Gmail API.
  */
 export const testBackendConnectivity = async (email: string) => {
-    const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            to: email,
-            subject: 'IDET Connectivity Test',
-            text: 'Connection Successful!'
-        }),
-    });
-    return response.json();
+    try {
+        const response = await fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                to: email,
+                subject: 'IDET Connectivity Test',
+                text: 'Connection Successful!'
+            }),
+        });
+        return await parseJsonSafe(response);
+    } catch (err: any) {
+        return { success: false, error: err.message || 'Network error' };
+    }
 };

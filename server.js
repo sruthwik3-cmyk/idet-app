@@ -55,7 +55,15 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
-app.use(express.json({ limit: '10kb' })); // Limit body size to prevent payload attacks
+app.use(express.json({ limit: '1mb' })); // Increased limit to accommodate large HTML email templates
+// Middleware to handle JSON parsing errors
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        console.error('[Middleware] JSON Parse Error:', err.message);
+        return res.status(400).json({ success: false, error: 'Invalid JSON payload' });
+    }
+    next();
+});
 
 // Serve static files from the 'dist' directory
 const distPath = path.join(__dirname, 'dist');
