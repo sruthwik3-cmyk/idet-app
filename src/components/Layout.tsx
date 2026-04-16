@@ -27,6 +27,13 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
 
     // Lock body scroll when inside app layout — prevents double scrollbar
     React.useEffect(() => {
+        // Only lock if we are showing the sidebar (main app area)
+        if (hideSidebar) {
+            document.body.style.overflow = '';
+            document.body.style.height = '';
+            return;
+        }
+
         // Hide the body scrollbar — only .main-content scrolls
         document.body.style.overflow = 'hidden';
         document.body.style.height = '100vh';
@@ -35,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideSidebar = false }) => {
             document.body.style.overflow = '';
             document.body.style.height = '';
         };
-    }, []);
+    }, [hideSidebar]);
 
     // Global listener to unlock audio context on first interaction
     React.useEffect(() => {

@@ -46,11 +46,11 @@ const SetupProfile: React.FC = () => {
             minHeight: '100vh',
             width: '100vw',
             justifyContent: 'center',
-            alignItems: 'center',
+            alignItems: isMobile ? 'flex-start' : 'center',
             position: 'relative',
             background: '#0f172a',
             overflowX: 'hidden',
-            padding: '1.5rem 0'
+            padding: isMobile ? '2rem 1rem' : '1.5rem 0'
         }}>
             {/* Styles for responsive overrides */}
             <style>{`
