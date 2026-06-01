@@ -43,14 +43,14 @@ const AppRoutes = () => {
     const location = window.location.pathname;
     const [forceShowApp, setForceShowApp] = React.useState(false);
 
-    // EMERGENCY: Force show app after 5 seconds if still loading
+    // EMERGENCY: Force show app after 15 seconds if still loading
     React.useEffect(() => {
         const emergencyTimer = setTimeout(() => {
             if (loading) {
-                console.error('[App] EMERGENCY: Forcing app to show after 5 seconds');
+                console.error('[App] EMERGENCY: Forcing app to show after 15 seconds');
                 setForceShowApp(true);
             }
-        }, 5000);
+        }, 15000);
 
         return () => clearTimeout(emergencyTimer);
     }, [loading]);

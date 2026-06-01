@@ -139,12 +139,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         let timeoutId: NodeJS.Timeout;
         let emergencyTimeout: NodeJS.Timeout;
         
-        // CRITICAL: Force stop loading after 5 seconds no matter what
+        // CRITICAL: Force stop loading after 15 seconds no matter what
         emergencyTimeout = setTimeout(() => {
-            console.error('[AppContext] EMERGENCY TIMEOUT (5s) - Forcing loading to stop');
+            console.error('[AppContext] EMERGENCY TIMEOUT (15s) - Forcing loading to stop');
             setLoading(false);
             setAuthError('Connection timeout. Please refresh the page.');
-        }, 5000);
+        }, 15000);
         
         const initAuth = async () => {
             try {
@@ -152,7 +152,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
                 
                 // Add timeout to prevent infinite loading
                 const timeoutPromise = new Promise((_, reject) => {
-                    timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 3000);
+                    timeoutId = setTimeout(() => reject(new Error('Auth timeout')), 10000);
                 });
                 
                 const authPromise = supabase.auth.getSession();
