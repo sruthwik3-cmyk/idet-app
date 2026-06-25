@@ -264,8 +264,17 @@ app.get('/api/health', async (req, res) => {
         const { gmail, oauth2Client } = await getGmailClient();
         console.log('[Health Check] Verification: Attempting token refresh...');
         const { token } = await oauth2Client.getAccessToken();
-        const profile = await gmail.users.getProfile({ userId: 'me' });
-        gmailStatus = `connected as ${profile.data.emailAddress}`;
+        try {
+            const profile = await gmail.users.getProfile({ userId: 'me' });
+            gmailStatus = `connected as ${profile.data.emailAddress}`;
+        } catch (profileErr) {
+            if (profileErr.code === 403 || profileErr.message?.includes('scopes') || profileErr.message?.includes('Permission')) {
+                console.log('[Health Check] Gmail API connected in send-only mode.');
+                gmailStatus = `connected as ${gmailUser} (send-only)`;
+            } else {
+                throw profileErr;
+            }
+        }
     } catch (err) {
         console.error('[Health Check] Auth Failure:', {
             msg: err.message,
