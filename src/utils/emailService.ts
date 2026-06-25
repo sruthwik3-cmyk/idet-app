@@ -1,4 +1,5 @@
 import { generateCalendarUrl } from './calendarUtils';
+import emailjs from '@emailjs/browser';
 
 // ─── Helper Utilities ────────────────────────────────────────────────────────
 
@@ -73,10 +74,68 @@ const wakeUpServer = async (): Promise<void> => {
 
 
 /**
+ * Sends an email using EmailJS directly from the client.
+ */
+export const sendViaEmailJS = async (toEmail: string, docName: string, daysLeft: number, expiryDateStr: string, priority: string) => {
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey || 
+        serviceId === 'YOUR_SERVICE_ID' || templateId === 'YOUR_TEMPLATE_ID' || publicKey === 'YOUR_PUBLIC_KEY' ||
+        !serviceId.trim() || !templateId.trim() || !publicKey.trim()) {
+        console.log('[EmailJS] Credentials not configured or using placeholders. Skipping.');
+        return { success: false, error: 'EmailJS not configured' };
+    }
+
+    const calendarUrl = generateCalendarUrl(docName, expiryDateStr, priority);
+    const formattedDate = new Date(expiryDateStr).toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+
+    const isUrgent = daysLeft <= 7;
+    const subject = isUrgent 
+        ? `🚨 URGENT: ${docName} expires in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}` 
+        : `📋 Reminder: ${docName} expires in ${daysLeft} days`;
+
+    const templateParams = {
+        to_email: toEmail,
+        doc_name: docName,
+        days_left: daysLeft,
+        expiry_date: formattedDate,
+        priority: priority,
+        calendar_url: calendarUrl,
+        subject: subject
+    };
+
+    try {
+        console.log('[EmailJS] Attempting direct browser email send...');
+        const response = await emailjs.send(serviceId, templateId, templateParams, publicKey);
+        console.log('[EmailJS] SUCCESS!', response.status, response.text);
+        return { success: true, messageId: response.text };
+    } catch (err: any) {
+        console.error('[EmailJS] FAILED:', err);
+        return { success: false, error: err.text || err.message || 'EmailJS sending failed' };
+    }
+};
+
+
+/**
  * Sends an email alert via the backend API.
  * The backend now uses Gmail API (REST) to bypass Render port blocks.
  */
 export const sendExpiryAlert = async (toEmail: string, docName: string, daysLeft: number, expiryDateStr: string, priority: string = 'Important') => {
+    // Step 0: Try to send via EmailJS first if configured
+    const emailJsResult = await sendViaEmailJS(toEmail, docName, daysLeft, expiryDateStr, priority);
+    if (emailJsResult.success) {
+        return emailJsResult;
+    } else if (emailJsResult.error !== 'EmailJS not configured') {
+        console.warn('[Email] EmailJS failed, falling back to Gmail API backend. Error:', emailJsResult.error);
+    }
+
     const isUrgent = daysLeft <= 7;
     const subject = isUrgent 
         ? `🚨 URGENT: ${docName} expires in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}` 
